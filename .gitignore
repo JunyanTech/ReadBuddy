@@ -1,0 +1,32 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- Build/regression scratch files ----
+# Throwaway harnesses and check scripts generated during development
+build/_*.html
+build/_*.py
+
+# ---- Screenshots and temporary captures ----
+*.png
+*.jpg
+*.jpeg
+
+# ---- Editors and OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Local logs, exported scores and internal notes ----
+*.log
+*.csv
+.env
+Prompt for ReadBuddy project.txt
+
+# ---- Documents kept locally, not published ----
+PRD.md

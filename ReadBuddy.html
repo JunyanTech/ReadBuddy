@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="阅读陪伴者">
+<meta name="theme-color" content="#FBF3E4">
+<title>ReadBuddy</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FBF3E4'/%3E%3Cpath d='M14 18h15v30H14z' fill='%23C9762B'/%3E%3Cpath d='M35 18h15v30H35z' fill='%23E0A15E'/%3E%3Cpath d='M32 20v28' stroke='%232A2622' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#FBF3E4;
+    --paper-2:#F5E9D2;
+    --card:#FFFDF6;
+    --ink:#2A2622;
+    --ink-soft:#7A6E60;
+    --ink-faint:#A2937F;
+    --line:#E7DAC3;
+    --line-soft:#EFE4CF;
+    --blue:#2B66AC;
+    --red:#BE3F2C;
+    --accent:#C9762B;
+    --accent-2:#E0A15E;
+    --gold:#C99A3F;
+    --ui:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --kai:"Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Songti SC",serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--ui);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overscroll-behavior-y:none;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(rgba(122,98,64,.06) 1px, transparent 1px);
+    background-size:20px 20px;
+  }
+  .view{position:relative;z-index:1}
+  .hidden{display:none !important}
+
+  /* ---------- Home screen ---------- */
+  .home{
+    max-width:840px;margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 22px) 20px calc(env(safe-area-inset-bottom) + 26px);
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand svg{flex:0 0 auto;width:46px;height:46px}
+  .hello{margin:0;font-size:clamp(24px,3.4vw,32px);font-weight:600;letter-spacing:.02em;line-height:1.25}
+  .clock{
+    margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    font-variant-numeric:tabular-nums;color:var(--ink-soft);font-size:15px;
+  }
+  .clock .t{font-size:22px;color:var(--ink);font-weight:600;letter-spacing:.04em}
+  .clock .sep{color:var(--line);}
+  .clock .sound-btn{
+    margin-left:auto;font-size:12.5px;padding:7px 13px;min-height:36px;letter-spacing:.02em;
+  }
+
+  .sect{margin-top:30px}
+  .sect-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .sect-title{margin:0;font-size:15px;font-weight:600;letter-spacing:.12em;color:var(--ink-soft)}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 16px 14px;min-width:0;
+  }
+  .stat .lab{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+  .stat .val{
+    margin-top:8px;font-size:clamp(30px,5vw,42px);font-weight:600;
+    font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.05;
+  }
+  .stat .val.empty{color:var(--ink-soft);font-weight:500;font-size:clamp(20px,3vw,24px);letter-spacing:.02em}
+  .stat .sub{margin-top:6px;font-size:12px;color:var(--ink-faint)}
+  .stat .bar{margin-top:10px;height:3px;border-radius:2px;background:var(--line-soft);overflow:hidden}
+  .stat .bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+  .badge-strip{
+    display:flex;gap:10px;flex-wrap:wrap;padding:2px 2px 6px;
+  }
+  .badge-strip::-webkit-scrollbar{display:none}
+  .badge{flex:0 0 auto;width:62px;text-align:center;background:none;border:0;padding:0;cursor:pointer}
+  .badge .disc{
+    width:56px;height:56px;margin:0 auto;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px dashed var(--line);color:var(--ink-faint);background:rgba(255,255,255,.35);
+  }
+  .badge.on .disc{border:1.5px solid var(--gold);background:#FFF6DF;color:var(--gold);box-shadow:0 2px 0 rgba(201,154,63,.25)}
+  .badge .nm{margin-top:6px;font-size:11px;color:var(--ink-soft);line-height:1.3;word-break:break-all}
+  .badge.on .nm{color:var(--ink)}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    border-radius:999px;padding:8px 15px;font-size:14px;font-family:var(--ui);cursor:pointer;
+    min-height:44px;
+  }
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#FFF9EC}
+
+  .toc{margin-top:8px;border-top:1px solid var(--line)}
+  .toc-row{
+    display:flex;align-items:center;gap:12px;padding:13px 4px;
+    border-bottom:1px solid var(--line-soft);cursor:pointer;background:none;
+    width:100%;text-align:left;border-left:0;border-right:0;border-top:0;font-family:var(--ui);
+    color:var(--ink);min-height:56px;
+  }
+  .toc-row:active{background:rgba(201,118,43,.06)}
+  .toc-num{width:26px;flex:0 0 auto;font-size:12px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+  .toc-body{flex:1;min-width:0}
+  .toc-name{display:block;font-size:18px;font-weight:500;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toc-meta{display:block;margin-top:3px;font-size:12px;color:var(--ink-faint)}
+  .toc-right{flex:0 0 auto;text-align:right;font-size:12px;color:var(--ink-faint)}
+  .toc-right b{display:block;font-size:14px;font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .toc-right .done{color:var(--blue)}
+  .toc-right .cont{color:var(--accent)}
+
+  .toc-pager{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap;
+  }
+  .page-btn{
+    font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--card);
+    border:1px solid var(--line);border-radius:10px;padding:0 16px;min-height:44px;
+    min-width:92px;cursor:pointer;
+  }
+  .page-btn:disabled{opacity:.35;cursor:default}
+  .page-btn:active:not(:disabled){background:rgba(201,118,43,.08)}
+  .page-info{font-size:13px;color:var(--ink-faint);flex:1;text-align:center;line-height:1.5}
+
+  .home-foot{
+    margin-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+    padding-top:18px;border-top:1px solid var(--line);
+  }
+  .ghost{
+    border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    border-radius:999px;padding:11px 16px;font-size:14px;font-family:var(--ui);cursor:pointer;min-height:44px;
+  }
+  .ghost.on{color:var(--ink);border-color:var(--ink-faint)}
+  .foot-note{
+    align-self:stretch;width:100%;text-align:center;
+    font-size:12px;color:var(--ink-faint);line-height:1.6;
+    padding-bottom:4px;
+  }
+
+  /* ---------- Reader screen ---------- */
+  .read-view{
+    display:flex;flex-direction:column;
+    height:100vh;height:100dvh;max-width:900px;margin:0 auto;
+  }
+  .rd-top{
+    display:flex;align-items:center;gap:12px;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+  }
+  .icon-btn{
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:18px;
+  }
+  .rd-title{flex:1;min-width:0}
+  .rd-title h2{margin:0;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rd-title span{font-size:11px;color:var(--ink-faint)}
+  .rd-metrics{display:flex;gap:14px;flex:0 0 auto}
+  .metric{text-align:right}
+  .metric i{display:block;font-style:normal;font-size:10px;color:var(--ink-faint);letter-spacing:.08em}
+  .metric b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+
+  .progress-line{height:2px;background:var(--line-soft);position:relative;flex:0 0 auto}
+  .progress-line i{position:absolute;left:0;top:0;height:100%;width:0;background:var(--accent-2);transition:width .3s}
+
+  .rd-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px 26px;display:flex}
+
+  .paper{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:26px 22px 30px;
+    box-shadow:0 1px 0 rgba(160,140,110,.10),0 22px 34px -26px rgba(90,70,40,.55);
+    min-height:46vh;flex:1 0 auto;width:100%;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .txt{
+    font-family:var(--kai);
+    font-size:clamp(23px,3.5vw,31px);
+    line-height:2.05;
+    letter-spacing:.04em;
+    color:var(--ink);
+    margin:0;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    touch-action:manipulation;
+  }
+  .ch{
+    border-radius:3px;transition:color .1s ease,background-color .1s ease;
+    cursor:default;
+  }
+  .ch.tap{cursor:pointer}
+  .ch.ok{color:var(--blue);background:rgba(43,102,172,.11)}
+  .ch.bad{color:var(--red);background:rgba(190,63,44,.12)}
+  ruby.ch{display:inline-ruby}
+  .ch rt{
+    font-family:var(--ui);font-size:.4em;color:var(--red);
+    letter-spacing:0;line-height:1.4;
+  }
+  .punct{padding:0 .02em}
+
+  .rd-bottom{
+    flex:0 0 auto;border-top:1px solid var(--line);
+    background:var(--paper);
+    padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);
+  }
+  .pager{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .pill{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:999px;padding:10px 18px;font-size:14px;font-family:var(--ui);
+    cursor:pointer;min-height:44px;
+  }
+  .pill:disabled{opacity:.35}
+  .page-num{font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .mic-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .mic{
+    flex:1;border:1px solid var(--accent);background:var(--accent);color:#FFF8EC;
+    border-radius:999px;padding:12px 18px;font-size:15px;font-family:var(--ui);font-weight:600;
+    cursor:pointer;min-height:48px;letter-spacing:.02em;
+  }
+  .mic.on{background:var(--ink);border-color:var(--ink)}
+  .mic.stop{background:var(--card);border-color:var(--ink-faint);color:var(--ink)}
+  .mode-btn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    border-radius:999px;padding:10px 14px;font-size:13px;font-family:var(--ui);cursor:pointer;min-height:44px;
+  }
+  .hint{margin-top:9px;font-size:12px;color:var(--ink-faint);line-height:1.55;text-align:center}
+
+  /* ---------- Dialogs ---------- */
+  .scrim{
+    position:fixed;inset:0;z-index:40;background:rgba(42,38,34,.42);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    animation:fadeIn .18s ease;
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .sheet{
+    width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:22px;box-shadow:0 30px 60px -20px rgba(40,30,20,.45);
+    animation:pop .22s cubic-bezier(.2,.9,.3,1);max-height:86vh;overflow:auto;
+  }
+  .sheet h3{margin:0 0 4px;font-size:19px}
+  .sheet .lede{margin:0;font-size:13px;color:var(--ink-soft)}
+  .big-acc{margin:16px 0 4px;font-size:56px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+  .big-acc small{font-size:20px;font-weight:500;margin-left:2px}
+  .sum-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  .sum-cell{background:var(--paper);border:1px solid var(--line-soft);border-radius:10px;padding:10px 8px;text-align:center}
+  .sum-cell i{display:block;font-style:normal;font-size:11px;color:var(--ink-faint)}
+  .sum-cell b{font-size:16px;font-variant-numeric:tabular-nums}
+  .wrong-title{margin:20px 0 8px;font-size:12px;letter-spacing:.1em;color:var(--ink-soft)}
+  .wrong-list{display:flex;flex-wrap:wrap;gap:8px}
+  .wrong-item{
+    display:flex;flex-direction:column;align-items:center;min-width:44px;
+    background:#FBEAE6;border:1px solid #F0CFC7;border-radius:8px;padding:5px 7px;
+  }
+  .wrong-item em{font-style:normal;font-size:10px;color:var(--red);font-family:var(--ui)}
+  .wrong-item span{font-family:var(--kai);font-size:22px;color:var(--red);line-height:1.2}
+  .none{font-size:13px;color:var(--ink-soft)}
+  .sheet-actions{display:flex;gap:10px;margin-top:20px}
+  .sheet-actions button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-family:var(--ui);cursor:pointer;min-height:48px}
+  .primary{background:var(--ink);color:#FFF9EC;border:1px solid var(--ink)}
+  .secondary{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+
+  #toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 26px);
+    transform:translate(-50%,20px);z-index:60;
+    background:rgba(42,38,34,.94);color:#FFF9EC;padding:11px 18px;border-radius:999px;
+    font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:86vw;
+    text-align:center;line-height:1.4;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .badge-pop{
+    position:fixed;top:calc(env(safe-area-inset-top) + 14px);left:50%;transform:translate(-50%,-120%);
+    z-index:70;background:#FFF6DF;border:1px solid var(--gold);border-radius:14px;
+    padding:12px 18px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 18px 40px -18px rgba(201,154,63,.7);transition:transform .32s cubic-bezier(.2,.9,.3,1);
+  }
+  .badge-pop.show{transform:translate(-50%,0)}
+  .badge-pop .disc{width:42px;height:42px;border-radius:50%;background:#FFF0C9;display:flex;align-items:center;justify-content:center;color:var(--gold)}
+  .badge-pop b{display:block;font-size:14px}
+  .badge-pop span{display:block;font-size:11px;color:var(--ink-soft)}
+
+  @media (max-width:430px){
+    .stats{gap:8px}
+    .stat{padding:13px 12px}
+    .paper{padding:20px 16px 24px}
+    .rd-metrics{gap:10px}
+    .metric b{font-size:15px}
+    /* On narrow screens let filters and badges wrap instead of hiding behind horizontal scroll */
+    .chips{flex-wrap:wrap;overflow:visible}
+    .chip{padding:7px 12px;font-size:13px;min-height:40px}
+    .badge-strip{flex-wrap:wrap;overflow:visible;gap:6px}
+    /* Keep date, time, weekday and the sound button on one row */
+    .clock{flex-wrap:nowrap;gap:8px}
+    .clock .t{font-size:19px}
+    .clock #clkDate{font-size:12.5px;line-height:1.4}
+    .clock .sound-btn{padding:6px 10px;font-size:12px;min-height:34px;flex:0 0 auto}
+  }
+  /* Small phones (iPhone SE, narrow Android screens) */
+  @media (max-width:380px){
+    .home{padding-left:16px;padding-right:16px}
+    .hello{font-size:22px}
+    .brand svg{width:40px;height:40px}
+    .txt{font-size:21px;line-height:1.95}
+    .paper{padding:16px 14px 20px;min-height:42vh}
+    .toc-name{font-size:17px}
+    .metric i{font-size:9px}
+    .metric b{font-size:14px}
+    .rd-top{padding-left:12px;padding-right:12px;gap:8px}
+    .page-btn{min-width:84px;font-size:14px;padding:0 12px}
+    .page-info{font-size:12px}
+  }
+  @media (min-width:760px){
+    .stats{gap:16px}
+    .paper{padding:38px 44px 44px;min-height:44vh}
+    .rd-scroll{padding:26px 30px 30px}
+  }
+  /* Desktop (Windows / Mac): stop squeezing content into one narrow column */
+  @media (min-width:1024px){
+    .home{max-width:940px;padding-left:28px;padding-right:28px}
+    .read-view{max-width:860px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+    .paper{padding:44px 52px 48px;min-height:40vh}
+    .txt{font-size:clamp(26px,1.9vw,32px);line-height:2.15}
+    .rd-scroll{padding:26px 22px 30px}
+    .rd-top{padding-left:24px;padding-right:24px}
+    .rd-bottom{padding:14px 24px calc(env(safe-area-inset-bottom) + 14px)}
+    .mic-row{max-width:560px;margin-left:auto;margin-right:auto}
+    .hint{max-width:620px;margin-left:auto;margin-right:auto}
+    .toc-row{padding:15px 8px}
+    .toc-name{font-size:19px}
+  }
+  @media (min-width:1500px){
+    .home{max-width:1000px}
+    .rd-scroll{padding:40px 60px 44px}
+  }
+  /* Pointer devices: add hover feedback */
+  @media (hover:hover) and (pointer:fine){
+    .toc-row:hover{background:rgba(201,118,43,.06)}
+    .chip:hover{border-color:var(--accent-2);color:var(--ink)}
+    .ghost:hover,.pill:hover,.mode-btn:hover,.page-btn:hover:not(:disabled){border-color:var(--accent-2)}
+    .icon-btn:hover{border-color:var(--accent-2)}
+    .mic:hover{filter:brightness(1.06)}
+    .badge:hover{transform:translateY(-1px)}
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.4C10 5 7.5 4.6 4.6 5.4v12.2c2.9-.8 5.4-.4 7.4 1 2-1.4 4.5-1.8 7.4-1V5.4C16.5 4.6 14 5 12 6.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 6.4v12.2" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.3 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.3 9.4l6.1-.8L12 3z" fill="currentColor"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10.2h17" stroke="currentColor" stroke-width="1.7"/><path d="M8 3.2v4.2M16 3.2v4.2" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></symbol>
+  <symbol id="i-gem" viewBox="0 0 24 24"><path d="M7 3h10l4 6-9 12L3 9l4-6z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M9 3l-2 6 5 12 5-12-2-6" stroke="currentColor" stroke-width="1.2" fill="none"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8l4 4 5-7 5 7 4-4-2 10H5L3 8z" fill="currentColor"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4c-8 0-14 3.6-14 10a6 6 0 0 0 6 6c5.6 0 8-6 8-16z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M20 4L7 19" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.4 2.2" stroke="currentColor" stroke-width="1.6" fill="none"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 12.4l2.7 2.8 5.3-5.9" fill="none" stroke="currentColor" stroke-width="1.9"/></symbol>
+  <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="9.4" r="5.3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.8 13.3L7.2 21.4l4.8-2.5 4.8 2.5-1.6-8.1" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+  <symbol id="i-stack" viewBox="0 0 24 24"><rect x="4" y="5.6" width="13" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="10.3" width="15.5" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="15" width="18" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.2v3M12 17.8v3M3.2 12h3M17.8 12h3M5.8 5.8l2.1 2.1M16.1 16.1l2.1 2.1M18.2 5.8l-2.1 2.1M7.9 16.1l-2.1 2.1" stroke="currentColor" stroke-width="1.7"/></symbol>
+</svg>
+
+<div id="app">
+
+  <!-- ===== View: home ===== -->
+  <section id="view-home" class="view home">
+    <div class="brand">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="46" height="46" style="color:var(--accent)">
+        <path d="M12 6.4C10 5 7.5 4.6 4.6 5.4v12.2c2.9-.8 5.4-.4 7.4 1 2-1.4 4.5-1.8 7.4-1V5.4C16.5 4.6 14 5 12 6.4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 6.4v12.2" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <h1 class="hello">欢迎使用阅读陪伴者</h1>
+    </div>
+    <div class="clock">
+      <span class="t" id="clkTime">--:--</span>
+      <span id="clkDate">加载中</span>
+      <button class="ghost on sound-btn" id="btnSound">音效：开</button>
+    </div>
+
+    <section class="sect">
+      <div class="sect-head">
+        <h2 class="sect-title">我的成绩</h2>
+        <span class="sect-title" style="letter-spacing:0;color:var(--ink-faint)" id="readTotal">还没有朗读记录</span>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="lab">首次阅读准确率</div>
+          <div class="val empty" id="accDay">—</div>
+          <div class="sub" id="accDaySub">还没有记录</div>
+          <div class="bar"><i id="barDay"></i></div>
+        </div>
+        <div class="stat">
+          <div class="lab">复习阅读准确率</div>
+          <div class="val empty" id="accWeek">—</div>
+          <div class="sub" id="accWeekSub">还没有记录</div>
+          <div class="bar"><i id="barWeek"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sect">
+      <div class="sect-head">
+        <h2 class="sect-title">徽章</h2>
+        <span class="sect-title" style="letter-spacing:0;color:var(--ink-faint)" id="badgeCount">0 / 12</span>
+      </div>
+      <div class="badge-strip" id="badges"></div>
+    </section>
+
+    <section class="sect">
+      <div class="sect-head">
+        <h2 class="sect-title">书架 · <span id="libCount">50</span> 篇</h2>
+        <span class="sect-title" style="letter-spacing:0;color:var(--ink-faint)" id="libHint">选一篇开始读</span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="toc" id="toc"></div>
+      <div class="toc-pager" id="tocPager">
+        <button class="page-btn" id="tocPrev">上一页</button>
+        <span class="page-info" id="tocInfo"></span>
+        <button class="page-btn" id="tocNext">下一页</button>
+      </div>
+    </section>
+
+    <div class="home-foot">
+      <button class="ghost" id="btnExport">导出成绩文件</button>
+      <div class="foot-note">Copy Right © 2026 JunyanTech</div>
+    </div>
+  </section>
+
+  <!-- ===== View: reader ===== -->
+  <section id="view-read" class="view read-view hidden">
+    <header class="rd-top">
+      <button class="icon-btn" id="btnBack" aria-label="返回书架">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="color:var(--ink)"><path d="M14.5 5L7.5 12l7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="rd-title">
+        <h2 id="rdTitle">故事</h2>
+        <span id="rdSub">我的世界 · 3 页</span>
+      </div>
+      <div class="rd-metrics">
+        <div class="metric"><i>用时</i><b id="rdTimer">0:00</b></div>
+        <div class="metric"><i>准确率</i><b id="rdAcc">—</b></div>
+      </div>
+    </header>
+    <div class="progress-line"><i id="progLine"></i></div>
+    <div class="rd-scroll" id="rdScroll">
+      <div class="paper"><p class="txt" id="pageText"></p></div>
+    </div>
+    <footer class="rd-bottom">
+      <div class="pager">
+        <button class="pill" id="btnPrev">上一页</button>
+        <span class="page-num" id="pageNum">1 / 3</span>
+        <button class="pill" id="btnNext">下一页</button>
+      </div>
+      <div class="mic-row">
+        <button class="mic" id="btnMic">开始朗读</button>
+        <button class="mode-btn" id="btnMode">点读模式</button>
+      </div>
+      <div class="hint" id="rdHint">读对的字会变蓝，读错的字会变红并标上拼音。</div>
+    </footer>
+  </section>
+
+</div>
+
+<div id="overlay"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const STORIES = [{"id":"mc01","title":"第一次挖到钻石","tag":"我的世界","pages":[{"t":"阿木第一次自己下矿洞。他把火把举在左手，把铁镐握在右手，沿着自己挖出来的楼梯，一级一级往下走。走到第十层，石头变成了青灰色，敲一下就掉下好几块。他把火把插在墙上，火光把影子拉得很长。洞顶上有水珠，一滴一滴落在他的帽子上。","p":["ā","mù","dì","yī","cì","zì","jǐ","xià","kuàng","dòng","","tā","bǎ","huǒ","bǎ","jǔ","zài","zuǒ","shǒu","","bǎ","tiě","gǎo","wò","zài","yòu","shǒu","","yán","zhe","zì","jǐ","wā","chū","lái","de","lóu","tī","","yī","jí","yī","jí","wǎng","xià","zǒu","","zǒu","dào","dì","shí","céng","","shí","tou","biàn","chéng","le","qīng","huī","sè","","qiāo","yī","xià","jiù","diào","xià","hǎo","jǐ","kuài","","tā","bǎ","huǒ","bǎ","chā","zài","qiáng","shàng","","huǒ","guāng","bǎ","yǐng","zi","lā","dé","hěn","zhǎng","","dòng","dǐng","shàng","yǒu","shuǐ","zhū","","yī","dī","yī","dī","luò","zài","tā","de","mào","zi","shàng",""]},{"t":"忽然，镐子“叮”的一声，声音变得不一样，像敲在一块铁上。阿木扒开碎石，看见石头里嵌着几颗亮晶晶的小蓝点。他愣住了：这就是钻石吗？他没有急着挖，先看看旁边有没有水，有没有岩浆。哥哥说过，心急的人最容易掉进岩浆，连人带包一起没了。","p":["hū","rán","","gǎo","zi","","dīng","","de","yī","shēng","","shēng","yīn","biàn","dé","bù","yí","yàng","","xiàng","qiāo","zài","yī","kuài","tiě","shàng","","ā","mù","bā","kāi","suì","shí","","kàn","jiàn","shí","tou","lǐ","qiàn","zhe","jǐ","kē","liàng","jīng","jīng","de","xiǎo","lán","diǎn","","tā","lèng","zhù","le","","zhè","jiù","shì","zuàn","shí","ma","","tā","méi","yǒu","jí","zhe","wā","","xiān","kàn","kàn","páng","biān","yǒu","méi","yǒu","shuǐ","","yǒu","méi","yǒu","yán","jiāng","","gē","gē","shuō","guò","","xīn","jí","de","rén","zuì","róng","yì","diào","jìn","yán","jiāng","","lián","rén","dài","bāo","yì","qǐ","méi","le",""]},{"t":"他确认四周安全，才轻轻把钻石挖下来，一颗、两颗、三颗，装进背包。他笑得眼睛弯起来，蹲在原地喘了一会儿气。爬出矿洞的时候，天已经黑了。他把钻石放在桌上，像放了三颗小星星。“这是我自己找到的。”他说。","p":["tā","què","rèn","sì","zhōu","ān","quán","","cái","qīng","qīng","bǎ","zuān","shí","wā","xià","lái","","yī","kē","","liǎng","kē","","sān","kē","","zhuāng","jìn","bèi","bāo","","tā","xiào","dé","yǎn","jīng","wān","qǐ","lái","","dūn","zài","yuán","dì","chuǎn","le","yī","huì","ér","qì","","pá","chū","kuàng","dòng","de","shí","hòu","","tiān","yǐ","jīng","hēi","le","","tā","bǎ","zuān","shí","fàng","zài","zhuō","shàng","","xiàng","fàng","le","sān","kē","xiǎo","xīng","xīng","","","zhè","shì","wǒ","zì","jǐ","zhǎo","dào","de","","","tā","shuō",""]},{"t":"第二天，阿木把一颗钻石镶在铁镐上。再下矿洞的时候，石头一敲就开，比原来省力得多。他把这件事讲给弟弟听，弟弟听得眼睛发亮。他说：“下次带你下去，不过你得先学会看路。”","p":["dì","èr","tiān","","ā","mù","bǎ","yī","kē","zuān","shí","xiāng","zài","tiě","gǎo","shàng","","zài","xià","kuàng","dòng","de","shí","hòu","","shí","tóu","yī","qiāo","jiù","kāi","","bǐ","yuán","lái","shěng","lì","dé","duō","","tā","bǎ","zhè","jiàn","shì","jiǎng","gěi","dì","dì","tīng","","dì","dì","tīng","dé","yǎn","jīng","fā","liàng","","tā","shuō","","","xià","cì","dài","nǐ","xià","qù","","bù","guò","nǐ","dé","xiān","xué","huì","kàn","lù","",""]}]},{"id":"mc02","title":"苦力怕来敲门","tag":"我的世界","pages":[{"t":"天刚黑，小雨在木屋里点起火把。门外传来“嘶——”的一声，像有人偷偷撕纸。她从门缝往外看，一个绿色的方块脑袋正站在门口，四条小腿一动不动。月亮照在它身上，它的脸上没有眼睛，只有一张长长的嘴。","p":["tiān","gāng","hēi","","xiǎo","yǔ","zài","mù","wū","lǐ","diǎn","qǐ","huǒ","bǎ","","mén","wài","chuán","lái","","sī","","","","de","yī","shēng","","xiàng","yǒu","rén","tōu","tōu","sī","zhǐ","","tā","cóng","mén","fèng","wǎng","wài","kàn","","yī","gè","lǜ","sè","de","fāng","kuài","nǎo","dài","zhèng","zhàn","zài","mén","kǒu","","sì","tiáo","xiǎo","tuǐ","yī","dòng","bù","dòng","","yuè","liàng","zhào","zài","tā","shēn","shàng","","tā","de","liǎn","shàng","méi","yǒu","yǎn","jīng","","zhǐ","yǒu","yī","zhāng","zhǎng","zhǎng","de","zuǐ",""]},{"t":"“苦力怕！”小雨赶紧退后。她知道，这个小家伙走近了就会爆炸，会把墙炸出一个大洞，连屋里的箱子都会被炸开。她想起书上写的办法：猫。她抱起自己的橘猫走到门口，猫“喵”了一声。苦力怕愣了一下，转身慢慢走开了。","p":["","kǔ","lì","pà","","","xiǎo","yǔ","gǎn","jǐn","tuì","hòu","","tā","zhī","dào","","zhè","gè","xiǎo","jiā","huǒ","zǒu","jìn","le","jiù","huì","bào","zhà","","huì","bǎ","qiáng","zhà","chū","yī","gè","dà","dòng","","lián","wū","lǐ","de","xiāng","zi","dōu","huì","bèi","zhà","kāi","","tā","xiǎng","qǐ","shū","shàng","xiě","de","bàn","fǎ","","māo","","tā","bào","qǐ","zì","jǐ","de","jú","māo","zǒu","dào","mén","kǒu","","māo","","miāo","","le","yī","shēng","","kǔ","lì","pà","lèng","le","yī","xià","","zhuǎn","shēn","màn","màn","zǒu","kāi","le",""]},{"t":"小雨把门关好，又加了一块木板。她摸着猫的头说：“原来你也算我的保镖。”猫打了个哈欠，跳上床睡了。窗外，苦力怕的影子消失在雨里。她躺在被子里想，明天要在门口种一棵树，挡住外面的路。","p":["xiǎo","yǔ","bǎ","mén","guān","hǎo","","yòu","jiā","le","yī","kuài","mù","bǎn","","tā","mō","zhe","māo","de","tóu","shuō","","","yuán","lái","nǐ","yě","suàn","wǒ","de","bǎo","biāo","","","māo","dǎ","le","gè","hā","qiàn","","tiào","shàng","chuáng","shuì","le","","chuāng","wài","","kǔ","lì","pà","de","yǐng","zi","xiāo","shī","zài","yǔ","lǐ","","tā","tǎng","zài","bèi","zi","lǐ","xiǎng","","míng","tiān","yào","zài","mén","kǒu","zhǒng","yī","kē","shù","","dǎng","zhù","wài","miàn","de","lù",""]},{"t":"第二天，小雨真在门口种了一棵小树，又给猫做了一个软软的垫子。夜里风把树叶吹得沙沙响，她一点也不怕了。她想，家里有个会喵一声的，晚上就踏实。","p":["dì","èr","tiān","","xiǎo","yǔ","zhēn","zài","mén","kǒu","zhǒng","le","yī","kē","xiǎo","shù","","yòu","gěi","māo","zuò","le","yí","gè","ruǎn","ruǎn","de","diàn","zi","","yè","lǐ","fēng","bǎ","shù","yè","chuī","dé","shā","shā","xiǎng","","tā","yì","diǎn","yě","bù","pà","le","","tā","xiǎng","","jiā","lǐ","yǒu","gè","huì","miāo","yī","shēng","de","","wǎn","shàng","jiù","tà","shí",""]}]},{"id":"mc03","title":"一座木头小屋","tag":"我的世界","pages":[{"t":"阿乐的第一间房子，只有四块木板宽。他先用拳头敲树，敲出十几块木头，再把木头做成木板。木板拼成墙，木头做成门。屋子小得只能站一个人，转身的时候肩膀会碰到墙。可是他很满意，因为这是他盖的。","p":["ā","lè","de","dì","yī","jiān","fáng","zi","","zhǐ","yǒu","sì","kuài","mù","bǎn","kuān","","tā","xiān","yòng","quán","tou","qiāo","shù","","qiāo","chū","shí","jǐ","kuài","mù","tou","","zài","bǎ","mù","tou","zuò","chéng","mù","bǎn","","mù","bǎn","pīn","chéng","qiáng","","mù","tou","zuò","chéng","mén","","wū","zi","xiǎo","dé","zhǐ","néng","zhàn","yí","gè","rén","","zhuǎn","shēn","de","shí","hòu","jiān","bǎng","huì","pèng","dào","qiáng","","kě","shì","tā","hěn","mǎn","yì","","yīn","wèi","zhè","shì","tā","gài","de",""]},{"t":"天黑之前，他想起一件事：屋里太黑了。黑暗里会冒出怪物。他跑出去找煤，挖到三块黑石头，做成四支火把。火把插在墙上，橘色的光把墙照得暖暖的，墙上出现了他自己的影子，很矮，很圆。","p":["tiān","hēi","zhī","qián","","tā","xiǎng","qǐ","yī","jiàn","shì","","wū","lǐ","tài","hēi","le","","hēi","àn","lǐ","huì","mào","chū","guài","wù","","tā","pǎo","chū","qù","zhǎo","méi","","wā","dào","sān","kuài","hēi","shí","tou","","zuò","chéng","sì","zhī","huǒ","bǎ","","huǒ","bǎ","chā","zài","qiáng","shàng","","jú","sè","de","guāng","bǎ","qiáng","zhào","dé","nuǎn","nuǎn","de","","qiáng","shàng","chū","xiàn","le","tā","zì","jǐ","de","yǐng","zi","","hěn","ǎi","","hěn","yuán",""]},{"t":"那一夜，他躺在床上听外面的风声。屋顶是他一块一块补上的，有一块没对齐，露出一点点夜空。他想，明天要在门口种一棵树，再挖一条小路。房子会一点一点变大，就像他自己一样。","p":["nà","yī","yè","","tā","tǎng","zài","chuáng","shàng","tīng","wài","miàn","de","fēng","shēng","","wū","dǐng","shì","tā","yī","kuài","yī","kuài","bǔ","shàng","de","","yǒu","yī","kuài","méi","duì","qí","","lù","chū","yì","diǎn","diǎn","yè","kōng","","tā","xiǎng","","míng","tiān","yào","zài","mén","kǒu","zhǒng","yī","kē","shù","","zài","wā","yī","tiáo","xiǎo","lù","","fáng","zi","huì","yì","diǎn","yì","diǎn","biàn","dà","","jiù","xiàng","tā","zì","jǐ","yī","yàng",""]},{"t":"一个月后，屋子多了两间房，门口有了小路，还挂上了一盏灯。阿乐站在院子里看，想起第一晚那间只能站一个人的小屋，忍不住笑了：房子是慢慢长大的。","p":["yí","gè","yuè","hòu","","wū","zi","duō","le","liǎng","jiān","fáng","","mén","kǒu","yǒu","le","xiǎo","lù","","hái","guà","shàng","le","yī","zhǎn","dēng","","ā","lè","zhàn","zài","yuàn","zi","lǐ","kàn","","xiǎng","qǐ","dì","yī","wǎn","nà","jiān","zhǐ","néng","zhàn","yí","gè","rén","de","xiǎo","wū","","rěn","bú","zhù","xiào","le","","fáng","zi","shì","màn","màn","zhǎng","dà","de",""]}]},{"id":"mc04","title":"我和村民做买卖","tag":"我的世界","pages":[{"t":"村口的老村民戴着一顶草帽，鼻子大大的。他站在一个方方的台子后面，台子上摆着面包和绿宝石。阿木走过去，村民“哼”了一声，好像在问：你带什么来了？他的头还会轻轻点一下，像在打瞌睡。","p":["cūn","kǒu","de","lǎo","cūn","mín","dài","zhe","yī","dǐng","cǎo","mào","","bí","zi","dà","dà","de","","tā","zhàn","zài","yí","gè","fāng","fāng","de","tái","zi","hòu","miàn","","tái","zi","shàng","bǎi","zhe","miàn","bāo","hé","lǜ","bǎo","shí","","ā","mù","zǒu","guò","qù","","cūn","mín","","hēng","","le","yī","shēng","","hǎo","xiàng","zài","wèn","","nǐ","dài","shén","me","lái","le","","tā","de","tóu","hái","huì","qīng","qīng","diǎn","yī","xià","","xiàng","zài","dǎ","kē","shuì",""]},{"t":"阿木把六个面包放在台子上。村民看了看，收下面包，递给他一颗绿宝石。绿宝石亮亮的，像一小块绿色的糖。阿木又用小麦换了一次，这次换到两颗。他发现，放上去的东西越多，换到的也越多。","p":["ā","mù","bǎ","liù","gè","miàn","bāo","fàng","zài","tái","zi","shàng","","cūn","mín","kàn","le","kàn","","shōu","xià","miàn","bāo","","dì","gěi","tā","yī","kē","lǜ","bǎo","shí","","lǜ","bǎo","shí","liàng","liàng","de","","xiàng","yī","xiǎo","kuài","lǜ","sè","de","táng","","ā","mù","yòu","yòng","xiǎo","mài","huàn","le","yī","cì","","zhè","cì","huàn","dào","liǎng","kē","","tā","fā","xiàn","","fàng","shàng","qù","de","dōng","xī","yuè","duō","","huàn","dào","de","yě","yuè","duō",""]},{"t":"他数了数口袋里的绿宝石，一共五颗。村民的台子旁边摆着一盆花。阿木想，下次带点纸来，听说纸可以换到地图。原来做生意，要先知道别人想要什么。他回头看了一眼，村民又在“哼”了。","p":["tā","shù","le","shù","kǒu","dài","lǐ","de","lǜ","bǎo","shí","","yī","gòng","wǔ","kē","","cūn","mín","de","tái","zi","páng","biān","bǎi","zhe","yī","pén","huā","","ā","mù","xiǎng","","xià","cì","dài","diǎn","zhǐ","lái","","tīng","shuō","zhǐ","kě","yǐ","huàn","dào","dì","tú","","yuán","lái","zuò","shēng","yì","","yào","xiān","zhī","dào","bié","rén","xiǎng","yào","shén","me","","tā","huí","tóu","kàn","le","yī","yǎn","","cūn","mín","yòu","zài","","hēng","","le",""]},{"t":"第二次，阿木带来了几张纸，真的换到了一张地图。他把地图铺在桌上，找到了村子旁边那座山的位置。他想，做生意不光是换东西，还要记住别人缺什么。","p":["dì","èr","cì","","ā","mù","dài","lái","le","jǐ","zhāng","zhǐ","","zhēn","de","huàn","dào","le","yī","zhāng","dì","tú","","tā","bǎ","dì","tú","pù","zài","zhuō","shàng","","zhǎo","dào","le","cūn","zi","páng","biān","nà","zuò","shān","de","wèi","zhì","","tā","xiǎng","","zuò","shēng","yì","bù","guāng","shì","huàn","dōng","xī","","hái","yào","jì","zhù","bié","rén","quē","shén","me",""]}]},{"id":"mc05","title":"红石灯亮了","tag":"我的世界","pages":[{"t":"叔叔给了小禾一把红石。红石是小小的红色颗粒，看起来一点也不像电线。叔叔说：把它铺在地上，再接一盏灯，你就能让灯自己亮。小禾把红石装进口袋，回家的时候，口袋里一闪一闪的。","p":["shū","shū","gěi","le","xiǎo","hé","yī","bǎ","hóng","shí","","hóng","shí","shì","xiǎo","xiǎo","de","hóng","sè","kē","lì","","kàn","qǐ","lái","yì","diǎn","yě","bù","xiàng","diàn","xiàn","","shū","shū","shuō","","bǎ","tā","pù","zài","dì","shàng","","zài","jiē","yī","zhǎn","dēng","","nǐ","jiù","néng","ràng","dēng","zì","jǐ","liàng","","xiǎo","hé","bǎ","hóng","shí","zhuāng","jìn","kǒu","dài","","huí","jiā","de","shí","hòu","","kǒu","dài","lǐ","yī","shǎn","yī","shǎn","de",""]},{"t":"她把红石一粒一粒铺成一条线，线的尽头放了一盏灯。可是灯不亮。她想了很久，又找来一个拉杆，装在红石旁边。她轻轻一拉，“嗒”，灯亮了，整个房间都亮了。她张着嘴，忘了说话。","p":["tā","bǎ","hóng","shí","yī","lì","yī","lì","pù","chéng","yī","tiáo","xiàn","","xiàn","de","jǐn","tóu","fàng","le","yī","zhǎn","dēng","","kě","shì","dēng","bù","liàng","","tā","xiǎng","le","hěn","jiǔ","","yòu","zhǎo","lái","yī","gè","lā","gān","","zhuāng","zài","hóng","shí","páng","biān","","tā","qīng","qīng","yī","lā","","","dā","","","dēng","liàng","le","","zhěng","gè","fáng","jiān","dōu","liàng","le","","tā","zhāng","zhe","zuǐ","","wàng","le","shuō","huà",""]},{"t":"她拉一下，灯灭；再拉一下，灯亮。她笑了：“原来电也会走路，只是走得很慢。”叔叔说，这条红色的线，还能让门打开，让矿车自己跑。小禾决定，明天要试试门，还要在门口铺一条长长的红石线。","p":["tā","lā","yī","xià","","dēng","miè","","zài","lā","yī","xià","","dēng","liàng","","tā","xiào","le","","","yuán","lái","diàn","yě","huì","zǒu","lù","","zhǐ","shì","zǒu","dé","hěn","màn","","","shū","shū","shuō","","zhè","tiáo","hóng","sè","de","xiàn","","hái","néng","ràng","mén","dǎ","kāi","","ràng","kuàng","chē","zì","jǐ","pǎo","","xiǎo","hé","jué","dìng","","míng","tiān","yào","shì","shì","mén","","hái","yào","zài","mén","kǒu","pù","yī","tiáo","zhǎng","zhǎng","de","hóng","shí","xiàn",""]},{"t":"第二天，小禾让门自己打开：人走近，门就开；人走远，门就关。邻居的小孩来试了七次，笑得停不下来。小禾说：“红石不会魔法，它只是把开关送到了远处。”","p":["dì","èr","tiān","","xiǎo","hé","ràng","mén","zì","jǐ","dǎ","kāi","","rén","zǒu","jìn","","mén","jiù","kāi","","rén","zǒu","yuǎn","","mén","jiù","guān","","lín","jū","de","xiǎo","hái","lái","shì","le","qī","cì","","xiào","dé","tíng","bù","xià","lái","","xiǎo","hé","shuō","","","hóng","shí","bù","huì","mó","fǎ","","tā","zhǐ","shì","bǎ","kāi","guān","sòng","dào","le","yuǎn","chù","",""]}]},{"id":"mc06","title":"下雨天种小麦","tag":"我的世界","pages":[{"t":"阿乐在一块空地上挖了九个小坑，把种子撒进去。他走到河边，用木桶装了水，一桶一桶倒进坑里。土变深了，颜色像巧克力。他的鞋子上全是泥，走一步，地上就留一个印。","p":["ā","lè","zài","yī","kuài","kòng","dì","shàng","wā","le","jiǔ","gè","xiǎo","kēng","","bǎ","zhǒng","zi","sā","jìn","qù","","tā","zǒu","dào","hé","biān","","yòng","mù","tǒng","zhuāng","le","shuǐ","","yī","tǒng","yī","tǒng","dào","jìn","kēng","lǐ","","tǔ","biàn","shēn","le","","yán","sè","xiàng","qiǎo","kè","lì","","tā","de","xié","zi","shàng","quán","shì","ní","","zǒu","yī","bù","","dì","shàng","jiù","liú","yí","gè","yìn",""]},{"t":"等了三天，小麦才长出一点点绿，细细的，像几根小葱。他有点着急，拿着一根骨头磨成的粉，撒在麦子上。麦子“唰”地一下长高了，像有人从下面往上推。他吓了一跳，差点坐在地上，然后又笑了。","p":["děng","le","sān","tiān","","xiǎo","mài","cái","zhǎng","chū","yì","diǎn","diǎn","lǜ","","xì","xì","de","","xiàng","jǐ","gēn","xiǎo","cōng","","tā","yǒu","diǎn","zháo","jí","","ná","zhe","yī","gēn","gǔ","tou","mó","chéng","de","fěn","","sā","zài","mài","zi","shàng","","mài","zi","","shuā","","dì","yī","xià","zhǎng","gāo","le","","xiàng","yǒu","rén","cóng","xià","miàn","wǎng","shàng","tuī","","tā","xià","le","yī","tiào","","chà","diǎn","zuò","zài","dì","shàng","","rán","hòu","yòu","xiào","le",""]},{"t":"雨下起来的时候，麦子被水打得弯了腰。他站在屋檐下看，觉得麦子正在喝水，一口一口，很慢。第二天早上，麦子又直起来了，叶子上挂着水珠。他想，种东西原来要等，也要有耐心。","p":["yǔ","xià","qǐ","lái","de","shí","hòu","","mài","zi","bèi","shuǐ","dǎ","dé","wān","le","yāo","","tā","zhàn","zài","wū","yán","xià","kàn","","jué","de","mài","zi","zhèng","zài","hē","shuǐ","","yī","kǒu","yī","kǒu","","hěn","màn","","dì","èr","tiān","zǎo","shàng","","mài","zi","yòu","zhí","qǐ","lái","le","","yè","zi","shàng","guà","zhe","shuǐ","zhū","","tā","xiǎng","","zhǒng","dōng","xī","yuán","lái","yào","děng","","yě","yào","yǒu","nài","xīn",""]},{"t":"麦子熟了，阿乐用手一搓，麦粒就掉进掌心里，还是热的。他把麦子磨成粉，做成面包，分给帮他搭过屋子的朋友。他觉得，等来的东西，吃起来更香。","p":["mài","zi","shú","le","","ā","lè","yòng","shǒu","yī","cuō","","mài","lì","jiù","diào","jìn","zhǎng","xīn","lǐ","","hái","shì","rè","de","","tā","bǎ","mài","zi","mó","chéng","fěn","","zuò","chéng","miàn","bāo","","fēn","gěi","bāng","tā","dā","guò","wū","zi","de","péng","yǒu","","tā","jué","de","","děng","lái","de","dōng","xī","","chī","qǐ","lái","gèng","xiāng",""]}]},{"id":"mc07","title":"去下界找金矿","tag":"我的世界","pages":[{"t":"要去下界，得先造一扇门。阿木挖了十块黑曜石，摆成一个竖着的方框，再用打火石一擦。“呼”的一声，门里燃起紫色的光，像一面会动的墙。他站在门前面，听见里面有声音，像很远的风。","p":["yào","qù","xià","jiè","","dé","xiān","zào","yī","shàn","mén","","ā","mù","wā","le","shí","kuài","hēi","yào","shí","","bǎi","chéng","yī","gè","shù","zhe","de","fāng","kuāng","","zài","yòng","dǎ","huǒ","shí","yī","cā","","","hū","","de","yī","shēng","","mén","lǐ","rán","qǐ","zǐ","sè","de","guāng","","xiàng","yī","miàn","huì","dòng","de","qiáng","","tā","zhàn","zài","mén","qián","miàn","","tīng","jiàn","lǐ","miàn","yǒu","shēng","yīn","","xiàng","hěn","yuǎn","de","fēng",""]},{"t":"他走了进去。下界是红色的，到处是石头和岩浆，空气热得像烤箱。他沿着一条窄路往前走，脚下就是岩浆湖，红色的泡泡一个接一个冒上来。他不敢快走，一步一步地挪，背上的衣服全湿了。","p":["tā","zǒu","le","jìn","qù","","xià","jiè","shì","hóng","sè","de","","dào","chù","shì","shí","tou","hé","yán","jiāng","","kōng","qì","rè","dé","xiàng","kǎo","xiāng","","tā","yán","zhe","yī","tiáo","zhǎi","lù","wǎng","qián","zǒu","","jiǎo","xià","jiù","shì","yán","jiāng","hú","","hóng","sè","de","pào","pào","yí","gè","jiē","yí","gè","mào","shàng","lái","","tā","bù","gǎn","kuài","zǒu","","yí","bù","yí","bù","dì","nuó","","bèi","shàng","de","yī","fú","quán","shī","le",""]},{"t":"在一块红色的石头里，他看见金色的光，那是下界的金矿。他挖了三块，装进背包，赶紧往回走。穿过紫光回到木屋时，他长长地出了一口气，坐在地上半天没起来。金子在手里，还是凉的。","p":["zài","yī","kuài","hóng","sè","de","shí","tou","lǐ","","tā","kàn","jiàn","jīn","sè","de","guāng","","nà","shì","xià","jiè","de","jīn","kuàng","","tā","wā","le","sān","kuài","","zhuāng","jìn","bēi","bāo","","gǎn","jǐn","wǎng","huí","zǒu","","chuān","guò","zǐ","guāng","huí","dào","mù","wū","shí","","tā","cháng","cháng","dì","chū","le","yì","kǒu","qì","","zuò","zài","dì","shàng","bàn","tiān","méi","qǐ","lái","","jīn","zi","zài","shǒu","lǐ","","hái","shì","liáng","de",""]},{"t":"阿木用金子做了一顶头盔，戴上以后，看东西有一圈淡淡的金边。他在门旁边立了一块木牌：进去之前，先看清脚下的路。伙伴问他怕不怕，他说：“怕，但我知道怎么回来。”","p":["ā","mù","yòng","jīn","zi","zuò","le","yī","dǐng","tóu","kuī","","dài","shàng","yǐ","hòu","","kàn","dōng","xī","yǒu","yī","quān","dàn","dàn","de","jīn","biān","","tā","zài","mén","páng","biān","lì","le","yī","kuài","mù","pái","","jìn","qù","zhī","qián","","xiān","kàn","qīng","jiǎo","xià","de","lù","","huǒ","bàn","wèn","tā","pà","bù","pà","","tā","shuō","","","pà","","dàn","wǒ","zhī","dào","zěn","me","huí","lái","",""]}]},{"id":"mc08","title":"末影龙的最后一战","tag":"我的世界","pages":[{"t":"小禾准备了很久：钻石剑、盾牌，还有十二个末影之眼。她把眼睛一颗一颗放进传送台的方框里，手指有点抖。最后一颗放进去，传送台中间出现了一片黑色的星空，星星在里面慢慢转。","p":["xiǎo","hé","zhǔn","bèi","le","hěn","jiǔ","","zuàn","shí","jiàn","","dùn","pái","","hái","yǒu","shí","èr","gè","mò","yǐng","zhī","yǎn","","tā","bǎ","yǎn","jīng","yī","kē","yī","kē","fàng","jìn","chuán","sòng","tái","de","fāng","kuāng","lǐ","","shǒu","zhǐ","yǒu","diǎn","dǒu","","zuì","hòu","yī","kē","fàng","jìn","qù","","chuán","sòng","tái","zhōng","jiān","chū","xiàn","le","yī","piàn","hēi","sè","de","xīng","kōng","","xīng","xīng","zài","lǐ","miàn","màn","màn","zhuǎn",""]},{"t":"她跳进去。末地是一片黄色的石头，天上飘着无数小黑点。末影龙在天空盘旋，翅膀一扇，就刮起一阵风，把她吹得后退了几步。更麻烦的是，柱子上的水晶一直在给它治伤，龙的伤口刚裂开就合上了。","p":["tā","tiào","jìn","qù","","mò","dì","shì","yī","piàn","huáng","sè","de","shí","tou","","tiān","shàng","piāo","zhe","wú","shù","xiǎo","hēi","diǎn","","mò","yǐng","lóng","zài","tiān","kōng","pán","xuán","","chì","bǎng","yī","shàn","","jiù","guā","qǐ","yī","zhèn","fēng","","bǎ","tā","chuī","dé","hòu","tuì","le","jǐ","bù","","gèng","má","fán","de","shì","","zhù","zi","shàng","de","shuǐ","jīng","yì","zhí","zài","gěi","tā","zhì","shāng","","lóng","de","shāng","kǒu","gāng","liè","kāi","jiù","hé","shàng","le",""]},{"t":"小禾先爬上柱子，把水晶一个一个打碎。玻璃碎下来的时候，她的手心全是汗。龙再飞下来的时候，身上已经没有光。她躲开它的攻击，用剑一次次地打。最后一声长长的嘶鸣，龙化成紫色的光点，慢慢散了。她坐在地上，手还在发抖。","p":["xiǎo","hé","xiān","pá","shàng","zhù","zi","","bǎ","shuǐ","jīng","yí","gè","yí","gè","dǎ","suì","","bō","lí","suì","xià","lái","de","shí","hòu","","tā","de","shǒu","xīn","quán","shì","hàn","","lóng","zài","fēi","xià","lái","de","shí","hòu","","shēn","shàng","yǐ","jīng","méi","yǒu","guāng","","tā","duǒ","kāi","tā","de","gōng","jī","","yòng","jiàn","yī","cì","cì","dì","dǎ","","zuì","hòu","yī","shēng","cháng","cháng","de","sī","míng","","lóng","huà","chéng","zǐ","sè","de","guāng","diǎn","","màn","màn","sàn","le","","tā","zuò","zài","dì","shàng","","shǒu","hái","zài","fā","dǒu",""]},{"t":"龙消失的地方落下一颗蛋。小禾把它抱回木屋，放在火把旁边，用羊毛围了一圈。她给朋友写信说：最难的仗，是先打碎那些一直让它好起来的柱子。","p":["lóng","xiāo","shī","de","dì","fāng","là","xià","yī","kē","dàn","","xiǎo","hé","bǎ","tā","bào","huí","mù","wū","","fàng","zài","huǒ","bǎ","páng","biān","","yòng","yáng","máo","wéi","le","yī","quān","","tā","gěi","péng","yǒu","xiě","xìn","shuō","","zuì","nán","de","zhàng","","shì","xiān","dǎ","suì","nà","xiē","yì","zhí","ràng","tā","hǎo","qǐ","lái","de","zhù","zi",""]}]},{"id":"mc09","title":"钓鱼钓到一本书","tag":"我的世界","pages":[{"t":"阿木在湖边坐了一个下午。他把鱼竿甩出去，等着浮标往下沉。风把水面吹出一圈一圈的纹。第一条是鲑鱼，第二条还是鲑鱼，第三条的时候，他的肚子已经饿了，可是他还想再钓一次。","p":["ā","mù","zài","hú","biān","zuò","le","yí","gè","xià","wǔ","","tā","bǎ","yú","gān","shuǎi","chū","qù","","děng","zhe","fú","biāo","wǎng","xià","chén","","fēng","bǎ","shuǐ","miàn","chuī","chū","yī","quān","yī","quān","de","wén","","dì","yī","tiáo","shì","guī","yú","","dì","èr","tiáo","hái","shì","guī","yú","","dì","sān","tiáo","de","shí","hòu","","tā","de","dǔ","zi","yǐ","jīng","è","le","","kě","shì","tā","hái","xiǎng","zài","diào","yī","cì",""]},{"t":"第四次的时候，钓上来的不是鱼，是一个用绳子捆着的东西。他打开一看，是一本附魔书，书页上有奇怪的符号，摸上去有点发热。村里的老人告诉他，把这本书和一个工具放在一起，工具就会变强。","p":["dì","sì","cì","de","shí","hòu","","diào","shàng","lái","de","bú","shì","yú","","shì","yí","gè","yòng","shéng","zi","kǔn","zhe","de","dōng","xī","","tā","dǎ","kāi","yī","kàn","","shì","yī","běn","fù","mó","shū","","shū","yè","shàng","yǒu","qí","guài","de","fú","hào","","mō","shàng","qù","yǒu","diǎn","fā","rè","","cūn","lǐ","de","lǎo","rén","gào","sù","tā","","bǎ","zhè","běn","shū","hé","yí","gè","gōng","jù","fàng","zài","yì","qǐ","","gōng","jù","jiù","huì","biàn","qiáng",""]},{"t":"阿木把书放进箱子，又回去坐下。他想，钓鱼原来不是光等鱼，还在等运气。等到天黑，他钓上来一条特别大的鱼，比他胳膊还长。他高兴得叫了一声，抱在怀里跑回家。","p":["ā","mù","bǎ","shū","fàng","jìn","xiāng","zi","","yòu","huí","qù","zuò","xià","","tā","xiǎng","","diào","yú","yuán","lái","bú","shì","guāng","děng","yú","","hái","zài","děng","yùn","qì","","děng","dào","tiān","hēi","","tā","diào","shàng","lái","yī","tiáo","tè","bié","dà","de","yú","","bǐ","tā","gē","bó","hái","zhǎng","","tā","gāo","xìng","dé","jiào","le","yī","shēng","","bào","zài","huái","lǐ","pǎo","huí","jiā",""]},{"t":"阿木把书和铁镐放在一起，铁镐亮了一下。再挖石头的时候，掉下来的碎石少了很多。他还是每个星期都去湖边坐一会儿，因为他发现，等的时候，人也会安静下来。","p":["ā","mù","bǎ","shū","hé","tiě","gǎo","fàng","zài","yì","qǐ","","tiě","gǎo","liàng","le","yī","xià","","zài","wā","shí","tou","de","shí","hòu","","diào","xià","lái","de","suì","shí","shǎo","le","hěn","duō","","tā","hái","shì","měi","gè","xīng","qī","dōu","qù","hú","biān","zuò","yī","huì","er","","yīn","wèi","tā","fā","xiàn","","děng","de","shí","hòu","","rén","yě","huì","ān","jìng","xià","lái",""]}]},{"id":"mc10","title":"铁傀儡守村","tag":"我的世界","pages":[{"t":"村子边上总有小怪物转来转去，村民晚上都不敢出门。小禾想，要是有个守卫就好了。书上说，四个铁块堆成一个身子，上面放一个南瓜，就能有一个铁傀儡。她把铁块一块一块搬过来，累得直喘气。","p":["cūn","zi","biān","shàng","zǒng","yǒu","xiǎo","guài","wù","zhuàn","lái","zhuàn","qù","","cūn","mín","wǎn","shàng","dōu","bù","gǎn","chū","mén","","xiǎo","hé","xiǎng","","yào","shì","yǒu","gè","shǒu","wèi","jiù","hǎo","le","","shū","shàng","shuō","","sì","gè","tiě","kuài","duī","chéng","yí","gè","shēn","zi","","shàng","miàn","fàng","yí","gè","nán","guā","","jiù","néng","yǒu","yí","gè","tiě","kuǐ","lěi","","tā","bǎ","tiě","kuài","yī","kuài","yī","kuài","bān","guò","lái","","lèi","dé","zhí","chuǎn","qì",""]},{"t":"她把铁块一个一个放好，最后把削好脸的南瓜放上去。安静了一会儿，那些方块忽然动起来，拼成了一个高高的人。它的手臂很长，走路很沉，眼睛是两盏小红灯。它转过头，看了看小禾。","p":["tā","bǎ","tiě","kuài","yí","gè","yí","gè","fàng","hǎo","","zuì","hòu","bǎ","xuē","hǎo","liǎn","de","nán","guā","fàng","shàng","qù","","ān","jìng","le","yī","huì","er","","nà","xiē","fāng","kuài","hū","rán","dòng","qǐ","lái","","pīn","chéng","le","yí","gè","gāo","gāo","de","rén","","tā","de","shǒu","bì","hěn","zhǎng","","zǒu","lù","hěn","chén","","yǎn","jīng","shì","liǎng","zhǎn","xiǎo","hóng","dēng","","tā","zhuǎn","guò","tóu","","kàn","le","kàn","xiǎo","hé",""]},{"t":"那天晚上，一只僵尸走过来。铁傀儡一步跨过去，把它扔得很远。第二天早上，它站在村口，手里拿着一朵红花，递给了小禾。她收下花，觉得这个不会说话的大个子，心是软的。","p":["nà","tiān","wǎn","shàng","","yī","zhī","jiāng","shī","zǒu","guò","lái","","tiě","kuǐ","lěi","yī","bù","kuà","guò","qù","","bǎ","tā","rēng","dé","hěn","yuǎn","","dì","èr","tiān","zǎo","shàng","","tā","zhàn","zài","cūn","kǒu","","shǒu","lǐ","ná","zhe","yī","duǒ","hóng","huā","","dì","gěi","le","xiǎo","hé","","tā","shōu","xià","huā","","jué","de","zhè","ge","bú","huì","shuō","huà","de","dà","gè","zi","","xīn","shì","ruǎn","de",""]},{"t":"入冬以后，村民们给它围了一条红围巾，它一动不动地站着。小禾每天路过都拍拍它的手臂。她想：保护别人的人，也该有人记得他。","p":["rù","dōng","yǐ","hòu","","cūn","mín","men","gěi","tā","wéi","le","yī","tiáo","hóng","wéi","jīn","","tā","yī","dòng","bù","dòng","dì","zhàn","zhe","","xiǎo","hé","měi","tiān","lù","guò","dōu","pāi","pāi","tā","de","shǒu","bì","","tā","xiǎng","","bǎo","hù","bié","rén","de","rén","","yě","gāi","yǒu","rén","jì","de","tā",""]}]},{"id":"mc11","title":"矿车跑起来了","tag":"我的世界","pages":[{"t":"阿乐挖了一条很长的隧道，把铁轨一段一段铺进去。普通的铁轨上，矿车要自己推；有一种金色的铁轨，只要给它一点红石，它就会让矿车跑得飞快。他在隧道墙上画了一道线，说这是起点。","p":["ā","lè","wā","le","yī","tiáo","hěn","zhǎng","de","suì","dào","","bǎ","tiě","guǐ","yī","duàn","yī","duàn","pù","jìn","qù","","pǔ","tōng","de","tiě","guǐ","shàng","","kuàng","chē","yào","zì","jǐ","tuī","","yǒu","yī","zhǒng","jīn","sè","de","tiě","guǐ","","zhǐ","yào","gěi","tā","yì","diǎn","hóng","shí","","tā","jiù","huì","ràng","kuàng","chē","pǎo","dé","fēi","kuài","","tā","zài","suì","dào","qiáng","shàng","huà","le","yī","dào","xiàn","","shuō","zhè","shì","qǐ","diǎn",""]},{"t":"他在隧道尽头放上金色的铁轨，拉下拉杆。矿车“咔嗒”一声动了，越来越快，风从耳边呼呼地过。黑暗的隧道里，只有车头那点火光，墙上的石头一块一块往后退。","p":["tā","zài","suì","dào","jìn","tóu","fàng","shàng","jīn","sè","de","tiě","guǐ","","lā","xià","lā","gǎn","","kuàng","chē","","kā","dā","","yī","shēng","dòng","le","","yuè","lái","yuè","kuài","","fēng","cóng","ěr","biān","hū","hū","dì","guò","","hēi","àn","de","suì","dào","lǐ","","zhǐ","yǒu","chē","tóu","nà","diǎn","huǒ","guāng","","qiáng","shàng","de","shí","tou","yī","kuài","yī","kuài","wǎng","hòu","tuì",""]},{"t":"到站的时候，车慢慢停下。他从车里跳出来，腿有点软，又跑回起点，再坐一次。他一连坐了五次，最后一次喊出了声。他给这条隧道取了个名字，叫“风之路”，还在入口立了一块木牌。","p":["dào","zhàn","de","shí","hòu","","chē","màn","màn","tíng","xià","","tā","cóng","chē","lǐ","tiào","chū","lái","","tuǐ","yǒu","diǎn","ruǎn","","yòu","pǎo","huí","qǐ","diǎn","","zài","zuò","yī","cì","","tā","yī","lián","zuò","le","wǔ","cì","","zuì","hòu","yī","cì","hǎn","chū","le","shēng","","tā","gěi","zhè","tiáo","suì","dào","qǔ","le","gè","míng","zì","","jiào","","fēng","zhī","lù","","","hái","zài","rù","kǒu","lì","le","yī","kuài","mù","pái",""]},{"t":"后来，阿乐在隧道两边都挂上了灯，夜里也是亮的。朋友们排着队来坐，他负责拉杆放车。每送走一车人，他就笑一下，好像自己也坐在车上。","p":["hòu","lái","","ā","lè","zài","suì","dào","liǎng","biān","dōu","guà","shàng","le","dēng","","yè","lǐ","yě","shì","liàng","de","","péng","yǒu","men","pái","zhe","duì","lái","zuò","","tā","fù","zé","lā","gǎn","fàng","chē","","měi","sòng","zǒu","yī","chē","rén","","tā","jiù","xiào","yī","xià","","hǎo","xiàng","zì","jǐ","yě","zuò","zài","chē","shàng",""]}]},{"id":"mc12","title":"船在冰上飞","tag":"我的世界","pages":[{"t":"冬天，湖面结了厚厚的冰。小雨把船放在冰上，划了一下，船“嗖”地滑出去，比她走路快得多。她笑得差点从船里掉下去，帽子飞了，落在冰面上。","p":["dōng","tiān","","hú","miàn","jié","le","hòu","hòu","de","bīng","","xiǎo","yǔ","bǎ","chuán","fàng","zài","bīng","shàng","","huà","le","yī","xià","","chuán","","sōu","","dì","huá","chū","qù","","bǐ","tā","zǒu","lù","kuài","dé","duō","","tā","xiào","dé","chà","diǎn","cóng","chuán","lǐ","diào","xià","qù","","mào","zi","fēi","le","","luò","zài","bīng","miàn","shàng",""]},{"t":"她发现冰面越平坦，船跑得越快。她在冰上种了几棵甘蔗做记号，还画了一条弯弯的路线。船转弯的时候会打滑，得提前一点转，不然就会撞到岸边的雪堆。她试了七八次，才转得顺。","p":["tā","fā","xiàn","bīng","miàn","yuè","píng","tǎn","","chuán","pǎo","dé","yuè","kuài","","tā","zài","bīng","shàng","zhǒng","le","jǐ","kē","gān","zhè","zuò","jì","hào","","hái","huà","le","yī","tiáo","wān","wān","de","lù","xiàn","","chuán","zhuǎn","wān","de","shí","hòu","huì","dǎ","huá","","dé","tí","qián","yì","diǎn","zhuǎn","","bù","rán","jiù","huì","zhuàng","dào","àn","biān","de","xuě","duī","","tā","shì","le","qī","bā","cì","","cái","zhuǎn","dé","shùn",""]},{"t":"她划到湖的另一边，看见一只兔子在雪里跳。她停下来，坐在船里看夕阳。冰是蓝的，天是粉的，她的影子被拉得很长。她想，最快的船，也要有停下来的时候。","p":["tā","huà","dào","hú","de","lìng","yī","biān","","kàn","jiàn","yī","zhī","tù","zi","zài","xuě","lǐ","tiào","","tā","tíng","xià","lái","","zuò","zài","chuán","lǐ","kàn","xī","yáng","","bīng","shì","lán","de","","tiān","shì","fěn","de","","tā","de","yǐng","zi","bèi","lā","dé","hěn","zhǎng","","tā","xiǎng","","zuì","kuài","de","chuán","","yě","yào","yǒu","tíng","xià","lái","de","shí","hòu",""]},{"t":"春天冰化了，船又回到水里，慢了下来，也不怎么滑了。小雨把那段冰上的路画在本子上，还写上日期。她说：“好玩的事，过一阵子还会想起来。”","p":["chūn","tiān","bīng","huà","le","","chuán","yòu","huí","dào","shuǐ","lǐ","","màn","le","xià","lái","","yě","bù","zěn","me","huá","le","","xiǎo","yǔ","bǎ","nà","duàn","bīng","shàng","de","lù","huà","zài","běn","zi","shàng","","hái","xiě","shàng","rì","qī","","tā","shuō","","","hǎo","wán","de","shì","","guò","yī","zhèn","zi","hái","huì","xiǎng","qǐ","lái","",""]}]},{"id":"mc13","title":"蜂蜜块弹一弹","tag":"我的世界","pages":[{"t":"阿木找到一块蜂蜜块，黄色的，半透明，摸上去黏黏的。他从高处跳到蜂蜜块上，落地的时候一点也不疼，只是慢慢地陷进去，再慢慢地被推上来。他试了三次，每次都笑。","p":["ā","mù","zhǎo","dào","yī","kuài","fēng","mì","kuài","","huáng","sè","de","","bàn","tòu","míng","","mō","shàng","qù","nián","nián","de","","tā","cóng","gāo","chù","tiào","dào","fēng","mì","kuài","shàng","","luò","dì","de","shí","hòu","yì","diǎn","yě","bù","téng","","zhǐ","shì","màn","màn","dì","xiàn","jìn","qù","","zài","màn","màn","dì","bèi","tuī","shàng","lái","","tā","shì","le","sān","cì","","měi","cì","dōu","xiào",""]},{"t":"他又试了史莱姆块。这次不一样，他“啪”地一下被弹到半空，落下来又被弹一次，弹得他哈哈大笑。两种方块长得有点像，脾气完全不同：一个接住你，一个把你扔回去。","p":["tā","yòu","shì","le","shǐ","lái","mǔ","kuài","","zhè","cì","bù","yí","yàng","","tā","","pā","","dì","yī","xià","bèi","dàn","dào","bàn","kōng","","là","xià","lái","yòu","bèi","dàn","yī","cì","","dàn","dé","tā","hā","hā","dà","xiào","","liǎng","zhǒng","fāng","kuài","zhǎng","dé","yǒu","diǎn","xiàng","","pí","qì","wán","quán","bù","tóng","","yí","gè","jiē","zhù","nǐ","","yí","gè","bǎ","nǐ","rēng","huí","qù",""]},{"t":"他用蜂蜜块铺在悬崖下面，做成一张软床；用史莱姆块做了一个蹦床，还请朋友来试。他想，在这个方块的世界里，连“摔下来”都可以变成一件好玩的事。","p":["tā","yòng","fēng","mì","kuài","pù","zài","xuán","yá","xià","miàn","","zuò","chéng","yī","zhāng","ruǎn","chuáng","","yòng","shǐ","lái","mǔ","kuài","zuò","le","yí","gè","bèng","chuáng","","hái","qǐng","péng","yǒu","lái","shì","","tā","xiǎng","","zài","zhè","ge","fāng","kuài","de","shì","jiè","lǐ","","lián","","shuāi","xià","lái","","dōu","kě","yǐ","biàn","chéng","yī","jiàn","hǎo","wán","de","shì",""]},{"t":"有一天，弟弟从树上掉下来，正好落在蜂蜜块上，一点也没哭。阿木说这是早就准备好的，弟弟却只关心一件事：能不能再跳一次。","p":["yǒu","yī","tiān","","dì","di","cóng","shù","shàng","diào","xià","lái","","zhèng","hǎo","luò","zài","fēng","mì","kuài","shàng","","yì","diǎn","yě","méi","kū","","ā","mù","shuō","zhè","shì","zǎo","jiù","zhǔn","bèi","hǎo","de","","dì","di","què","zhǐ","guān","xīn","yī","jiàn","shì","","néng","bù","néng","zài","tiào","yī","cì",""]}]},{"id":"mc14","title":"给羊剪毛","tag":"我的世界","pages":[{"t":"村子后面有一群羊，白的、黑的，还有一只粉的。小禾拿着剪刀走过去，羊“咩”了一声，乖乖站着。她剪下一整块羊毛，羊忽然瘦了一圈，看起来有点不好意思，往旁边挪了两步。","p":["cūn","zi","hòu","miàn","yǒu","yī","qún","yáng","","bái","de","","hēi","de","","hái","yǒu","yī","zhī","fěn","de","","xiǎo","hé","ná","zhe","jiǎn","dāo","zǒu","guò","qù","","yáng","","miē","","le","yī","shēng","","guāi","guāi","zhàn","zhe","","tā","jiǎn","xià","yī","zhěng","kuài","yáng","máo","","yáng","hū","rán","shòu","le","yī","quān","","kàn","qǐ","lái","yǒu","diǎn","bù","hǎo","yì","sī","","wǎng","páng","biān","nuó","le","liǎng","bù",""]},{"t":"她把羊毛做成床，又把白色的羊毛放进染缸，加了一朵蓝花，羊毛就变成了蓝色。她一口气做了红的、黄的、绿的，晾在绳子上，堆在一起像一摞彩虹。风一吹，它们轻轻晃。","p":["tā","bǎ","yáng","máo","zuò","chéng","chuáng","","yòu","bǎ","bái","sè","de","yáng","máo","fàng","jìn","rǎn","gāng","","jiā","le","yī","duǒ","lán","huā","","yáng","máo","jiù","biàn","chéng","le","lán","sè","","tā","yì","kǒu","qì","zuò","le","hóng","de","","huáng","de","","lǜ","de","","liàng","zài","shéng","zi","shàng","","duī","zài","yì","qǐ","xiàng","yī","luò","cǎi","hóng","","fēng","yī","chuī","","tā","men","qīng","qīng","huǎng",""]},{"t":"她用这些羊毛铺了一间小屋的地板。“踩上去软软的。”她说。那只被剪了毛的羊站在门口，又“咩”了一声，好像在说：我的毛不错吧。小禾摸了摸它的头，它低下头吃草了。","p":["tā","yòng","zhè","xiē","yáng","máo","pù","le","yī","jiān","xiǎo","wū","de","dì","bǎn","","","cǎi","shàng","qù","ruǎn","ruǎn","de","","","tā","shuō","","nà","zhǐ","bèi","jiǎn","le","máo","de","yáng","zhàn","zài","mén","kǒu","","yòu","","miē","","le","yī","shēng","","hǎo","xiàng","zài","shuō","","wǒ","de","máo","bù","cuò","ba","","xiǎo","hé","mō","le","mō","tā","de","tóu","","tā","dī","xià","tóu","chī","cǎo","le",""]},{"t":"冬天到了，小禾用新羊毛给羊棚铺了一层，羊挤在一起睡，毛上还沾着草屑。她蹲在门口看了一会儿，觉得剪下来的毛又回到羊身边，这事很有意思。","p":["dōng","tiān","dào","le","","xiǎo","hé","yòng","xīn","yáng","máo","gěi","yáng","péng","pù","le","yī","céng","","yáng","jǐ","zài","yì","qǐ","shuì","","máo","shàng","hái","zhān","zhe","cǎo","xiè","","tā","dūn","zài","mén","kǒu","kàn","le","yī","huì","er","","jué","de","jiǎn","xià","lái","de","máo","yòu","huí","dào","yáng","shēn","biān","","zhè","shì","hěn","yǒu","yì","si",""]}]},{"id":"mc15","title":"鸡下蛋了","tag":"我的世界","pages":[{"t":"阿乐养了四只鸡。早上他去看，鸡窝里躺着一个白色的蛋，还是温的。他把蛋捡起来，轻轻摇了摇，里面没有声音。四只鸡在他脚边转，咕咕地叫，像在等他夸奖。","p":["ā","lè","yǎng","le","sì","zhǐ","jī","","zǎo","shàng","tā","qù","kàn","","jī","wō","lǐ","tǎng","zhe","yí","gè","bái","sè","de","dàn","","hái","shì","wēn","de","","tā","bǎ","dàn","jiǎn","qǐ","lái","","qīng","qīng","yáo","le","yáo","","lǐ","miàn","méi","yǒu","shēng","yīn","","sì","zhǐ","jī","zài","tā","jiǎo","biān","zhuǎn","","gū","gū","dì","jiào","","xiàng","zài","děng","tā","kuā","jiǎng",""]},{"t":"他把鸡蛋、牛奶、糖和小麦放在一起，做成了一个蛋糕。蛋糕摆在桌上，圆圆的，上面还有一层白色的奶油。他没舍得马上吃，先叫了妹妹来，还特意把桌子擦了三遍。","p":["tā","bǎ","jī","dàn","","niú","nǎi","","táng","hé","xiǎo","mài","fàng","zài","yì","qǐ","","zuò","chéng","le","yí","gè","dàn","gāo","","dàn","gāo","bǎi","zài","zhuō","shàng","","yuán","yuán","de","","shàng","miàn","hái","yǒu","yī","céng","bái","sè","de","nǎi","yóu","","tā","méi","shě","de","mǎ","shàng","chī","","xiān","jiào","le","mèi","mèi","lái","","hái","tè","yì","bǎ","zhuō","zi","cā","le","sān","biàn",""]},{"t":"妹妹咬了一口，说：“比店里的好吃。”阿乐笑了：“因为里面的鸡蛋，是我们自己的鸡下的。”窗外，那四只鸡正低着头找虫子，一点也不知道自己立了功。","p":["mèi","mèi","yǎo","le","yī","kǒu","","shuō","","","bǐ","diàn","lǐ","de","hǎo","chī","","","ā","lè","xiào","le","","","yīn","wèi","lǐ","miàn","de","jī","dàn","","shì","wǒ","men","zì","jǐ","de","jī","xià","de","","","chuāng","wài","","nà","sì","zhǐ","jī","zhèng","dī","zhe","tóu","zhǎo","chóng","zi","","yī","diǎn","yě","bù","zhī","dào","zì","jǐ","lì","le","gōng",""]},{"t":"后来阿乐每天早上都去捡蛋，蛋一天比一天多，多出来的就送给邻居。邻居说他家的蛋煎出来更香。他想了想：可能是因为自己养的鸡，虫子吃得多。","p":["hòu","lái","ā","lè","měi","tiān","zǎo","shàng","dōu","qù","jiǎn","dàn","","dàn","yī","tiān","bǐ","yī","tiān","duō","","duō","chū","lái","de","jiù","sòng","gěi","lín","jū","","lín","jū","shuō","tā","jiā","de","dàn","jiān","chū","lái","gèng","xiāng","","tā","xiǎng","le","xiǎng","","kě","néng","shì","yīn","wèi","zì","jǐ","yǎng","de","jī","","chóng","zi","chī","dé","duō",""]}]},{"id":"mc16","title":"夜晚的僵尸","tag":"我的世界","pages":[{"t":"天黑了，阿木听见外面有脚步声，很慢，很沉，一步，又一步。他从窗户往外看，一个穿着破衣服的人站在月光下，两只手臂直直地伸着。那是僵尸。它的脚在地上拖着走。","p":["tiān","hēi","le","","ā","mù","tīng","jiàn","wài","miàn","yǒu","jiǎo","bù","shēng","","hěn","màn","","hěn","chén","","yī","bù","","yòu","yī","bù","","tā","cóng","chuāng","hù","wǎng","wài","kàn","","yí","gè","chuān","zhe","pò","yī","fú","de","rén","zhàn","zài","yuè","guāng","xià","","liǎng","zhǐ","shǒu","bì","zhí","zhí","dì","shēn","zhe","","nà","shì","jiāng","shī","","tā","de","jiǎo","zài","dì","shàng","tuō","zhe","zǒu",""]},{"t":"他把门关紧，把屋里的火把又加了一支。书上说，僵尸怕光，太阳一出来就会烧起来。他躺在床上，听着门外的声音，数着自己的呼吸，一点也不困。被子被他抱得很紧。","p":["tā","bǎ","mén","guān","jǐn","","bǎ","wū","lǐ","de","huǒ","bǎ","yòu","jiā","le","yī","zhī","","shū","shàng","shuō","","jiāng","shī","pà","guāng","","tài","yáng","yī","chū","lái","jiù","huì","shāo","qǐ","lái","","tā","tǎng","zài","chuáng","shàng","","tīng","zhe","mén","wài","de","shēng","yīn","","shù","zhe","zì","jǐ","de","hū","xī","","yì","diǎn","yě","bù","kùn","","bèi","zi","bèi","tā","bào","dé","hěn","jǐn",""]},{"t":"天亮了，他打开门。昨晚站过的地方，只剩下一小块焦黑的印子，还有一点点烟。他抬头看太阳，忽然觉得白天真好。他把门口的木板换了一块新的。","p":["tiān","liàng","le","","tā","dǎ","kāi","mén","","zuó","wǎn","zhàn","guò","de","dì","fāng","","zhǐ","shèng","xià","yī","xiǎo","kuài","jiāo","hēi","de","yìn","zi","","hái","yǒu","yì","diǎn","diǎn","yān","","tā","tái","tóu","kàn","tài","yáng","","hū","rán","jué","de","bái","tiān","zhēn","hǎo","","tā","bǎ","mén","kǒu","de","mù","bǎn","huàn","le","yī","kuài","xīn","de",""]},{"t":"阿木把这件事记在本子上：怪物怕光，人也怕黑。第二天他在门口装了一盏灯，还答应妹妹，晚上陪她一直走到院门口。","p":["ā","mù","bǎ","zhè","jiàn","shì","jì","zài","běn","zi","shàng","","guài","wù","pà","guāng","","rén","yě","pà","hēi","","dì","èr","tiān","tā","zài","mén","kǒu","zhuāng","le","yī","zhǎn","dēng","","hái","dā","yìng","mèi","mèi","","wǎn","shàng","péi","tā","yì","zhí","zǒu","dào","yuàn","mén","kǒu",""]}]},{"id":"mc17","title":"南瓜灯","tag":"我的世界","pages":[{"t":"十月的最后一天，小雨在菜地里摘了一个大南瓜，抱在怀里，差点看不见路。她用刀在南瓜上挖出两只眼睛，一个三角形的鼻子，还有一张笑得很宽的嘴。刀很小，她切了很久。","p":["shí","yuè","de","zuì","hòu","yī","tiān","","xiǎo","yǔ","zài","cài","dì","lǐ","zhāi","le","yí","gè","dà","nán","guā","","bào","zài","huái","lǐ","","chà","diǎn","kàn","bú","jiàn","lù","","tā","yòng","dāo","zài","nán","guā","shàng","wā","chū","liǎng","zhǐ","yǎn","jīng","","yí","gè","sān","jiǎo","xíng","de","bí","zi","","hái","yǒu","yī","zhāng","xiào","dé","hěn","kuān","de","zuǐ","","dāo","hěn","xiǎo","","tā","qiè","le","hěn","jiǔ",""]},{"t":"她把南瓜掏空，把里面的籽倒在盘子里，在里面放上一支火把。南瓜立刻亮了起来，眼睛和嘴巴都透着橘色的光，笑起来的样子有点吓人，又有点可爱，墙上的影子也跟着笑。","p":["tā","bǎ","nán","guā","tāo","kōng","","bǎ","lǐ","miàn","de","zǐ","dào","zài","pán","zi","lǐ","","zài","lǐ","miàn","fàng","shàng","yī","zhī","huǒ","bǎ","","nán","guā","lì","kè","liàng","le","qǐ","lái","","yǎn","jīng","hé","zuǐ","bā","dōu","tòu","zhe","jú","sè","de","guāng","","xiào","qǐ","lái","de","yàng","zi","yǒu","diǎn","xià","rén","","yòu","yǒu","diǎn","kě","ài","","qiáng","shàng","de","yǐng","zi","yě","gēn","zhe","xiào",""]},{"t":"她把它放在门口。邻居家的孩子路过，先吓了一跳，然后笑了。“这是你做的？”他问。小雨点点头。风一吹，里面的火苗动了一下，南瓜的脸好像在笑，好像在说：进来吧。","p":["tā","bǎ","tā","fàng","zài","mén","kǒu","","lín","jū","jiā","de","hái","zi","lù","guò","","xiān","xià","le","yī","tiào","","rán","hòu","xiào","le","","","zhè","shì","nǐ","zuò","de","","","tā","wèn","","xiǎo","yǔ","diǎn","diǎn","tóu","","fēng","yī","chuī","","lǐ","miàn","de","huǒ","miáo","dòng","le","yī","xià","","nán","guā","de","liǎn","hǎo","xiàng","zài","xiào","","hǎo","xiàng","zài","shuō","","jìn","lái","ba",""]},{"t":"一个星期以后，南瓜软了，小雨把它埋进菜地。第二年夏天，那块地里长出一片南瓜苗，叶子很大。她想，一个南瓜的故事，还能接着往下写。","p":["yí","gè","xīng","qī","yǐ","hòu","","nán","guā","ruǎn","le","","xiǎo","yǔ","bǎ","tā","mái","jìn","cài","dì","","dì","èr","nián","xià","tiān","","nà","kuài","dì","lǐ","zhǎng","chū","yī","piàn","nán","guā","miáo","","yè","zi","hěn","dà","","tā","xiǎng","","yí","gè","nán","guā","de","gù","shì","","hái","néng","jiē","zhe","wǎng","xià","xiě",""]}]},{"id":"mc18","title":"地图上的小白点","tag":"我的世界","pages":[{"t":"阿木走得太远，找不到回家的路。他拿出一张地图，地图是空白的。他把它拿在手里，一边走一边看，纸上慢慢出现了颜色：绿色的森林，蓝色的水，灰白的山。","p":["ā","mù","zǒu","dé","tài","yuǎn","","zhǎo","bú","dào","huí","jiā","de","lù","","tā","ná","chū","yī","zhāng","dì","tú","","dì","tú","shì","kòng","bái","de","","tā","bǎ","tā","ná","zài","shǒu","lǐ","","yī","biān","zǒu","yī","biān","kàn","","zhǐ","shàng","màn","màn","chū","xiàn","le","yán","sè","","lǜ","sè","de","sēn","lín","","lán","sè","de","shuǐ","","huī","bái","de","shān",""]},{"t":"地图中间有一个白色的小点，一直在动。那个点就是他。他停下，点也停下；他转身，点也转身。他故意跑了两步，小点也跟着跑，像一只跟着他的小虫。","p":["dì","tú","zhōng","jiān","yǒu","yí","gè","bái","sè","de","xiǎo","diǎn","","yì","zhí","zài","dòng","","nà","ge","diǎn","jiù","shì","tā","","tā","tíng","xià","","diǎn","yě","tíng","xià","","tā","zhuǎn","shēn","","diǎn","yě","zhuǎn","shēn","","tā","gù","yì","pǎo","le","liǎng","bù","","xiǎo","diǎn","yě","gēn","zhe","pǎo","","xiàng","yī","zhī","gēn","zhe","tā","de","xiǎo","chóng",""]},{"t":"他照着地图往回走，绕过一条河，翻过一个小坡。天黑之前，他看见了自家的火把，还看见门口那棵树。他把地图收好，在角落写下四个字：别走太远。","p":["tā","zhào","zhe","dì","tú","wǎng","huí","zǒu","","rào","guò","yī","tiáo","hé","","fān","guò","yí","gè","xiǎo","pō","","tiān","hēi","zhī","qián","","tā","kàn","jiàn","le","zì","jiā","de","huǒ","bǎ","","hái","kàn","jiàn","mén","kǒu","nà","kē","shù","","tā","bǎ","dì","tú","shōu","hǎo","","zài","jiǎo","luò","xiě","xià","sì","gè","zì","","bié","zǒu","tài","yuǎn",""]},{"t":"后来阿木给地图加了一个木框，挂在墙上。每次出门前先看一眼，回来再添几笔。他发现，记性好，不如记得住一张纸。","p":["hòu","lái","ā","mù","gěi","dì","tú","jiā","le","yí","gè","mù","kuāng","","guà","zài","qiáng","shàng","","měi","cì","chū","mén","qián","xiān","kàn","yī","yǎn","","huí","lái","zài","tiān","jǐ","bǐ","","tā","fā","xiàn","","jì","xìng","hǎo","","bù","rú","jì","de","zhù","yī","zhāng","zhǐ",""]}]},{"id":"mc19","title":"和朋友一起盖城堡","tag":"我的世界","pages":[{"t":"小雨和阿木在同一个世界里盖城堡。小雨负责挖石头，阿木负责砌墙。他们约好，谁挖到钻石就喊一声，谁先喊，谁就请对方吃一块蛋糕。","p":["xiǎo","yǔ","hé","ā","mù","zài","tóng","yī","gè","shì","jiè","lǐ","gài","chéng","bǎo","","xiǎo","yǔ","fù","zé","wā","shí","tou","","ā","mù","fù","zé","qì","qiáng","","tā","men","yuē","hǎo","","shuí","wā","dào","zuàn","shí","jiù","hǎn","yī","shēng","","shuí","xiān","hǎn","","shuí","jiù","qǐng","duì","fāng","chī","yī","kuài","dàn","gāo",""]},{"t":"墙砌到第十层的时候，阿木喊：“我掉下去了！”小雨赶紧跑过去，看见他站在一个坑里，头上全是灰，手里还举着一块石头。她把他拉上来，两个人坐在墙边笑了半天，笑到肚子疼。","p":["qiáng","qì","dào","dì","shí","céng","de","shí","hòu","","ā","mù","hǎn","","","wǒ","diào","xià","qù","le","","","xiǎo","yǔ","gǎn","jǐn","pǎo","guò","qù","","kàn","jiàn","tā","zhàn","zài","yī","gè","kēng","lǐ","","tóu","shàng","quán","shì","huī","","shǒu","lǐ","hái","jǔ","zhe","yī","kuài","shí","tóu","","tā","bǎ","tā","lā","shàng","lái","","liǎng","gè","rén","zuò","zài","qiáng","biān","xiào","le","bàn","tiān","","xiào","dào","dù","zi","téng",""]},{"t":"城堡盖好了，有一个圆塔，两个门，塔顶插着一面蓝色的旗。他们站在塔顶往下看，整片草地都是他们的。阿木说：“一个人盖，肯定盖不完。”小雨说：“那就一直一起盖。”","p":["chéng","bǎo","gài","hǎo","le","","yǒu","yī","gè","yuán","tǎ","","liǎng","gè","mén","","tǎ","dǐng","chā","zhe","yī","miàn","lán","sè","de","qí","","tā","men","zhàn","zài","tǎ","dǐng","wǎng","xià","kàn","","zhěng","piàn","cǎo","dì","dōu","shì","tā","men","de","","ā","mù","shuō","","","yī","gè","rén","gài","","kěn","dìng","gài","bù","wán","","","xiǎo","yǔ","shuō","","","nà","jiù","yī","zhí","yī","qǐ","gài","",""]},{"t":"后来他们又在城外挖了一条河，把水引过来，城堡就有了护城河。晚上能听见水声，两个人坐在塔顶不说话。阿木说：“两个人的想法加在一起，比一个人的大。”","p":["hòu","lái","tā","men","yòu","zài","chéng","wài","wā","le","yī","tiáo","hé","","bǎ","shuǐ","yǐn","guò","lái","","chéng","bǎo","jiù","yǒu","le","hù","chéng","hé","","wǎn","shàng","néng","tīng","jiàn","shuǐ","shēng","","liǎng","gè","rén","zuò","zài","tǎ","dǐng","bù","shuō","huà","","ā","mù","shuō","","","liǎng","gè","rén","de","xiǎng","fǎ","jiā","zài","yī","qǐ","","bǐ","yī","gè","rén","de","dà","",""]}]},{"id":"mc20","title":"沙漠里的仙人掌","tag":"我的世界","pages":[{"t":"沙漠里很热，地上只有沙子和干枯的草。阿木走了很久，水壶里的水只剩下一点点。他看见一株绿色的仙人掌，直直地立着，身上长满小刺，比他还要高一点。","p":["shā","mò","lǐ","hěn","rè","","dì","shàng","zhǐ","yǒu","shā","zi","hé","gān","kū","de","cǎo","","ā","mù","zǒu","le","hěn","jiǔ","","shuǐ","hú","lǐ","de","shuǐ","zhǐ","shèng","xià","yì","diǎn","diǎn","","tā","kàn","jiàn","yī","zhū","lǜ","sè","de","xiān","rén","zhǎng","","zhí","zhí","dì","lì","zhe","","shēn","shàng","zhǎng","mǎn","xiǎo","cì","","bǐ","tā","hái","yào","gāo","yì","diǎn",""]},{"t":"他伸手想摸，被刺了一下，手指上出现一个小红点，疼得他甩了甩手。他缩回手，绕着仙人掌走了一圈。仙人掌不用浇水也能活，根扎得很深，把地下的水一点点吸上来。","p":["tā","shēn","shǒu","xiǎng","mō","","bèi","cì","le","yī","xià","","shǒu","zhǐ","shàng","chū","xiàn","yí","gè","xiǎo","hóng","diǎn","","téng","dé","tā","shuǎi","le","shuǎi","shǒu","","tā","suō","huí","shǒu","","rào","zhe","xiān","rén","zhǎng","zǒu","le","yī","quān","","xiān","rén","zhǎng","bù","yòng","jiāo","shuǐ","yě","néng","huó","","gēn","zhā","dé","hěn","shēn","","bǎ","dì","xià","de","shuǐ","yì","diǎn","diǎn","xī","shàng","lái",""]},{"t":"他在旁边挖到一个箱子，里面有几块面包和一瓶水。他坐在仙人掌的影子下面吃，影子只有小小一条。他想，这么热的沙漠，也有一株活得很好的植物。","p":["tā","zài","páng","biān","wā","dào","yí","gè","xiāng","zi","","lǐ","miàn","yǒu","jǐ","kuài","miàn","bāo","hé","yī","píng","shuǐ","","tā","zuò","zài","xiān","rén","zhǎng","de","yǐng","zi","xià","miàn","chī","","yǐng","zi","zhǐ","yǒu","xiǎo","xiǎo","yī","tiáo","","tā","xiǎng","","zhè","me","rè","de","shā","mò","","yě","yǒu","yī","zhū","huó","dé","hěn","hǎo","de","zhí","wù",""]},{"t":"走之前，阿木把水壶里最后一点水倒在仙人掌根旁。仙人掌不会说谢谢，可他还是挥了挥手。他想：在干得裂开的地方活下去，也是一种本事。","p":["zǒu","zhī","qián","","ā","mù","bǎ","shuǐ","hú","lǐ","zuì","hòu","yì","diǎn","shuǐ","dào","zài","xiān","rén","zhǎng","gēn","páng","","xiān","rén","zhǎng","bú","huì","shuō","xiè","xiè","","kě","tā","hái","shì","huī","le","huī","shǒu","","tā","xiǎng","","zài","gàn","dé","liè","kāi","de","dì","fāng","huó","xià","qù","","yě","shì","yī","zhǒng","běn","shì",""]}]},{"id":"tech01","title":"手机怎么知道你在哪","tag":"科技","pages":[{"t":"爸爸开车，手机上的小箭头一直跟着车走。过一个路口，箭头也跟着转。小雨问：“手机怎么知道我们在哪儿？”爸爸指指天上：“有几颗卫星，一直在报自己的时间，一秒钟都不差。”","p":["bà","bà","kāi","chē","","shǒu","jī","shàng","de","xiǎo","jiàn","tóu","yī","zhí","gēn","zhe","chē","zǒu","","guò","yī","gè","lù","kǒu","","jiàn","tóu","yě","gēn","zhe","zhuǎn","","xiǎo","yǔ","wèn","","","shǒu","jī","zěn","me","zhī","dào","wǒ","men","zài","nǎ","ér","","","bà","bà","zhǐ","zhǐ","tiān","shàng","","","yǒu","jǐ","kē","wèi","xīng","","yī","zhí","zài","bào","zì","jǐ","de","shí","jiān","","yī","miǎo","zhōng","dōu","bù","chà","",""]},{"t":"手机收到几颗卫星的信号，算一算信号来得早还是晚，就知道自己离每颗星有多远。一个距离是一个圈，三个圈一画，交点只有一个，位置就定下来了。","p":["shǒu","jī","shōu","dào","jǐ","kē","wèi","xīng","de","xìn","hào","","suàn","yī","suàn","xìn","hào","lái","de","zǎo","hái","shì","wǎn","","jiù","zhī","dào","zì","jǐ","lí","měi","kē","xīng","yǒu","duō","yuǎn","","yí","gè","jù","lí","shì","yí","gè","quān","","sān","gè","quān","yī","huà","","jiāo","diǎn","zhǐ","yǒu","yí","gè","","wèi","zhì","jiù","dìng","xià","lái","le",""]},{"t":"“那在屋里呢？”小雨问。爸爸说，屋里收不到卫星，就改用附近的信号塔和无线网。小雨看着那个小箭头，觉得它像一只看不见的眼睛，一直在天上看着她。","p":["","nà","zài","wū","lǐ","ne","","","xiǎo","yǔ","wèn","","bà","bà","shuō","","wū","lǐ","shōu","bù","dào","wèi","xīng","","jiù","gǎi","yòng","fù","jìn","de","xìn","hào","tǎ","hé","wú","xiàn","wǎng","","xiǎo","yǔ","kàn","zhe","nà","gè","xiǎo","jiàn","tóu","","jué","dé","tā","xiàng","yī","zhǐ","kàn","bù","jiàn","de","yǎn","jīng","","yī","zhí","zài","tiān","shàng","kàn","zhe","tā",""]},{"t":"后来他们开进一个地下车库，小箭头偏了一点，还转了个圈。爸爸说，这里连信号都很弱，等开出去再让它找。小雨明白了：它很厉害，但也有做不到的地方。","p":["hòu","lái","tā","men","kāi","jìn","yí","gè","dì","xià","chē","kù","","xiǎo","jiàn","tóu","piān","le","yì","diǎn","","hái","zhuǎn","le","gè","quān","","bà","bà","shuō","","zhè","lǐ","lián","xìn","hào","dōu","hěn","ruò","","děng","kāi","chū","qù","zài","ràng","tā","zhǎo","","xiǎo","yǔ","míng","bái","le","","tā","hěn","lì","hài","","dàn","yě","yǒu","zuò","bú","dào","de","dì","fāng",""]}]},{"id":"tech02","title":"电从哪里来","tag":"科技","pages":[{"t":"晚上开灯，“嗒”一声，屋子亮了。小雨想，电是从墙里来的吗？她把手贴在开关上，什么也摸不到，只有一点点凉。","p":["wǎn","shàng","kāi","dēng","","","dā","","yī","shēng","","wū","zi","liàng","le","","xiǎo","yǔ","xiǎng","","diàn","shì","cóng","qiáng","lǐ","lái","de","ma","","tā","bǎ","shǒu","tiē","zài","kāi","guān","shàng","","shén","me","yě","mō","bù","dào","","zhǐ","yǒu","yī","diǎn","diǎn","liáng",""]},{"t":"爸爸带她去看变电站。原来电是从很远的发电厂来的：有的地方烧煤，把水烧成汽，汽推着轮子转；有的地方用水冲转轮；有的地方用风推动大大的风车；还有的地方用太阳光。电沿着电线跑，跑到家里，就变成了灯光和声音。","p":["bà","bà","dài","tā","qù","kàn","biàn","diàn","zhàn","","yuán","lái","diàn","shì","cóng","hěn","yuǎn","de","fā","diàn","chǎng","lái","de","","yǒu","de","dì","fāng","shāo","méi","","bǎ","shuǐ","shāo","chéng","qì","","qì","tuī","zhe","lún","zi","zhuǎn","","yǒu","de","dì","fāng","yòng","shuǐ","chōng","zhuàn","lún","","yǒu","de","dì","fāng","yòng","fēng","tuī","dòng","dà","dà","de","fēng","chē","","hái","yǒu","de","dì","fāng","yòng","tài","yáng","guāng","","diàn","yán","zhe","diàn","xiàn","pǎo","","pǎo","dào","jiā","lǐ","","jiù","biàn","chéng","le","dēng","guāng","hé","shēng","yīn",""]},{"t":"回家的路上，小雨看见路灯一盏一盏亮起来。她说：“原来每一盏灯后面，都有一个很远的工厂。”爸爸说：“还不止一个。”","p":["huí","jiā","de","lù","shàng","","xiǎo","yǔ","kàn","jiàn","lù","dēng","yī","zhǎn","yī","zhǎn","liàng","qǐ","lái","","tā","shuō","","","yuán","lái","měi","yī","zhǎn","dēng","hòu","miàn","","dōu","yǒu","yī","gè","hěn","yuǎn","de","gōng","chǎng","","","bà","bà","shuō","","","hái","bù","zhǐ","yī","gè","",""]},{"t":"回到家，小雨把没人房间的灯都关掉了。妈妈问她为什么，她说：“电跑那么远才到我们家，别让它白跑一趟。”妈妈笑了，顺手把电视也关了。","p":["huí","dào","jiā","","xiǎo","yǔ","bǎ","méi","rén","fáng","jiān","de","dēng","dōu","guān","diào","le","","mā","mā","wèn","tā","wèi","shén","me","","tā","shuō","","","diàn","pǎo","nà","me","yuǎn","cái","dào","wǒ","men","jiā","","bié","ràng","tā","bái","pǎo","yī","tàng","","","mā","mā","xiào","le","","shùn","shǒu","bǎ","diàn","shì","yě","guān","le",""]}]},{"id":"tech03","title":"方块迷宫二维码","tag":"科技","pages":[{"t":"妈妈买菜，把手机对着一个小方块图案，“滴”一下，钱就付好了。小雨凑近看，那个图案是黑白的小方格，像一座迷宫，还像一堆撒乱的芝麻。","p":["mā","mā","mǎi","cài","","bǎ","shǒu","jī","duì","zhe","yī","gè","xiǎo","fāng","kuài","tú","àn","","","dī","","yī","xià","","qián","jiù","fù","hǎo","le","","xiǎo","yǔ","còu","jìn","kàn","","nà","gè","tú","àn","shì","hēi","bái","de","xiǎo","fāng","gé","","xiàng","yī","zuò","mí","gōng","","hái","xiàng","yī","duī","sā","luàn","de","zhī","má",""]},{"t":"爸爸说，那些黑白格子是一串密码。手机把它读出来，就知道要付多少钱、给谁。格子歪一点、脏一点，它也不太怕，只要三个角上的大方块还在，就能认出来。","p":["bà","bà","shuō","","nà","xiē","hēi","bái","gé","zi","shì","yī","chuàn","mì","mǎ","","shǒu","jī","bǎ","tā","dú","chū","lái","","jiù","zhī","dào","yào","fù","duō","shǎo","qián","","gěi","shuí","","gé","zi","wāi","yì","diǎn","","zàng","yì","diǎn","","tā","yě","bù","tài","pà","","zhǐ","yào","sān","gè","jiǎo","shàng","de","dà","fāng","kuài","hái","zài","","jiù","néng","rèn","chū","lái",""]},{"t":"小雨自己画了一个，画得歪歪扭扭。爸爸扫了一下，手机说“无法识别”。她笑了：“那我再画正一点。”她画了第二张，这次爸爸的手机“滴”了一声，说：这不是商品。","p":["xiǎo","yǔ","zì","jǐ","huà","le","yī","gè","","huà","dé","wāi","wāi","niǔ","niǔ","","bà","bà","sǎo","le","yī","xià","","shǒu","jī","shuō","","wú","fǎ","shí","bié","","","tā","xiào","le","","","nà","wǒ","zài","huà","zhèng","yī","diǎn","","","tā","huà","le","dì","èr","zhāng","","zhè","cì","bà","bà","de","shǒu","jī","","dī","","le","yī","shēng","","shuō","","zhè","bù","shì","shāng","pǐn",""]},{"t":"爸爸说，真的码里存着一串网址，扫一下就会带你去那个地方。小雨在纸上写下自己的名字，做成一张“名片码”。妈妈扫出来是她的名字，她高兴了半天。","p":["bà","bà","shuō","","zhēn","de","mǎ","lǐ","cún","zhe","yī","chuàn","wǎng","zhǐ","","sǎo","yī","xià","jiù","huì","dài","nǐ","qù","nà","gè","dì","fāng","","xiǎo","yǔ","zài","zhǐ","shàng","xiě","xià","zì","jǐ","de","míng","zì","","zuò","chéng","yī","zhāng","","míng","piàn","mǎ","","","mā","mā","sǎo","chū","lái","shì","tā","de","míng","zì","","tā","gāo","xīng","le","bàn","tiān",""]}]},{"id":"tech04","title":"扫地机器人","tag":"科技","pages":[{"t":"家里的扫地机器人圆圆扁扁，像一块会走路的饼。它每天下午自己出发，在客厅里转圈，碰到墙就换一个方向。它一边走，一边发出小小的“嗡嗡”声。","p":["jiā","lǐ","de","sǎo","dì","jī","qì","rén","yuán","yuán","biǎn","biǎn","","xiàng","yī","kuài","huì","zǒu","lù","de","bǐng","","tā","měi","tiān","xià","wǔ","zì","jǐ","chū","fā","","zài","kè","tīng","lǐ","zhuàn","quān","","pèng","dào","qiáng","jiù","huàn","yí","gè","fāng","xiàng","","tā","yī","biān","zǒu","","yī","biān","fā","chū","xiǎo","xiǎo","de","","wēng","wēng","","shēng",""]},{"t":"它的前面有几个小眼睛，能看见前面有没有东西。地上有一根电线，它会绕开；桌腿太细，它有时候会撞一下，“嘀”一声退回来，再试试别的路。它还会把地毯的边咬住，然后自己停下来。","p":["tā","de","qián","miàn","yǒu","jǐ","gè","xiǎo","yǎn","jīng","","néng","kàn","jiàn","qián","miàn","yǒu","méi","yǒu","dōng","xī","","dì","shàng","yǒu","yī","gēn","diàn","xiàn","","tā","huì","rào","kāi","","zhuō","tuǐ","tài","xì","","tā","yǒu","shí","hòu","huì","zhuàng","yī","xià","","","dí","","yī","shēng","tuì","huí","lái","","zài","shì","shì","bié","de","lù","","tā","hái","huì","bǎ","dì","tǎn","de","biān","yǎo","zhù","","rán","hòu","zì","jǐ","tíng","xià","lái",""]},{"t":"扫完以后，它会自己回到充电的地方，灯变成呼吸一样的绿。小雨给它起名叫“小圆”。有一天小圆卡在椅子下面，她把它抱出来，说：“你今天偷懒了。”","p":["sǎo","wán","yǐ","hòu","","tā","huì","zì","jǐ","huí","dào","chōng","diàn","de","dì","fāng","","dēng","biàn","chéng","hū","xī","yī","yàng","de","lǜ","","xiǎo","yǔ","gěi","tā","qǐ","míng","jiào","","xiǎo","yuán","","","yǒu","yī","tiān","xiǎo","yuán","kǎ","zài","yǐ","zi","xià","miàn","","tā","bǎ","tā","bào","chū","lái","","shuō","","","nǐ","jīn","tiān","tōu","lǎn","le","",""]},{"t":"后来她把地上的电线都收进盒子里，小圆就很少卡住了。她发现，机器聪不聪明，有时候要看人有没有给它让路。","p":["hòu","lái","tā","bǎ","dì","shàng","de","diàn","xiàn","dōu","shōu","jìn","hé","zi","lǐ","","xiǎo","yuán","jiù","hěn","shǎo","kǎ","zhù","le","","tā","fā","xiàn","","jī","qì","cōng","bù","cōng","míng","","yǒu","shí","hòu","yào","kàn","rén","yǒu","méi","yǒu","gěi","tā","ràng","lù",""]}]},{"id":"tech05","title":"电梯不会累","tag":"科技","pages":[{"t":"电梯里没有楼梯，只有一个箱子。小雨问，箱子是怎么上去的？她还想，要是停电了，箱子会不会掉下来。","p":["diàn","tī","lǐ","méi","yǒu","lóu","tī","","zhǐ","yǒu","yí","gè","xiāng","zi","","xiǎo","yǔ","wèn","","xiāng","zi","shì","zěn","me","shàng","qù","de","","tā","hái","xiǎng","","yào","shì","tíng","diàn","le","","xiāng","zi","huì","bú","huì","diào","xià","lái",""]},{"t":"爸爸说，楼顶有一个大轮子，边上挂着很重的铁块。箱子往上走，铁块就往下走，两边差不多重，电机只用一点点力气，就能把箱子拉上去。所以电梯不怕重，也不容易累。","p":["bà","bà","shuō","","lóu","dǐng","yǒu","yí","gè","dà","lún","zi","","biān","shàng","guà","zhe","hěn","zhòng","de","tiě","kuài","","xiāng","zi","wǎng","shàng","zǒu","","tiě","kuài","jiù","wǎng","xià","zǒu","","liǎng","biān","chà","bu","duō","zhòng","","diàn","jī","zhǐ","yòng","yì","diǎn","diǎn","lì","qì","","jiù","néng","bǎ","xiāng","zi","lā","shàng","qù","","suǒ","yǐ","diàn","tī","bù","pà","zhòng","","yě","bù","róng","yì","lèi",""]},{"t":"“那停电了呢？”小雨问。爸爸指指墙上一个小小的把手：“有刹车，会停住。真的停在两层中间，就等人来开门。”小雨按了一下楼层，电梯轻轻一动，她觉得这个箱子很聪明。","p":["","nà","tíng","diàn","le","ne","","","xiǎo","yǔ","wèn","","bà","bà","zhǐ","zhǐ","qiáng","shàng","yī","gè","xiǎo","xiǎo","de","bǎ","shǒu","","","yǒu","shā","chē","","huì","tíng","zhù","","zhēn","de","tíng","zài","liǎng","céng","zhōng","jiān","","jiù","děng","rén","lái","kāi","mén","","","xiǎo","yǔ","àn","le","yī","xià","lóu","céng","","diàn","tī","qīng","qīng","yī","dòng","","tā","jué","dé","zhè","gè","xiāng","zi","hěn","cōng","míng",""]},{"t":"有一次真的停电了，箱子停在两层中间，灯还亮着。里面的人按了按钮，过了十分钟，门就开了。小雨从那以后不再害怕，只是进电梯前会先看一眼按钮。","p":["yǒu","yī","cì","zhēn","de","tíng","diàn","le","","xiāng","zi","tíng","zài","liǎng","céng","zhōng","jiān","","dēng","hái","liàng","zhe","","lǐ","miàn","de","rén","àn","le","àn","niǔ","","guò","le","shí","fēn","zhōng","","mén","jiù","kāi","le","","xiǎo","yǔ","cóng","nà","yǐ","hòu","bù","zài","hài","pà","","zhǐ","shì","jìn","diàn","tī","qián","huì","xiān","kàn","yī","yǎn","àn","niǔ",""]}]},{"id":"tech06","title":"微波炉为什么不烫盘子","tag":"科技","pages":[{"t":"热牛奶的时候，杯子是烫的，装牛奶的盘子却是凉的。小雨问，微波炉是不是只热牛奶，不热盘子？","p":["rè","niú","nǎi","de","shí","hòu","","bēi","zi","shì","tàng","de","","zhuāng","niú","nǎi","de","pán","zi","què","shì","liáng","de","","xiǎo","yǔ","wèn","","wēi","bō","lú","shì","bú","shì","zhǐ","rè","niú","nǎi","","bù","rè","pán","zi",""]},{"t":"妈妈说，微波炉里的波会让水分子很快地摆动，摆动时的摩擦变成了热。牛奶里有水，所以会热；盘子是干的，里面几乎没有水，就热不起来。所以有时候盘子烫，是因为牛奶洒在上面了。","p":["mā","mā","shuō","","wēi","bō","lú","lǐ","de","bō","huì","ràng","shuǐ","fèn","zi","hěn","kuài","dì","bǎi","dòng","","bǎi","dòng","shí","de","mó","cā","biàn","chéng","le","rè","","niú","nǎi","lǐ","yǒu","shuǐ","","suǒ","yǐ","huì","rè","","pán","zi","shì","gàn","de","","lǐ","miàn","jī","hū","méi","yǒu","shuǐ","","jiù","rè","bù","qǐ","lái","","suǒ","yǐ","yǒu","shí","hòu","pán","zi","tàng","","shì","yīn","wèi","niú","nǎi","sǎ","zài","shàng","miàn","le",""]},{"t":"“那把盘子先弄湿呢？”小雨试着在盘子上洒了几滴水。热完以后，盘子真的变温了一点。她笑了：“原来微波炉喜欢水。”妈妈提醒她，金属的东西不能放进去。","p":["","nà","bǎ","pán","zi","xiān","nòng","shī","ne","","","xiǎo","yǔ","shì","zhe","zài","pán","zi","shàng","sǎ","le","jǐ","dī","shuǐ","","rè","wán","yǐ","hòu","","pán","zi","zhēn","de","biàn","wēn","le","yī","diǎn","","tā","xiào","le","","","yuán","lái","wēi","bō","lú","xǐ","huān","shuǐ","","","mā","mā","tí","xǐng","tā","","jīn","shǔ","de","dōng","xī","bù","néng","fàng","jìn","qù",""]},{"t":"她还发现，热完的牛奶上面是凉的，下面是烫的，得搅一搅才好喝。妈妈说，因为波是先从外面进去的。小雨把勺子伸进去，一圈一圈地搅。","p":["tā","hái","fā","xiàn","","rè","wán","de","niú","nǎi","shàng","miàn","shì","liáng","de","","xià","miàn","shì","tàng","de","","dé","jiǎo","yī","jiǎo","cái","hǎo","hē","","mā","mā","shuō","","yīn","wèi","bō","shì","xiān","cóng","wài","miàn","jìn","qù","de","","xiǎo","yǔ","bǎ","sháo","zi","shēn","jìn","qù","","yī","quān","yī","quān","dì","jiǎo",""]}]},{"id":"tech07","title":"屋顶上的太阳能板","tag":"科技","pages":[{"t":"隔壁的屋顶上有一片深蓝色的板子，一整排，斜斜地对着太阳。小雨一直以为那是晒东西的架子，或者是很大的玻璃。","p":["gé","bì","de","wū","dǐng","shàng","yǒu","yī","piàn","shēn","lán","sè","de","bǎn","zi","","yī","zhěng","pái","","xié","xié","dì","duì","zhe","tài","yáng","","xiǎo","yǔ","yì","zhí","yǐ","wéi","nà","shì","shài","dōng","xī","de","jià","zi","","huò","zhě","shì","hěn","dà","de","bō","lí",""]},{"t":"那是太阳能板。光打上去，板子里的小东西会把光变成电。太阳大的时候，发出来的电多；阴天就少，晚上就没有。白天用不完的电，可以存进电池，晚上再用。","p":["nà","shì","tài","yáng","néng","bǎn","","guāng","dǎ","shàng","qù","","bǎn","zi","lǐ","de","xiǎo","dōng","xī","huì","bǎ","guāng","biàn","chéng","diàn","","tài","yáng","dà","de","shí","hòu","","fā","chū","lái","de","diàn","duō","","yīn","tiān","jiù","shǎo","","wǎn","shàng","jiù","méi","yǒu","","bái","tiān","yòng","bù","wán","de","diàn","","kě","yǐ","cún","jìn","diàn","chí","","wǎn","shàng","zài","yòng",""]},{"t":"小雨抬头看那排板子，上面反着天光，像一小片安静的海。她想，太阳晒了一整天，居然还能变成电，进了屋子，让灯亮起来。","p":["xiǎo","yǔ","tái","tóu","kàn","nà","pái","bǎn","zi","","shàng","miàn","fǎn","zhe","tiān","guāng","","xiàng","yī","xiǎo","piàn","ān","jìng","de","hǎi","","tā","xiǎng","","tài","yáng","shài","le","yī","zhěng","tiān","","jū","rán","hái","néng","biàn","chéng","diàn","","jìn","le","wū","zi","","ràng","dēng","liàng","qǐ","lái",""]},{"t":"阴天的时候，小雨特意抬头看那排板子，颜色深得像要下雨。她想，原来它也要休息。回家以后，她把窗帘拉开，让屋里多亮一会儿。","p":["yīn","tiān","de","shí","hòu","","xiǎo","yǔ","tè","yì","tái","tóu","kàn","nà","pái","bǎn","zi","","yán","sè","shēn","dé","xiàng","yào","xià","yǔ","","tā","xiǎng","","yuán","lái","tā","yě","yào","xiū","xī","","huí","jiā","yǐ","hòu","","tā","bǎ","chuāng","lián","lā","kāi","","ràng","wū","lǐ","duō","liàng","yī","huì","er",""]}]},{"id":"tech08","title":"无人机送快递","tag":"科技","pages":[{"t":"山里的奶奶收到一个包裹，是从天上落下来的。一个带着四个小螺旋桨的机器停在院子中间，放下包裹，又飞走了。奶奶站在原地，手还举着，忘了放下来。","p":["shān","lǐ","de","nǎi","nǎi","shōu","dào","yí","gè","bāo","guǒ","","shì","cóng","tiān","shàng","là","xià","lái","de","","yí","gè","dài","zhe","sì","gè","xiǎo","luó","xuán","jiǎng","de","jī","qì","tíng","zài","yuàn","zi","zhōng","jiān","","fàng","xià","bāo","guǒ","","yòu","fēi","zǒu","le","","nǎi","nǎi","zhàn","zài","yuán","dì","","shǒu","hái","jǔ","zhe","","wàng","le","fàng","xià","lái",""]},{"t":"那是无人机。它按事先画好的路线飞，靠卫星知道自己在哪里，靠小摄像头躲开树和电线。风大的时候，它飞得慢一点，还会在原地停一停，等风小一点再走。电池不够，它会自己回去换。","p":["nà","shì","wú","rén","jī","","tā","àn","shì","xiān","huà","hǎo","de","lù","xiàn","fēi","","kào","wèi","xīng","zhī","dào","zì","jǐ","zài","nǎ","lǐ","","kào","xiǎo","shè","xiàng","tóu","duǒ","kāi","shù","hé","diàn","xiàn","","fēng","dà","de","shí","hòu","","tā","fēi","dé","màn","yì","diǎn","","hái","huì","zài","yuán","dì","tíng","yī","tíng","","děng","fēng","xiǎo","yì","diǎn","zài","zǒu","","diàn","chí","bù","gòu","","tā","huì","zì","jǐ","huí","qù","huàn",""]},{"t":"小雨站在院子里看，螺旋桨的声音像一群蜜蜂。她想，以后给奶奶送药，是不是也不用走两个小时的山路了。奶奶说：“可我还是想见人。”","p":["xiǎo","yǔ","zhàn","zài","yuàn","zi","lǐ","kàn","","luó","xuán","jiǎng","de","shēng","yīn","xiàng","yī","qún","mì","fēng","","tā","xiǎng","","yǐ","hòu","gěi","nǎi","nǎi","sòng","yào","","shì","bù","shì","yě","bù","yòng","zǒu","liǎng","gè","xiǎo","shí","de","shān","lù","le","","nǎi","nǎi","shuō","","","kě","wǒ","hái","shì","xiǎng","jiàn","rén","",""]},{"t":"过了几天，快递员骑车上山，把药亲手交到奶奶手里，还坐下来喝了半杯水。小雨在视频里看见奶奶笑，觉得那两小时的弯路走得值。","p":["guò","le","jǐ","tiān","","kuài","dì","yuán","qí","chē","shàng","shān","","bǎ","yào","qīn","shǒu","jiāo","dào","nǎi","nǎi","shǒu","lǐ","","hái","zuò","xià","lái","hē","le","bàn","bēi","shuǐ","","xiǎo","yǔ","zài","shì","pín","lǐ","kàn","jiàn","nǎi","nǎi","xiào","","jué","de","nà","liǎng","xiǎo","shí","de","wān","lù","zǒu","dé","zhí",""]}]},{"id":"tech09","title":"天气预报怎么算","tag":"科技","pages":[{"t":"手机上说，明天下午有雨。第二天下午，雨真的来了，先是一点，然后越来越密。小雨觉得，天气预报像会算命的。","p":["shǒu","jī","shàng","shuō","","míng","tiān","xià","wǔ","yǒu","yǔ","","dì","èr","tiān","xià","wǔ","","yǔ","zhēn","de","lái","le","","xiān","shì","yì","diǎn","","rán","hòu","yuè","lái","yuè","mì","","xiǎo","yǔ","jué","de","","tiān","qì","yù","bào","xiàng","huì","suàn","mìng","de",""]},{"t":"妈妈说，天气预报不是算命。全世界有很多气象站，每天量温度、风、湿度，还有气球飞到天上去量。这些数字放进很快的电脑里，算出空气怎么流动，就能算出明天会怎样。","p":["mā","mā","shuō","","tiān","qì","yù","bào","bú","shì","suàn","mìng","","quán","shì","jiè","yǒu","hěn","duō","qì","xiàng","zhàn","","měi","tiān","liàng","wēn","dù","","fēng","","shī","dù","","hái","yǒu","qì","qiú","fēi","dào","tiān","shàng","qù","liàng","","zhè","xiē","shù","zì","fàng","jìn","hěn","kuài","de","diàn","nǎo","lǐ","","suàn","chū","kōng","qì","zěn","me","liú","dòng","","jiù","néng","suàn","chū","míng","tiān","huì","zěn","yàng",""]},{"t":"“算错的时候呢？”小雨问。“空气太复杂了，越往后越难算。”妈妈说。小雨看着窗外的雨，觉得这台电脑很厉害，也很谦虚。","p":["","suàn","cuò","de","shí","hòu","ne","","","xiǎo","yǔ","wèn","","","kōng","qì","tài","fù","zá","le","","yuè","wǎng","hòu","yuè","nán","suàn","","","mā","mā","shuō","","xiǎo","yǔ","kàn","zhe","chuāng","wài","de","yǔ","","jué","dé","zhè","tái","diàn","nǎo","hěn","lì","hài","","yě","hěn","qiān","xū",""]},{"t":"后来小雨学着看云：云低、跑得快，多半要下雨。她把这些写在小本子上，每天和手机上的预报对一对，有一半猜对了，她还是很高兴。","p":["hòu","lái","xiǎo","yǔ","xué","zhe","kàn","yún","","yún","dī","","pǎo","dé","kuài","","duō","bàn","yào","xià","yǔ","","tā","bǎ","zhè","xiē","xiě","zài","xiǎo","běn","zi","shàng","","měi","tiān","hé","shǒu","jī","shàng","de","yù","bào","duì","yī","duì","","yǒu","yí","bàn","cāi","duì","le","","tā","hái","shì","hěn","gāo","xìng",""]}]},{"id":"tech10","title":"一支打印出来的笔","tag":"科技","pages":[{"t":"爸爸的桌上有一支笔，笔杆上有细细的横纹，摸上去像一层一层的。小雨以为是有人用小刀刻的，刻得很整齐。","p":["bà","bà","de","zhuō","shàng","yǒu","yī","zhī","bǐ","","bǐ","gǎn","shàng","yǒu","xì","xì","de","héng","wén","","mō","shàng","qù","xiàng","yī","céng","yī","céng","de","","xiǎo","yǔ","yǐ","wéi","shì","yǒu","rén","yòng","xiǎo","dāo","kè","de","","kè","dé","hěn","zhěng","qí",""]},{"t":"那不是切出来的，是打印出来的。机器把塑料加热，一层一层地挤出来，堆成想要的形状。一层很薄，比纸还薄，堆上几百层，就成了立体的东西。所以它身上才有一圈一圈的纹。","p":["nà","bú","shì","qiè","chū","lái","de","","shì","dǎ","yìn","chū","lái","de","","jī","qì","bǎ","sù","liào","jiā","rè","","yī","céng","yī","céng","dì","jǐ","chū","lái","","duī","chéng","xiǎng","yào","de","xíng","zhuàng","","yī","céng","hěn","báo","","bǐ","zhǐ","hái","báo","","duī","shàng","jǐ","bǎi","céng","","jiù","chéng","le","lì","tǐ","de","dōng","xī","","suǒ","yǐ","tā","shēn","shàng","cái","yǒu","yī","quān","yī","quān","de","wén",""]},{"t":"小雨想要一个小房子。爸爸说，那得先画出模型，让机器知道每一层该走哪里。她拿起铅笔，在纸上画了第一个方块，又画了第二个。","p":["xiǎo","yǔ","xiǎng","yào","yí","gè","xiǎo","fáng","zi","","bà","bà","shuō","","nà","dé","xiān","huà","chū","mó","xíng","","ràng","jī","qì","zhī","dào","měi","yī","céng","gāi","zǒu","nǎ","lǐ","","tā","ná","qǐ","qiān","bǐ","","zài","zhǐ","shàng","huà","le","dì","yí","gè","fāng","kuài","","yòu","huà","le","dì","èr","gè",""]},{"t":"后来那个小房子真的被打印出来，只有拇指那么大。小雨把它放在窗台上，说：“这是第一层。第二层，我想加一个屋顶。”","p":["hòu","lái","nà","gè","xiǎo","fáng","zi","zhēn","de","bèi","dǎ","yìn","chū","lái","","zhǐ","yǒu","mǔ","zhǐ","nà","me","dà","","xiǎo","yǔ","bǎ","tā","fàng","zài","chuāng","tái","shàng","","shuō","","","zhè","shì","dì","yī","céng","","dì","èr","céng","","wǒ","xiǎng","jiā","yī","gè","wū","dǐng","",""]}]},{"id":"tech11","title":"冰箱里面为什么冷","tag":"科技","pages":[{"t":"小雨打开冰箱门，一股冷气扑到脸上，凉飕飕的。她伸手摸了摸冰箱的外壳，外壳竟然是温的。里面那么冷，外面却是温的，这是怎么做到的？","p":["xiǎo","yǔ","dǎ","kāi","bīng","xiāng","mén","","yī","gǔ","lěng","qì","pū","dào","liǎn","shàng","","liáng","sōu","sōu","de","","tā","shēn","shǒu","mō","le","mō","bīng","xiāng","de","wài","ké","","wài","ké","jìng","rán","shì","wēn","de","","lǐ","miàn","nà","me","lěng","","wài","miàn","què","shì","wēn","de","","zhè","shì","zěn","me","zuò","dào","de",""]},{"t":"爸爸让她绕到冰箱后面。那里有一排黑色的管子，摸上去居然是热的。爸爸说，冰箱不是在箱子里造冷，它是把里面的热量搬到外面来。热量被搬走了，里面自然就冷了。","p":["bà","bà","ràng","tā","rào","dào","bīng","xiāng","hòu","miàn","","nà","lǐ","yǒu","yī","pái","hēi","sè","de","guǎn","zi","","mō","shàng","qù","jū","rán","shì","rè","de","","bà","bà","shuō","","bīng","xiāng","bú","shì","zài","xiāng","zi","lǐ","zào","lěng","","tā","shì","bǎ","lǐ","miàn","de","rè","liàng","bān","dào","wài","miàn","lái","","rè","liàng","bèi","bān","zǒu","le","","lǐ","miàn","zì","rán","jiù","lěng","le",""]},{"t":"管子里有一种专门的液体，一天到晚在来回跑。它在冰箱里面吸走热量，跑到后面把热量放掉，凉下来了再回去接着吸。后面那排热管子，就是它放热的地方。","p":["guǎn","zi","lǐ","yǒu","yī","zhǒng","zhuān","mén","de","yè","tǐ","","yī","tiān","dào","wǎn","zài","lái","huí","pǎo","","tā","zài","bīng","xiāng","lǐ","miàn","xī","zǒu","rè","liàng","","pǎo","dào","hòu","miàn","bǎ","rè","liàng","fàng","diào","","liáng","xià","lái","le","zài","huí","qù","jiē","zhe","xī","","hòu","miàn","nà","pái","rè","guǎn","zi","","jiù","shì","tā","fàng","rè","de","dì","fāng",""]},{"t":"所以冰箱背后要留一点空隙，让热气得跑掉。要是把冰箱贴墙太紧，它就喘不过气，还会更费电。小雨把手放在后面烤了一会儿，笑着说：原来冷是从热换来的。","p":["suǒ","yǐ","bīng","xiāng","bèi","hòu","yào","liú","yì","diǎn","kòng","xì","","ràng","rè","qì","dé","pǎo","diào","","yào","shì","bǎ","bīng","xiāng","tiē","qiáng","tài","jǐn","","tā","jiù","chuǎn","bù","guò","qì","","hái","huì","gèng","fèi","diàn","","xiǎo","yǔ","bǎ","shǒu","fàng","zài","hòu","miàn","kǎo","le","yī","huì","er","","xiào","zhe","shuō","","yuán","lái","lěng","shì","cóng","rè","huàn","lái","de",""]}]},{"id":"tech12","title":"信息怎么跑得那么快","tag":"科技","pages":[{"t":"小雨给远方的表姐发了一句生日快乐。还不到一秒钟，表姐就回了谢谢。两个城市隔着一千多公里，这些字是怎么跑过去的？","p":["xiǎo","yǔ","gěi","yuǎn","fāng","de","biǎo","jiě","fā","le","yī","jù","shēng","rì","kuài","lè","","hái","bú","dào","yī","miǎo","zhōng","","biǎo","jiě","jiù","huí","le","xiè","xiè","","liǎng","gè","chéng","shì","gé","zhe","yī","qiān","duō","gōng","lǐ","","zhè","xiē","zì","shì","zěn","me","pǎo","guò","qù","de",""]},{"t":"手机先把话变成看不见的信号，送到附近的信号塔。信号塔再把信号送进地下或者海底的光缆。光缆里跑的是光，一秒钟能绕地球七圈多。","p":["shǒu","jī","xiān","bǎ","huà","biàn","chéng","kàn","bú","jiàn","de","xìn","hào","","sòng","dào","fù","jìn","de","xìn","hào","tǎ","","xìn","hào","tǎ","zài","bǎ","xìn","hào","sòng","jìn","dì","xià","huò","zhě","hǎi","dǐ","de","guāng","lǎn","","guāng","lǎn","lǐ","pǎo","de","shì","guāng","","yī","miǎo","zhōng","néng","rào","dì","qiú","qī","quān","duō",""]},{"t":"光跑到表姐那个城市的机房，再转到她家附近的信号塔，最后钻进她的手机。中间要经过很多站，但每一站只停一小会儿，就像接力跑，棒子交得很快。","p":["guāng","pǎo","dào","biǎo","jiě","nà","ge","chéng","shì","de","jī","fáng","","zài","zhuǎn","dào","tā","jiā","fù","jìn","de","xìn","hào","tǎ","","zuì","hòu","zuān","jìn","tā","de","shǒu","jī","","zhōng","jiān","yào","jīng","guò","hěn","duō","zhàn","","dàn","měi","yī","zhàn","zhǐ","tíng","yī","xiǎo","huì","er","","jiù","xiàng","jiē","lì","pǎo","","bàng","zi","jiāo","dé","hěn","kuài",""]},{"t":"小雨算了一下，从她家到表姐家有两千里，光只用眨眼的工夫就到了。她说，原来快是有路的，路修得越好，话就跑得越快。","p":["xiǎo","yǔ","suàn","le","yī","xià","","cóng","tā","jiā","dào","biǎo","jiě","jiā","yǒu","liǎng","qiān","lǐ","","guāng","zhǐ","yòng","zhǎ","yǎn","de","gōng","fu","jiù","dào","le","","tā","shuō","","yuán","lái","kuài","shì","yǒu","lù","de","","lù","xiū","dé","yuè","hǎo","","huà","jiù","pǎo","dé","yuè","kuài",""]}]},{"id":"tech13","title":"电饭锅怎么知道饭熟了","tag":"科技","pages":[{"t":"按下电饭锅的按钮，灯亮了，锅里咕嘟咕嘟地响。过了二十分钟，咔的一声，按钮自己跳起来，饭就熟了。它怎么知道时间到了？","p":["àn","xià","diàn","fàn","guō","de","àn","niǔ","","dēng","liàng","le","","guō","lǐ","gū","dū","gū","dū","dì","xiǎng","","guò","le","èr","shí","fēn","zhōng","","kā","de","yī","shēng","","àn","niǔ","zì","jǐ","tiào","qǐ","lái","","fàn","jiù","shú","le","","tā","zěn","me","zhī","dào","shí","jiān","dào","le",""]},{"t":"锅底有一个小零件，能感觉温度。锅里有水的时候，温度不会超过一百度，因为水在翻滚，把热都带走了。所以水没干，它就一直煮。","p":["guō","dǐ","yǒu","yí","gè","xiǎo","líng","jiàn","","néng","gǎn","jué","wēn","dù","","guō","lǐ","yǒu","shuǐ","de","shí","hòu","","wēn","dù","bú","huì","chāo","guò","yì","bǎi","dù","","yīn","wèi","shuǐ","zài","fān","gǔn","","bǎ","rè","dōu","dài","zǒu","le","","suǒ","yǐ","shuǐ","méi","gàn","","tā","jiù","yì","zhí","zhǔ",""]},{"t":"等水被米吸干，锅底就开始超过一百度。那个小零件一到这个温度，就像被放开一样，把开关顶起来，停止加热。","p":["děng","shuǐ","bèi","mǐ","xī","gàn","","guō","dǐ","jiù","kāi","shǐ","chāo","guò","yì","bǎi","dù","","nà","ge","xiǎo","líng","jiàn","yī","dào","zhè","ge","wēn","dù","","jiù","xiàng","bèi","fàng","kāi","yī","yàng","","bǎ","kāi","guān","dǐng","qǐ","lái","","tíng","zhǐ","jiā","rè",""]},{"t":"所以水放多了，饭会稀；水放少了，锅跳得早，饭会夹生。小雨现在知道，那声咔不是随便响的，是温度在说话。","p":["suǒ","yǐ","shuǐ","fàng","duō","le","","fàn","huì","xī","","shuǐ","fàng","shǎo","le","","guō","tiào","dé","zǎo","","fàn","huì","jiā","shēng","","xiǎo","yǔ","xiàn","zài","zhī","dào","","nà","shēng","kā","bú","shì","suí","biàn","xiǎng","de","","shì","wēn","dù","zài","shuō","huà",""]}]},{"id":"tech14","title":"洗衣机为什么转得那么快","tag":"科技","pages":[{"t":"洗完衣服，洗衣机开始嗡嗡地转，里面的桶转得看不清，衣服紧紧贴在桶壁上，好像被吸住了。小雨觉得它像在发脾气。","p":["xǐ","wán","yī","fú","","xǐ","yī","jī","kāi","shǐ","wēng","wēng","dì","zhuǎn","","lǐ","miàn","de","tǒng","zhuǎn","dé","kàn","bù","qīng","","yī","fú","jǐn","jǐn","tiē","zài","tǒng","bì","shàng","","hǎo","xiàng","bèi","xī","zhù","le","","xiǎo","yǔ","jué","de","tā","xiàng","zài","fā","pí","qì",""]},{"t":"妈妈告诉她，这叫脱水。桶转得越快，衣服里的水就被甩得越往外，顺着桶壁上的小孔跑出去。转得越快，甩得越干净。","p":["mā","mā","gào","sù","tā","","zhè","jiào","tuō","shuǐ","","tǒng","zhuǎn","dé","yuè","kuài","","yī","fú","lǐ","de","shuǐ","jiù","bèi","shuǎi","dé","yuè","wǎng","wài","","shùn","zhe","tǒng","bì","shàng","de","xiǎo","kǒng","pǎo","chū","qù","","zhuǎn","dé","yuè","kuài","","shuǎi","dé","yuè","gān","jìng",""]},{"t":"要是桶转得慢，水就甩不出去，衣服拿出来还是湿的。所以脱水的时候声音最大，也最不能打开盖子，不然水会甩到外面。","p":["yào","shì","tǒng","zhuǎn","dé","màn","","shuǐ","jiù","shuǎi","bù","chū","qù","","yī","fú","ná","chū","lái","hái","shì","shī","de","","suǒ","yǐ","tuō","shuǐ","de","shí","hòu","shēng","yīn","zuì","dà","","yě","zuì","bù","néng","dǎ","kāi","gài","zi","","bù","rán","shuǐ","huì","shuǎi","dào","wài","miàn",""]},{"t":"小雨摸着半干的衣服想：不是洗衣机力气大，是它转得快，把水甩掉了。就像下雨天转伞，水珠会往四面飞出去。","p":["xiǎo","yǔ","mō","zhe","bàn","gàn","de","yī","fú","xiǎng","","bú","shì","xǐ","yī","jī","lì","qì","dà","","shì","tā","zhuǎn","dé","kuài","","bǎ","shuǐ","shuǎi","diào","le","","jiù","xiàng","xià","yǔ","tiān","zhuǎn","sǎn","","shuǐ","zhū","huì","wǎng","sì","miàn","fēi","chū","qù",""]}]},{"id":"tech15","title":"高铁为什么那么稳","tag":"科技","pages":[{"t":"高铁开起来，窗外的树飞快地往后退。小雨把一支铅笔立在窗台上，笔居然没有倒。她扶着窗台，几乎感觉不到晃。","p":["gāo","tiě","kāi","qǐ","lái","","chuāng","wài","de","shù","fēi","kuài","dì","wǎng","hòu","tuì","","xiǎo","yǔ","bǎ","yī","zhī","qiān","bǐ","lì","zài","chuāng","tái","shàng","","bǐ","jū","rán","méi","yǒu","dào","","tā","fú","zhe","chuāng","tái","","jī","hū","gǎn","jué","bú","dào","huǎng",""]},{"t":"爸爸说，普通火车经过铁轨的接缝，会咣当一下。高铁的铁轨是一整根焊起来的，中间没有缝，所以不颠。","p":["bà","bà","shuō","","pǔ","tōng","huǒ","chē","jīng","guò","tiě","guǐ","de","jiē","fèng","","huì","guāng","dāng","yī","xià","","gāo","tiě","de","tiě","guǐ","shì","yī","zhěng","gēn","hàn","qǐ","lái","de","","zhōng","jiān","méi","yǒu","fèng","","suǒ","yǐ","bù","diān",""]},{"t":"车厢下面还有弹簧和减震器，像鞋底一样，把小小的晃动都吃掉。车头做成尖尖的，是为了少撞空气，跑起来更省力。","p":["chē","xiāng","xià","miàn","hái","yǒu","tán","huáng","hé","jiǎn","zhèn","qì","","xiàng","xié","dǐ","yī","yàng","","bǎ","xiǎo","xiǎo","de","huàng","dòng","dōu","chī","diào","","chē","tóu","zuò","chéng","jiān","jiān","de","","shì","wèi","le","shǎo","zhuàng","kōng","qì","","pǎo","qǐ","lái","gèng","shěng","lì",""]},{"t":"小雨喝了一口水，水面只轻轻晃了一下。她想：稳不是运气好，是很多地方都做平了、做顺了。","p":["xiǎo","yǔ","hē","le","yī","kǒu","shuǐ","","shuǐ","miàn","zhǐ","qīng","qīng","huǎng","le","yī","xià","","tā","xiǎng","","wěn","bú","shì","yùn","qì","hǎo","","shì","hěn","duō","dì","fāng","dōu","zuò","píng","le","","zuò","shùn","le",""]}]},{"id":"tech16","title":"指纹锁怎么认人","tag":"科技","pages":[{"t":"家门口换了一把新锁，没有钥匙孔。小雨把手指按上去，嘀的一声，门就开了。她赶紧又试了一次，还是开。","p":["jiā","mén","kǒu","huàn","le","yī","bǎ","xīn","suǒ","","méi","yǒu","yào","shi","kǒng","","xiǎo","yǔ","bǎ","shǒu","zhǐ","àn","shàng","qù","","dí","de","yī","shēng","","mén","jiù","kāi","le","","tā","gǎn","jǐn","yòu","shì","le","yī","cì","","hái","shì","kāi",""]},{"t":"爸爸说，每个人的手指肚上都有纹路，像一张小小的地图，别人不会有一样的。锁上有一个很小的眼睛，会把这幅地图拍下来。","p":["bà","bà","shuō","","měi","gè","rén","de","shǒu","zhǐ","dù","shàng","dōu","yǒu","wén","lù","","xiàng","yī","zhāng","xiǎo","xiǎo","de","dì","tú","","bié","rén","bú","huì","yǒu","yī","yàng","de","","suǒ","shàng","yǒu","yí","gè","hěn","xiǎo","de","yǎn","jīng","","huì","bǎ","zhè","fú","dì","tú","pāi","xià","lái",""]},{"t":"第一次按的时候，它把地图存进去。以后每次按，它就把新拍的图和存的放在一起比，一样才开门，不一样就不理。","p":["dì","yī","cì","àn","de","shí","hòu","","tā","bǎ","dì","tú","cún","jìn","qù","","yǐ","hòu","měi","cì","àn","","tā","jiù","bǎ","xīn","pāi","de","tú","hé","cún","de","fàng","zài","yì","qǐ","bǐ","","yī","yàng","cái","kāi","mén","","bù","yí","yàng","jiù","bù","lǐ",""]},{"t":"小雨试着用别人的手指按，门一点反应也没有。她笑了：原来我的手就是钥匙，还不用怕丢。","p":["xiǎo","yǔ","shì","zhe","yòng","bié","rén","de","shǒu","zhǐ","àn","","mén","yì","diǎn","fǎn","yìng","yě","méi","yǒu","","tā","xiào","le","","yuán","lái","wǒ","de","shǒu","jiù","shì","yào","shi","","hái","bù","yòng","pà","diū",""]}]},{"id":"tech17","title":"自动门为什么自己开","tag":"科技","pages":[{"t":"超市的门，人一走近，它就自己往两边滑开。小雨来来回回走了好几次，门每次都给她开门，好像认识她。","p":["chāo","shì","de","mén","","rén","yī","zǒu","jìn","","tā","jiù","zì","jǐ","wǎng","liǎng","biān","huá","kāi","","xiǎo","yǔ","lái","lái","huí","huí","zǒu","le","hǎo","jǐ","cì","","mén","měi","cì","dōu","gěi","tā","kāi","mén","","hǎo","xiàng","rèn","shí","tā",""]},{"t":"门上方有一个小盒子，会发出看不见的探测。有人挡住它，它就知道有人来了，让门打开。它不看脸，只看有没有东西挡在前面。","p":["mén","shàng","fāng","yǒu","yí","gè","xiǎo","hé","zi","","huì","fā","chū","kàn","bú","jiàn","de","tàn","cè","","yǒu","rén","dǎng","zhù","tā","","tā","jiù","zhī","dào","yǒu","rén","lái","le","","ràng","mén","dǎ","kāi","","tā","bù","kàn","liǎn","","zhǐ","kàn","yǒu","méi","yǒu","dōng","xī","dǎng","zài","qián","miàn",""]},{"t":"它只认挡住它的东西。风不会让它开，人走过去才会。等人走开一会儿，门才慢慢关上，怕夹到人。","p":["tā","zhǐ","rèn","dǎng","zhù","tā","de","dōng","xī","","fēng","bú","huì","ràng","tā","kāi","","rén","zǒu","guò","qù","cái","huì","","děng","rén","zǒu","kāi","yī","huì","er","","mén","cái","màn","màn","guān","shàng","","pà","jiā","dào","rén",""]},{"t":"小雨站在门中间不动，门就一直开着。她想：它不是我懂礼貌，是它看见我了。","p":["xiǎo","yǔ","zhàn","zài","mén","zhōng","jiān","bù","dòng","","mén","jiù","yì","zhí","kāi","zhe","","tā","xiǎng","","tā","bú","shì","wǒ","dǒng","lǐ","mào","","shì","tā","kàn","jiàn","wǒ","le",""]}]},{"id":"tech18","title":"声音是怎么录下来的","tag":"科技","pages":[{"t":"小雨用手机录下自己唱的歌，放出来，声音和她一模一样。她想，声音又没有形状，是怎么装进手机里的？","p":["xiǎo","yǔ","yòng","shǒu","jī","lù","xià","zì","jǐ","chàng","de","gē","","fàng","chū","lái","","shēng","yīn","hé","tā","yī","mú","yī","yàng","","tā","xiǎng","","shēng","yīn","yòu","méi","yǒu","xíng","zhuàng","","shì","zěn","me","zhuāng","jìn","shǒu","jī","lǐ","de",""]},{"t":"说话的时候，空气在振动，一波一波传到手机。手机里有一层很薄的膜，跟着一起振动。声音大，膜就动得厉害；声音小，膜就轻轻抖。","p":["shuō","huà","de","shí","hòu","","kōng","qì","zài","zhèn","dòng","","yī","bō","yī","bō","chuán","dào","shǒu","jī","","shǒu","jī","lǐ","yǒu","yī","céng","hěn","báo","de","mó","","gēn","zhe","yì","qǐ","zhèn","dòng","","shēng","yīn","dà","","mó","jiù","dòng","dé","lì","hài","","shēng","yīn","xiǎo","","mó","jiù","qīng","qīng","dǒu",""]},{"t":"膜一动，后面的零件就把振动变成电流。这些电流被记成数字，存进手机里。一首歌，其实就是一大串数字。","p":["mó","yī","dòng","","hòu","miàn","de","líng","jiàn","jiù","bǎ","zhèn","dòng","biàn","chéng","diàn","liú","","zhè","xiē","diàn","liú","bèi","jì","chéng","shù","zì","","cún","jìn","shǒu","jī","lǐ","","yī","shǒu","gē","","qí","shí","jiù","shì","yī","dà","chuàn","shù","zì",""]},{"t":"放的时候正好反过来：数字变回电流，推动一个小喇叭，空气又振动起来。小雨听了一遍，觉得像把声音借出去，又还回来了。","p":["fàng","de","shí","hòu","zhèng","hǎo","fǎn","guò","lái","","shù","zì","biàn","huí","diàn","liú","","tuī","dòng","yí","gè","xiǎo","lǎ","bā","","kōng","qì","yòu","zhèn","dòng","qǐ","lái","","xiǎo","yǔ","tīng","le","yī","biàn","","jué","de","xiàng","bǎ","shēng","yīn","jiè","chū","qù","","yòu","hái","huí","lái","le",""]}]},{"id":"tech19","title":"电脑里的云在哪里","tag":"科技","pages":[{"t":"妈妈说照片存在云里。小雨抬头看天，天上一朵云也没有。云在天上，照片怎么会在天上？她越想越糊涂。","p":["mā","mā","shuō","zhào","piān","cún","zài","yún","lǐ","","xiǎo","yǔ","tái","tóu","kàn","tiān","","tiān","shàng","yī","duǒ","yún","yě","méi","yǒu","","yún","zài","tiān","shàng","","zhào","piān","zěn","me","huì","zài","tiān","shàng","","tā","yuè","xiǎng","yuè","hú","tú",""]},{"t":"其实这个云是别人的大机房，里面有很多很多台机器，一间屋子能放几千台。照片被送过去，就存在那些机器里，等着人去取。","p":["qí","shí","zhè","ge","yún","shì","bié","rén","de","dà","jī","fáng","","lǐ","miàn","yǒu","hěn","duō","hěn","duō","tái","jī","qì","","yī","jiān","wū","zi","néng","fàng","jǐ","qiān","tái","","zhào","piān","bèi","sòng","guò","qù","","jiù","cún","zài","nà","xiē","jī","qì","lǐ","","děng","zhe","rén","qù","qǔ",""]},{"t":"存的时候还会存好几份，分放在不同的地方。一台机器坏了，别的还在，所以照片不会丢。这比只存在一张卡里安全。","p":["cún","de","shí","hòu","hái","huì","cún","hǎo","jǐ","fèn","","fēn","fàng","zài","bù","tóng","de","dì","fāng","","yī","tái","jī","qì","huài","le","","bié","de","hái","zài","","suǒ","yǐ","zhào","piān","bú","huì","diū","","zhè","bǐ","zhǐ","cún","zài","yī","zhāng","kǎ","lǐ","ān","quán",""]},{"t":"小雨明白了：云不飘，它在地上。只是我们从很远的地方去取，像从天上拿东西一样方便。","p":["xiǎo","yǔ","míng","bái","le","","yún","bù","piāo","","tā","zài","dì","shàng","","zhǐ","shì","wǒ","men","cóng","hěn","yuǎn","de","dì","fāng","qù","qǔ","","xiàng","cóng","tiān","shàng","ná","dōng","xī","yī","yàng","fāng","biàn",""]}]},{"id":"tech20","title":"充电宝为什么会发烫","tag":"科技","pages":[{"t":"手机没电了，小雨插上充电宝。过了一会儿，她摸到充电宝有点热，赶紧把手拿开，怕它坏掉。","p":["shǒu","jī","méi","diàn","le","","xiǎo","yǔ","chā","shàng","chōng","diàn","bǎo","","guò","le","yī","huì","er","","tā","mō","dào","chōng","diàn","bǎo","yǒu","diǎn","rè","","gǎn","jǐn","bǎ","shǒu","ná","kāi","","pà","tā","huài","diào",""]},{"t":"爸爸说，充电宝里存着电，电跑出来的时候，不是全部都进了手机，有一小部分变成了热。这就像跑步，总有一部分力气变成了汗水。","p":["bà","bà","shuō","","chōng","diàn","bǎo","lǐ","cún","zhe","diàn","","diàn","pǎo","chū","lái","de","shí","hòu","","bú","shì","quán","bù","dōu","jìn","le","shǒu","jī","","yǒu","yī","xiǎo","bù","fèn","biàn","chéng","le","rè","","zhè","jiù","xiàng","pǎo","bù","","zǒng","yǒu","yī","bù","fèn","lì","qì","biàn","chéng","le","hàn","shuǐ",""]},{"t":"充得越快，电跑得越急，热就越多，所以快充的时候更烫。太热对它不好，会坏得更快，也更容易出危险。","p":["chōng","dé","yuè","kuài","","diàn","pǎo","dé","yuè","jí","","rè","jiù","yuè","duō","","suǒ","yǐ","kuài","chōng","de","shí","hòu","gèng","tàng","","tài","rè","duì","tā","bù","hǎo","","huì","huài","dé","gèng","kuài","","yě","gèng","róng","yì","chū","wēi","xiǎn",""]},{"t":"小雨把充电宝放在桌上，不再压在被子里，也不放在太阳下。她想：原来电也是会出汗的。","p":["xiǎo","yǔ","bǎ","chōng","diàn","bǎo","fàng","zài","zhuō","shàng","","bù","zài","yā","zài","bèi","zi","lǐ","","yě","bù","fàng","zài","tài","yáng","xià","","tā","xiǎng","","yuán","lái","diàn","yě","shì","huì","chū","hàn","de",""]}]},{"id":"life01","title":"为什么要洗手","tag":"生活","pages":[{"t":"从外面回来，妈妈总说：“先去洗手。”小雨有时候嫌麻烦：手看起来干干净净的，不脏也不黑，为什么要洗？","p":["cóng","wài","miàn","huí","lái","","mā","mā","zǒng","shuō","","","xiān","qù","xǐ","shǒu","","","xiǎo","yǔ","yǒu","shí","hòu","xián","má","fán","","shǒu","kàn","qǐ","lái","gàn","gàn","jìng","jìng","de","","bù","zàng","yě","bù","hēi","","wèi","shén","me","yào","xǐ",""]},{"t":"妈妈让她把手放在灯下看。手上有看不见的小东西，叫细菌。它们小得眼睛看不见，会跟着手爬到食物上，再爬到肚子里。洗手的时候，肥皂能把它们冲走，唱两遍生日歌的时间就够。","p":["mā","mā","ràng","tā","bǎ","shǒu","fàng","zài","dēng","xià","kàn","","shǒu","shàng","yǒu","kàn","bú","jiàn","de","xiǎo","dōng","xī","","jiào","xì","jūn","","tā","men","xiǎo","dé","yǎn","jīng","kàn","bú","jiàn","","huì","gēn","zhe","shǒu","pá","dào","shí","wù","shàng","","zài","pá","dào","dǔ","zi","lǐ","","xǐ","shǒu","de","shí","hòu","","féi","zào","néng","bǎ","tā","men","chōng","zǒu","","chàng","liǎng","biàn","shēng","rì","gē","de","shí","jiān","jiù","gòu",""]},{"t":"小雨搓着手指缝，泡沫白白的，指缝里也搓到了。她唱完歌，冲干净手。她想，看不见的东西，也要认真对待。","p":["xiǎo","yǔ","cuō","zhuó","shǒu","zhǐ","fèng","","pào","mò","bái","bái","de","","zhǐ","fèng","lǐ","yě","cuō","dào","le","","tā","chàng","wán","gē","","chōng","gān","jìng","shǒu","","tā","xiǎng","","kàn","bú","jiàn","de","dōng","xī","","yě","yào","rèn","zhēn","duì","dài",""]},{"t":"后来小雨发现，洗手前先把袖子挽起来，泡沫才搓得到手腕。她还教弟弟唱那首歌，弟弟唱得跑调，两个人在水池边笑成一团。","p":["hòu","lái","xiǎo","yǔ","fā","xiàn","","xǐ","shǒu","qián","xiān","bǎ","xiù","zi","wǎn","qǐ","lái","","pào","mò","cái","cuō","dé","dào","shǒu","wàn","","tā","hái","jiào","dì","di","chàng","nà","shǒu","gē","","dì","di","chàng","dé","pǎo","diào","","liǎng","gè","rén","zài","shuǐ","chí","biān","xiào","chéng","yī","tuán",""]}]},{"id":"life02","title":"牙齿里的小虫子","tag":"生活","pages":[{"t":"小雨的牙疼了一晚上。她翻来翻去，用手捂着脸，还是一阵一阵地疼。第二天去看牙医，医生用小镜子照了照，说：“这里有个小洞。”","p":["xiǎo","yǔ","de","yá","téng","le","yī","wǎn","shàng","","tā","fān","lái","fān","qù","","yòng","shǒu","wǔ","zhe","liǎn","","hái","shì","yī","zhèn","yī","zhèn","dì","téng","","dì","èr","tiān","qù","kàn","yá","yī","","yī","shēng","yòng","xiǎo","jìng","zi","zhào","le","zhào","","shuō","","","zhè","lǐ","yǒu","gè","xiǎo","dòng","",""]},{"t":"医生说，吃完东西不刷牙，糖会留在牙缝里。细菌吃了糖，会产出酸，酸把牙齿一点点蛀出洞。洞不会自己长好，只能补上。补的时候，会有一点点声音，像小钻子在唱歌。","p":["yī","shēng","shuō","","chī","wán","dōng","xī","bù","shuā","yá","","táng","huì","liú","zài","yá","fèng","lǐ","","xì","jūn","chī","le","táng","","huì","chǎn","chū","suān","","suān","bǎ","yá","chǐ","yì","diǎn","diǎn","zhù","chū","dòng","","dòng","bú","huì","zì","jǐ","zhǎng","hǎo","","zhǐ","néng","bǔ","shàng","","bǔ","de","shí","hòu","","huì","yǒu","yì","diǎn","diǎn","shēng","yīn","","xiàng","xiǎo","zuān","zi","zài","chàng","gē",""]},{"t":"回家的路上，小雨摸着自己的牙。晚上刷牙，她数着刷了三分钟，从前到后，从上到下，还刷了舌头的边。她想，牙齿要用一辈子，不能只刷给妈妈看。","p":["huí","jiā","de","lù","shàng","","xiǎo","yǔ","mō","zhe","zì","jǐ","de","yá","","wǎn","shàng","shuā","yá","","tā","shù","zhe","shuā","le","sān","fēn","zhōng","","cóng","qián","dào","hòu","","cóng","shàng","dào","xià","","hái","shuā","le","shé","tou","de","biān","","tā","xiǎng","","yá","chǐ","yào","yòng","yī","bèi","zi","","bù","néng","zhǐ","shuā","gěi","mā","mā","kàn",""]},{"t":"三个月后复查，医生说那个补过的地方很好。小雨问能不能吃糖，医生说可以，但吃完要漱口。她把这句话写在小纸条上，贴在了牙刷旁边。","p":["sān","gè","yuè","hòu","fù","chá","","yī","shēng","shuō","nà","ge","bǔ","guò","de","dì","fāng","hěn","hǎo","","xiǎo","yǔ","wèn","néng","bù","néng","chī","táng","","yī","shēng","shuō","kě","yǐ","","dàn","chī","wán","yào","shù","kǒu","","tā","bǎ","zhè","jù","huà","xiě","zài","xiǎo","zhǐ","tiáo","shàng","","tiē","zài","le","yá","shuā","páng","biān",""]}]},{"id":"life03","title":"红绿灯的眼睛","tag":"生活","pages":[{"t":"十字路口的红绿灯，一天到晚不说话，只用三种颜色讲话。红灯说停，绿灯说走，黄灯说：快一点，要变了。它的眼睛高高地挂在那里，看着下面的人。","p":["shí","zì","lù","kǒu","de","hóng","lǜ","dēng","","yī","tiān","dào","wǎn","bù","shuō","huà","","zhǐ","yòng","sān","zhǒng","yán","sè","jiǎng","huà","","hóng","dēng","shuō","tíng","","lǜ","dēng","shuō","zǒu","","huáng","dēng","shuō","","kuài","yì","diǎn","","yào","biàn","le","","tā","de","yǎn","jīng","gāo","gāo","dì","guà","zài","nà","lǐ","","kàn","zhe","xià","miàn","de","rén",""]},{"t":"小雨发现，绿灯会闪几下才变黄。她问妈妈为什么。妈妈说，那是给走得慢的人一个提醒：如果还没走到路中间，就等下一次，不要跑。","p":["xiǎo","yǔ","fā","xiàn","","lǜ","dēng","huì","shǎn","jǐ","xià","cái","biàn","huáng","","tā","wèn","mā","mā","wèi","shén","me","","mā","mā","shuō","","nà","shì","gěi","zǒu","dé","màn","de","rén","yí","gè","tí","xǐng","","rú","guǒ","hái","méi","zǒu","dào","lù","zhōng","jiān","","jiù","děng","xià","yī","cì","","bú","yào","pǎo",""]},{"t":"有一次，一个人闯了红灯，一辆车急刹车，声音很响。小雨抓紧妈妈的手，心也跳了一下。她想，那三盏灯不是装饰，是大家约好的规矩。","p":["yǒu","yī","cì","","yí","gè","rén","chuǎng","le","hóng","dēng","","yī","liàng","chē","jí","shā","chē","","shēng","yīn","hěn","xiǎng","","xiǎo","yǔ","zhuā","jǐn","mā","mā","de","shǒu","","xīn","yě","tiào","le","yī","xià","","tā","xiǎng","","nà","sān","zhǎn","dēng","bú","shì","zhuāng","shì","","shì","dà","jiā","yuē","hǎo","de","guī","jǔ",""]},{"t":"后来小雨学会看路口的倒数数字，还剩几秒就站住脚，不抢那两步。她说：“会等的人，走得最安全。”","p":["hòu","lái","xiǎo","yǔ","xué","huì","kàn","lù","kǒu","de","dào","shù","shù","zì","","hái","shèng","jǐ","miǎo","jiù","zhàn","zhù","jiǎo","","bù","qiǎng","nà","liǎng","bù","","tā","shuō","","","huì","děng","de","rén","","zǒu","dé","zuì","ān","quán","",""]}]},{"id":"life04","title":"消防员的一分钟","tag":"生活","pages":[{"t":"消防站的大门总是开着的。警报一响，消防员从楼上滑下来，穿衣服，戴头盔，跳上车。从铃响到车开出大门，有时候不到一分钟。他们的鞋，一直是穿着的。","p":["xiāo","fáng","zhàn","de","dà","mén","zǒng","shì","kāi","zhe","de","","jǐng","bào","yī","xiǎng","","xiāo","fáng","yuán","cóng","lóu","shàng","huá","xià","lái","","chuān","yī","fú","","dài","tóu","kuī","","tiào","shàng","chē","","cóng","líng","xiǎng","dào","chē","kāi","chū","dà","mén","","yǒu","shí","hòu","bú","dào","yì","fēn","zhōng","","tā","men","de","xié","","yì","zhí","shì","chuān","zhe","de",""]},{"t":"水罐车装满了水。到了火场，他们先看风往哪边吹，再看有没有人还没出来。水管里的水压很大，一个人抱不住，要两个人一起，脚还要顶住地。","p":["shuǐ","guàn","chē","zhuāng","mǎn","le","shuǐ","","dào","le","huǒ","chǎng","","tā","men","xiān","kàn","fēng","wǎng","nǎ","biān","chuī","","zài","kàn","yǒu","méi","yǒu","rén","hái","méi","chū","lái","","shuǐ","guǎn","lǐ","de","shuǐ","yā","hěn","dà","","yí","gè","rén","bào","bú","zhù","","yào","liǎng","gè","rén","yì","qǐ","","jiǎo","hái","yào","dǐng","zhù","dì",""]},{"t":"火灭了以后，他们的脸上都是黑的，只有眼睛周围是白的。小雨在电视上看到，问妈妈：“他们不怕吗？”妈妈说：“怕，但他们还是要进去。”","p":["huǒ","miè","le","yǐ","hòu","","tā","men","de","liǎn","shàng","dōu","shì","hēi","de","","zhǐ","yǒu","yǎn","jīng","zhōu","wéi","shì","bái","de","","xiǎo","yǔ","zài","diàn","shì","shàng","kàn","dào","","wèn","mā","mā","","","tā","men","bù","pà","ma","","","mā","mā","shuō","","","pà","","dàn","tā","men","hái","shì","yào","jìn","qù","",""]},{"t":"学校请消防员来讲课。他带来一件衣服，小雨试着穿上，重得几乎走不动。她脱下来，喘着气说：“原来他们每天穿着这个在跑。”","p":["xué","xiào","qǐng","xiāo","fáng","yuán","lái","jiǎng","kè","","tā","dài","lái","yī","jiàn","yī","fú","","xiǎo","yǔ","shì","zhe","chuān","shàng","","zhòng","dé","jǐ","hū","zǒu","bù","dòng","","tā","tuō","xià","lái","","chuǎn","zhe","qì","shuō","","","yuán","lái","tā","men","měi","tiān","chuān","zhe","zhè","gè","zài","pǎo","",""]}]},{"id":"life05","title":"垃圾去哪儿了","tag":"生活","pages":[{"t":"小雨把垃圾扔进楼下的桶，桶是绿色的。她问：“然后呢？”妈妈说过，扔掉了就不见了，可是她不太相信。","p":["xiǎo","yǔ","bǎ","lā","jī","rēng","jìn","lóu","xià","de","tǒng","","tǒng","shì","lǜ","sè","de","","tā","wèn","","","rán","hòu","ne","","","mā","mā","shuō","guò","","rēng","diào","le","jiù","bù","jiàn","le","","kě","shì","tā","bù","tài","xiāng","xìn",""]},{"t":"垃圾车每天早上来，把桶倒进车里，开到城外的处理场。果皮菜叶会被埋起来，慢慢变成土；塑料瓶会被挑出来，压成大方块，再做新的东西；电池要单独放，因为它里面的东西会弄脏水和土。","p":["lā","jī","chē","měi","tiān","zǎo","shàng","lái","","bǎ","tǒng","dào","jìn","chē","lǐ","","kāi","dào","chéng","wài","de","chǔ","lǐ","chǎng","","guǒ","pí","cài","yè","huì","bèi","mái","qǐ","lái","","màn","màn","biàn","chéng","tǔ","","sù","liào","píng","huì","bèi","tiāo","chū","lái","","yā","chéng","dà","fāng","kuài","","zài","zuò","xīn","de","dōng","xī","","diàn","chí","yào","dān","dú","fàng","","yīn","wèi","tā","lǐ","miàn","de","dōng","xī","huì","nòng","zāng","shuǐ","hé","tǔ",""]},{"t":"回家以后，她拿三个盒子，写上“纸”“塑料”“其他”。她把一个酸奶盒洗干净，放进“塑料”里。她想，扔垃圾也是一件要想想的事。","p":["huí","jiā","yǐ","hòu","","tā","ná","sān","gè","hé","zi","","xiě","shàng","","zhǐ","","","sù","liào","","","qí","tā","","","tā","bǎ","yī","gè","suān","nǎi","hé","xǐ","gàn","jìng","","fàng","jìn","","sù","liào","","lǐ","","tā","xiǎng","","rēng","lā","jī","yě","shì","yī","jiàn","yào","xiǎng","xiǎng","de","shì",""]},{"t":"一个月后，她家的“其他”盒子最满，“纸”最少。妈妈说，这说明我们买的东西里纸盒子太多了。她开始把快递箱压平了再扔，能省一半地方。","p":["yī","gè","yuè","hòu","","tā","jiā","de","","qí","tā","","hé","zi","zuì","mǎn","","","zhǐ","","zuì","shǎo","","mā","mā","shuō","","zhè","shuō","míng","wǒ","men","mǎi","de","dōng","xī","lǐ","zhǐ","hé","zi","tài","duō","le","","tā","kāi","shǐ","bǎ","kuài","dì","xiāng","yā","píng","le","zài","rēng","","néng","shěng","yī","bàn","dì","fāng",""]}]},{"id":"life06","title":"超市里的条纹码","tag":"生活","pages":[{"t":"收银台“嘀”一声，一包饼干的价钱就出现在屏幕上。小雨看那包饼干，背面印着一排粗细不一样的条纹，有的宽，有的窄，中间还夹着数字。","p":["shōu","yín","tái","","dí","","yī","shēng","","yī","bāo","bǐng","gān","de","jià","qián","jiù","chū","xiàn","zài","píng","mù","shàng","","xiǎo","yǔ","kàn","nà","bāo","bǐng","gān","","bèi","miàn","yìn","zhe","yī","pái","cū","xì","bù","yí","yàng","de","tiáo","wén","","yǒu","de","kuān","","yǒu","de","zhǎi","","zhōng","jiān","hái","jiā","zhāo","shù","zì",""]},{"t":"妈妈说，那些条纹是一串数字变的。黑的条和白空的宽度不一样，读出来就是商品的编号。超市的电脑一查编号，就知道这是什么、多少钱、还剩几包。","p":["mā","mā","shuō","","nà","xiē","tiáo","wén","shì","yī","chuàn","shù","zì","biàn","de","","hēi","de","tiáo","hé","bái","kōng","de","kuān","dù","bù","yí","yàng","","dú","chū","lái","jiù","shì","shāng","pǐn","de","biān","hào","","chāo","shì","de","diàn","nǎo","yī","chá","biān","hào","","jiù","zhī","dào","zhè","shì","shén","me","","duō","shǎo","qián","","hái","shèng","jǐ","bāo",""]},{"t":"小雨把家里所有的包装都翻出来，比一比条纹。她发现每一包的条纹都不一样。“就像每个人的名字。”她说。她还把牙膏盒上的条纹照着画了一遍。","p":["xiǎo","yǔ","bǎ","jiā","lǐ","suǒ","yǒu","de","bāo","zhuāng","dōu","fān","chū","lái","","bǐ","yī","bǐ","tiáo","wén","","tā","fā","xiàn","měi","yī","bāo","de","tiáo","wén","dōu","bù","yī","yàng","","","jiù","xiàng","měi","gè","rén","de","míng","zì","","","tā","shuō","","tā","hái","bǎ","yá","gāo","hé","shàng","de","tiáo","wén","zhào","zhe","huà","le","yī","biàn",""]},{"t":"后来小雨发现，条纹下面的数字是有顺序的：前面几位是厂家，后面几位是商品。她拿这个给爸爸出了一道题，爸爸看了半天也没答上来。","p":["hòu","lái","xiǎo","yǔ","fā","xiàn","","tiáo","wén","xià","miàn","de","shù","zì","shì","yǒu","shùn","xù","de","","qián","miàn","jǐ","wèi","shì","chǎng","jiā","","hòu","miàn","jǐ","wèi","shì","shāng","pǐn","","tā","ná","zhè","ge","gěi","bà","bà","chū","le","yī","dào","tí","","bà","bà","kàn","le","bàn","tiān","yě","méi","dá","shàng","lái",""]}]},{"id":"life07","title":"飞机为什么能飞","tag":"生活","pages":[{"t":"飞机那么大、那么重，怎么能飞起来？小雨在机场看飞机，觉得它像一只铁做的大鸟，跑道那么长，它还要跑很久。","p":["fēi","jī","nà","me","dà","","nà","me","zhòng","","zěn","me","néng","fēi","qǐ","lái","","xiǎo","yǔ","zài","jī","chǎng","kàn","fēi","jī","","jué","de","tā","xiàng","yī","zhī","tiě","zuò","de","dà","niǎo","","pǎo","dào","nà","me","zhǎng","","tā","hái","yào","pǎo","hěn","jiǔ",""]},{"t":"爸爸说，飞机的翅膀上面是弯的，下面是平的。空气从翅膀上下流过，上面的空气跑得快，下面的跑得慢，下面就把翅膀往上顶。发动机再往前推，飞机就起来了。","p":["bà","bà","shuō","","fēi","jī","de","chì","bǎng","shàng","miàn","shì","wān","de","","xià","miàn","shì","píng","de","","kōng","qì","cóng","chì","bǎng","shàng","xià","liú","guò","","shàng","miàn","de","kōng","qì","pǎo","dé","kuài","","xià","miàn","de","pǎo","dé","màn","","xià","miàn","jiù","bǎ","chì","bǎng","wǎng","shàng","dǐng","","fā","dòng","jī","zài","wǎng","qián","tuī","","fēi","jī","jiù","qǐ","lái","le",""]},{"t":"“那它怎么停下来？”小雨问。爸爸说，翅膀上有板子会立起来，挡住风，轮子落地的时候还会冒一点烟。小雨看着飞机滑跑、抬头、离开地面，心里有点痒。","p":["","nà","tā","zěn","me","tíng","xià","lái","","","xiǎo","yǔ","wèn","","bà","bà","shuō","","chì","bǎng","shàng","yǒu","bǎn","zi","huì","lì","qǐ","lái","","dǎng","zhù","fēng","","lún","zi","luò","dì","de","shí","hòu","hái","huì","mào","yī","diǎn","yān","","xiǎo","yǔ","kàn","zhe","fēi","jī","huá","pǎo","","tái","tóu","","lí","kāi","dì","miàn","","xīn","lǐ","yǒu","diǎn","yǎng",""]},{"t":"上了飞机，她把手贴在窗上，感觉机身轻轻地抖。飞机抬头的时候，她的耳朵有点堵，咽了一下口水就好了。她想，这一路都是看不见的力在帮忙。","p":["shàng","le","fēi","jī","","tā","bǎ","shǒu","tiē","zài","chuāng","shàng","","gǎn","jué","jī","shēn","qīng","qīng","dì","dǒu","","fēi","jī","tái","tóu","de","shí","hòu","","tā","de","ěr","duǒ","yǒu","diǎn","dǔ","","yàn","le","yī","xià","kǒu","shuǐ","jiù","hǎo","le","","tā","xiǎng","","zhè","yī","lù","dōu","shì","kàn","bú","jiàn","de","lì","zài","bāng","máng",""]}]},{"id":"life08","title":"影子跟着我","tag":"生活","pages":[{"t":"早上出门，小雨的影子长长的，走在前面，比她还高。中午回家，影子变短了，缩在脚底下，像一块小黑饼。","p":["zǎo","shàng","chū","mén","","xiǎo","yǔ","de","yǐng","zi","cháng","cháng","de","","zǒu","zài","qián","miàn","","bǐ","tā","hái","gāo","","zhōng","wǔ","huí","jiā","","yǐng","zi","biàn","duǎn","le","","suō","zài","jiǎo","dǐ","xià","","xiàng","yī","kuài","xiǎo","hēi","bǐng",""]},{"t":"妈妈说，影子是光被挡住的地方。太阳低的时候，光斜着来，影子就长；太阳高的时候，光从头顶下来，影子就短。晚上有路灯，也会有一个影子，只是多了几个。","p":["mā","mā","shuō","","yǐng","zi","shì","guāng","bèi","dǎng","zhù","de","dì","fāng","","tài","yáng","dī","de","shí","hòu","","guāng","xié","zhe","lái","","yǐng","zi","jiù","zhǎng","","tài","yáng","gāo","de","shí","hòu","","guāng","cóng","tóu","dǐng","xià","lái","","yǐng","zi","jiù","duǎn","","wǎn","shàng","yǒu","lù","dēng","","yě","huì","yǒu","yí","gè","yǐng","zi","","zhǐ","shì","duō","le","jǐ","gè",""]},{"t":"小雨站在两盏路灯中间，看见自己有两个影子，一个往左，一个往右。她跳了一下，两个影子一起跳。她笑了：“我有两个我。”","p":["xiǎo","yǔ","zhàn","zài","liǎng","zhǎn","lù","dēng","zhōng","jiān","","kàn","jiàn","zì","jǐ","yǒu","liǎng","gè","yǐng","zi","","yī","gè","wǎng","zuǒ","","yī","gè","wǎng","yòu","","tā","tiào","le","yī","xià","","liǎng","gè","yǐng","zi","yī","qǐ","tiào","","tā","xiào","le","","","wǒ","yǒu","liǎng","gè","wǒ","",""]},{"t":"后来她用手做了一只鸟，影子在墙上变成一只会动的鸟。她把手一张一合，鸟就扇翅膀。她说：“影子不会自己动，是手在动。”","p":["hòu","lái","tā","yòng","shǒu","zuò","le","yī","zhǐ","niǎo","","yǐng","zi","zài","qiáng","shàng","biàn","chéng","yī","zhǐ","huì","dòng","de","niǎo","","tā","bǎ","shǒu","yī","zhāng","yī","hé","","niǎo","jiù","shàn","chì","bǎng","","tā","shuō","","","yǐng","zi","bù","huì","zì","jǐ","dòng","","shì","shǒu","zài","dòng","",""]}]},{"id":"life09","title":"一年为什么有四季","tag":"生活","pages":[{"t":"春天开花，夏天热，秋天落叶，冬天冷。小雨问，为什么一年会变四次样子？她把四季画在本子上，每个季节用一种颜色。","p":["chūn","tiān","kāi","huā","","xià","tiān","rè","","qiū","tiān","luò","yè","","dōng","tiān","lěng","","xiǎo","yǔ","wèn","","wèi","shén","me","yī","nián","huì","biàn","sì","cì","yàng","zi","","tā","bǎ","sì","jì","huà","zài","běn","zi","shàng","","měi","gè","jì","jié","yòng","yī","zhǒng","yán","sè",""]},{"t":"老师说，地球绕着太阳转，一边转，一边自己歪着身子。歪的方向不变，所以有时候北边正对着太阳，白天长、天气热；有时候北边斜过去，白天短、天气冷。","p":["lǎo","shī","shuō","","dì","qiú","rào","zhe","tài","yáng","zhuǎn","","yī","biān","zhuǎn","","yī","biān","zì","jǐ","wāi","zhe","shēn","zi","","wāi","de","fāng","xiàng","bù","biàn","","suǒ","yǐ","yǒu","shí","hòu","běi","biān","zhèng","duì","zhe","tài","yáng","","bái","tiān","zhǎng","","tiān","qì","rè","","yǒu","shí","hòu","běi","biān","xié","guò","qù","","bái","tiān","duǎn","","tiān","qì","lěng",""]},{"t":"“不是地球离太阳远近的问题吗？”小雨问。老师摇头：“离得最近的时候，我们这儿反而是冬天。”小雨把这个记在本子上，觉得有点奇怪，又很有意思。","p":["","bù","shì","dì","qiú","lí","tài","yáng","yuǎn","jìn","de","wèn","tí","ma","","","xiǎo","yǔ","wèn","","lǎo","shī","yáo","tóu","","","lí","dé","zuì","jìn","de","shí","hòu","","wǒ","men","zhè","ér","fǎn","ér","shì","dōng","tiān","","","xiǎo","yǔ","bǎ","zhè","gè","jì","zài","běn","zi","shàng","","jué","dé","yǒu","diǎn","qí","guài","","yòu","hěn","yǒu","yì","sī",""]},{"t":"她在日历上标出白天最长的那个星期，又标出最短的那一个星期，中间正好隔了半年。她想，地球歪着身子转，我们才有一年四季。","p":["tā","zài","rì","lì","shàng","biāo","chū","bái","tiān","zuì","zhǎng","de","nà","ge","xīng","qī","","yòu","biāo","chū","zuì","duǎn","de","nà","yí","gè","xīng","qī","","zhōng","jiān","zhèng","hǎo","gé","le","bàn","nián","","tā","xiǎng","","dì","qiú","wāi","zhe","shēn","zi","zhuǎn","","wǒ","men","cái","yǒu","yī","nián","sì","jì",""]}]},{"id":"life10","title":"快递是怎么到家的","tag":"生活","pages":[{"t":"小雨在网上买了一本书。第二天下午，快递员打电话，说在楼下。她跑下去，鞋都没穿好，书比她想的要重一点。","p":["xiǎo","yǔ","zài","wǎng","shàng","mǎi","le","yī","běn","shū","","dì","èr","tiān","xià","wǔ","","kuài","dì","yuán","dǎ","diàn","huà","","shuō","zài","lóu","xià","","tā","pǎo","xià","qù","","xié","dōu","méi","chuān","hǎo","","shū","bǐ","tā","xiǎng","de","yào","zhòng","yì","diǎn",""]},{"t":"妈妈给她看手机的记录：书先从一个大仓库出发，坐车到城里的分拣中心。那里有好多传送带，包裹被扫一下，就去了不同的通道。然后它坐上小车，到了小区附近的站点，最后到了快递员的三轮车里。","p":["mā","mā","gěi","tā","kàn","shǒu","jī","de","jì","lù","","shū","xiān","cóng","yí","gè","dà","cāng","kù","chū","fā","","zuò","chē","dào","chéng","lǐ","de","fēn","jiǎn","zhōng","xīn","","nà","lǐ","yǒu","hǎo","duō","chuán","sòng","dài","","bāo","guǒ","bèi","sǎo","yī","xià","","jiù","qù","le","bù","tóng","de","tōng","dào","","rán","hòu","tā","zuò","shàng","xiǎo","chē","","dào","le","xiǎo","qū","fù","jìn","de","zhàn","diǎn","","zuì","hòu","dào","le","kuài","dì","yuán","de","sān","lún","chē","lǐ",""]},{"t":"小雨把书拆开，纸的味道很好闻。她想，这本书昨天还在很远的地方，今天就到了她手上。她在第一页写上自己的名字。","p":["xiǎo","yǔ","bǎ","shū","chāi","kāi","","zhǐ","de","wèi","dào","hěn","hǎo","wén","","tā","xiǎng","","zhè","běn","shū","zuó","tiān","hái","zài","hěn","yuǎn","de","dì","fāng","","jīn","tiān","jiù","dào","le","tā","shǒu","shàng","","tā","zài","dì","yī","yè","xiě","shàng","zì","jǐ","de","míng","zì",""]},{"t":"后来小雨学会看包裹上的单号，一串数字就能查到它走到哪儿了。她每天看一次，像在看一本会走路的地图。","p":["hòu","lái","xiǎo","yǔ","xué","huì","kàn","bāo","guǒ","shàng","de","dān","hào","","yī","chuàn","shù","zì","jiù","néng","chá","dào","tā","zǒu","dào","nǎ","ér","le","","tā","měi","tiān","kàn","yī","cì","","xiàng","zài","kàn","yī","běn","huì","zǒu","lù","de","dì","tú",""]}]},{"id":"life11","title":"衣服是怎么晾干的","tag":"生活","pages":[{"t":"洗完的衣服湿漉漉的，挂在阳台上，还滴着水。到了下午，衣服变干了，摸上去软软的。水到哪里去了？","p":["xǐ","wán","de","yī","fú","shī","lù","lù","de","","guà","zài","yáng","tái","shàng","","hái","dī","zhe","shuǐ","","dào","le","xià","wǔ","","yī","fú","biàn","gàn","le","","mō","shàng","qù","ruǎn","ruǎn","de","","shuǐ","dào","nǎ","lǐ","qù","le",""]},{"t":"水会变成看不见的水蒸气，跑到空气里，这叫蒸发。太阳晒着，风吹着，水就跑得更快。所以有风的晴天，衣服干得最快。","p":["shuǐ","huì","biàn","chéng","kàn","bú","jiàn","de","shuǐ","zhēng","qì","","pǎo","dào","kōng","qì","lǐ","","zhè","jiào","zhēng","fā","","tài","yáng","shài","zhe","","fēng","chuī","zhe","","shuǐ","jiù","pǎo","dé","gèng","kuài","","suǒ","yǐ","yǒu","fēng","de","qíng","tiān","","yī","fú","gàn","dé","zuì","kuài",""]},{"t":"妈妈把衣服摊开挂，不让它团成一团。摊开的面积大，水跑得多；团着的地方，里面总是干得最慢。","p":["mā","mā","bǎ","yī","fú","tān","kāi","guà","","bù","ràng","tā","tuán","chéng","yī","tuán","","tān","kāi","de","miàn","jī","dà","","shuǐ","pǎo","dé","duō","","tuán","zhe","de","dì","fāng","","lǐ","miàn","zǒng","shì","gàn","dé","zuì","màn",""]},{"t":"阴天衣服干得慢，不是水不肯走，是空气里已经有很多水，走得慢。小雨摸了摸干衣服，觉得它比刚才轻了好多。","p":["yīn","tiān","yī","fú","gàn","dé","màn","","bú","shì","shuǐ","bù","kěn","zǒu","","shì","kōng","qì","lǐ","yǐ","jīng","yǒu","hěn","duō","shuǐ","","zǒu","dé","màn","","xiǎo","yǔ","mō","le","mō","gàn","yī","fú","","jué","de","tā","bǐ","gāng","cái","qīng","le","hǎo","duō",""]}]},{"id":"life12","title":"面包为什么会变硬","tag":"生活","pages":[{"t":"面包放了两天，摸上去硬邦邦的，咬一口掉渣。刚买回来的时候，它软得像棉花，一按一个坑。","p":["miàn","bāo","fàng","le","liǎng","tiān","","mō","shàng","qù","yìng","bāng","bāng","de","","yǎo","yī","kǒu","diào","zhā","","gāng","mǎi","huí","lái","de","shí","hòu","","tā","ruǎn","dé","xiàng","mián","huā","","yī","àn","yí","gè","kēng",""]},{"t":"面包里的淀粉，放久了会慢慢排好队，把水挤出去，所以变硬。放锅里热一下，它又能软一点，但凉了还是会硬。","p":["miàn","bāo","lǐ","de","diàn","fěn","","fàng","jiǔ","le","huì","màn","màn","pái","hǎo","duì","","bǎ","shuǐ","jǐ","chū","qù","","suǒ","yǐ","biàn","yìng","","fàng","guō","lǐ","rè","yī","xià","","tā","yòu","néng","ruǎn","yì","diǎn","","dàn","liáng","le","hái","shì","huì","yìng",""]},{"t":"要是放得更久，上面还会长出绿绿的毛毛，那是霉菌。发霉的面包不能吃，把霉的地方切掉也不行，因为它里面早就长满了。","p":["yào","shì","fàng","dé","gèng","jiǔ","","shàng","miàn","hái","huì","zhǎng","chū","lǜ","lǜ","de","máo","máo","","nà","shì","méi","jūn","","fā","méi","de","miàn","bāo","bù","néng","chī","","bǎ","méi","de","dì","fāng","qiè","diào","yě","bù","xíng","","yīn","wèi","tā","lǐ","miàn","zǎo","jiù","zhǎng","mǎn","le",""]},{"t":"小雨把面包装进袋子扎紧，第二天还是软的。她想：空气和水是面包变坏的帮手，把这两样挡住，就能多放几天。","p":["xiǎo","yǔ","bǎ","miàn","bāo","zhuāng","jìn","dài","zi","zhā","jǐn","","dì","èr","tiān","hái","shì","ruǎn","de","","tā","xiǎng","","kōng","qì","hé","shuǐ","shì","miàn","bāo","biàn","huài","de","bāng","shǒu","","bǎ","zhè","liǎng","yàng","dǎng","zhù","","jiù","néng","duō","fàng","jǐ","tiān",""]}]},{"id":"life13","title":"钥匙和锁的秘密","tag":"生活","pages":[{"t":"小雨第一次自己开门，钥匙插进去，怎么转都转不动。她急得脸都红了。妈妈让她把钥匙放正一点，咔一声，门开了。","p":["xiǎo","yǔ","dì","yī","cì","zì","jǐ","kāi","mén","","yào","shi","chā","jìn","qù","","zěn","me","zhuǎn","dōu","zhuǎn","bù","dòng","","tā","jí","dé","liǎn","dōu","hóng","le","","mā","mā","ràng","tā","bǎ","yào","shi","fàng","zhèng","yì","diǎn","","kā","yī","shēng","","mén","kāi","le",""]},{"t":"锁里面有七八个小柱子，高低都不一样。钥匙上的齿，正好把它们顶到同一条线上。全都齐了，锁芯才转得动。","p":["suǒ","lǐ","miàn","yǒu","qī","bā","gè","xiǎo","zhù","zi","","gāo","dī","dōu","bù","yí","yàng","","yào","shi","shàng","de","chǐ","","zhèng","hǎo","bǎ","tā","men","dǐng","dào","tóng","yī","tiáo","xiàn","shàng","","quán","dōu","qí","le","","suǒ","xīn","cái","zhuǎn","dé","dòng",""]},{"t":"齿不对，柱子就高低不齐，锁芯被卡住，门就打不开。所以一把钥匙只开一把锁，随便配一把是没有用的。","p":["chǐ","bú","duì","","zhù","zi","jiù","gāo","dī","bù","qí","","suǒ","xīn","bèi","kǎ","zhù","","mén","jiù","dǎ","bù","kāi","","suǒ","yǐ","yī","bǎ","yào","shi","zhǐ","kāi","yī","bǎ","suǒ","","suí","biàn","pèi","yī","bǎ","shì","méi","yǒu","yòng","de",""]},{"t":"小雨把钥匙挂在脖子上，走路时它会轻轻碰着衣服。她想：这么小的一把，管着一整扇门。","p":["xiǎo","yǔ","bǎ","yào","shi","guà","zài","bó","zi","shàng","","zǒu","lù","shí","tā","huì","qīng","qīng","pèng","zhe","yī","fú","","tā","xiǎng","","zhè","me","xiǎo","de","yī","bǎ","","guǎn","zhe","yī","zhěng","shàn","mén",""]}]},{"id":"life14","title":"存钱罐里的钱去哪儿了","tag":"生活","pages":[{"t":"小雨攒了五十块，都是零钱，装在小罐子里哗啦响。妈妈说可以存到银行去。她问：钱放进银行，是不是就看不见了？","p":["xiǎo","yǔ","zǎn","le","wǔ","shí","kuài","","dōu","shì","líng","qián","","zhuāng","zài","xiǎo","guàn","zi","lǐ","huā","lā","xiǎng","","mā","mā","shuō","kě","yǐ","cún","dào","yín","háng","qù","","tā","wèn","","qián","fàng","jìn","yín","háng","","shì","bú","shì","jiù","kàn","bú","jiàn","le",""]},{"t":"银行把钱收好，在她的小本子上记一笔：你存了五十元。以后要用，就拿本子或者卡去取回来，一分也不会少。","p":["yín","háng","bǎ","qián","shōu","hǎo","","zài","tā","de","xiǎo","běn","zi","shàng","jì","yī","bǐ","","nǐ","cún","le","wǔ","shí","yuán","","yǐ","hòu","yào","yòng","","jiù","ná","běn","zi","huò","zhě","kǎ","qù","qǔ","huí","lái","","yī","fēn","yě","bú","huì","shǎo",""]},{"t":"银行还会把钱借给别人，别人还钱的时候会多给一点，这叫利息。所以存得久，本子上的数字会大一点点。","p":["yín","háng","hái","huì","bǎ","qián","jiè","gěi","bié","rén","","bié","rén","huán","qián","de","shí","hòu","huì","duō","gěi","yì","diǎn","","zhè","jiào","lì","xī","","suǒ","yǐ","cún","dé","jiǔ","","běn","zi","shàng","de","shù","zì","huì","dà","yī","diǎn","diǎn",""]},{"t":"小雨把五十块存进去，看着本子上的数字。她想：钱没有消失，它只是换了个地方待着，还学会了长大一点点。","p":["xiǎo","yǔ","bǎ","wǔ","shí","kuài","cún","jìn","qù","","kàn","zhe","běn","zi","shàng","de","shù","zì","","tā","xiǎng","","qián","méi","yǒu","xiāo","shī","","tā","zhǐ","shì","huàn","le","gè","dì","fāng","dài","zhe","","hái","xué","huì","le","zhǎng","dà","yì","diǎn","diǎn",""]}]},{"id":"life15","title":"为什么要排队","tag":"生活","pages":[{"t":"买冰淇淋的人很多，大家站成一条线。小雨排在最后面，前面还有六个人，队伍慢慢地往前挪。","p":["mǎi","bīng","qí","lín","de","rén","hěn","duō","","dà","jiā","zhàn","chéng","yī","tiáo","xiàn","","xiǎo","yǔ","pái","zài","zuì","hòu","miàn","","qián","miàn","hái","yǒu","liù","gè","rén","","duì","wǔ","màn","màn","dì","wǎng","qián","nuó",""]},{"t":"妈妈说，排队是先来后到。谁来得早，谁先买，这样没有人被挤开，也没有人插到前面去。大家都在等，就都按一样的规矩。","p":["mā","mā","shuō","","pái","duì","shì","xiān","lái","hòu","dào","","shuí","lái","de","zǎo","","shuí","xiān","mǎi","","zhè","yàng","méi","yǒu","rén","bèi","jǐ","kāi","","yě","méi","yǒu","rén","chā","dào","qián","miàn","qù","","dà","jiā","dōu","zài","děng","","jiù","dōu","àn","yī","yàng","de","guī","jǔ",""]},{"t":"有人想插队，后面的人会说一句请排队。这不是小气，是如果谁都能往前挤，那谁都得等更久，还会吵起来。","p":["yǒu","rén","xiǎng","chā","duì","","hòu","miàn","de","rén","huì","shuō","yī","jù","qǐng","pái","duì","","zhè","bú","shì","xiǎo","qì","","shì","rú","guǒ","shéi","dōu","néng","wǎng","qián","jǐ","","nà","shéi","dōu","dé","děng","gèng","jiǔ","","hái","huì","chǎo","qǐ","lái",""]},{"t":"轮到小雨的时候，冰淇淋特别甜。她想：等一等，其实是在替别人想一想。","p":["lún","dào","xiǎo","yǔ","de","shí","hòu","","bīng","qí","lín","tè","bié","tián","","tā","xiǎng","","děng","yī","děng","","qí","shí","shì","zài","tì","bié","rén","xiǎng","yī","xiǎng",""]}]},{"id":"life16","title":"水龙头为什么能出水","tag":"生活","pages":[{"t":"小雨拧开水龙头，水哗地流出来。她想知道，水从哪里来，为什么一拧就有，不拧就停。","p":["xiǎo","yǔ","níng","kāi","shuǐ","lóng","tóu","","shuǐ","huā","dì","liú","chū","lái","","tā","xiǎng","zhī","dào","","shuǐ","cóng","nǎ","lǐ","lái","","wèi","shén","me","yī","níng","jiù","yǒu","","bù","níng","jiù","tíng",""]},{"t":"自来水厂把河里的水弄干净，再用很大的力气，把水送进管子，一直送到楼里。管子里的水一直有压力，像被人在后面推着往前走。","p":["zì","lái","shuǐ","chǎng","bǎ","hé","lǐ","de","shuǐ","nòng","gān","jìng","","zài","yòng","hěn","dà","de","lì","qì","","bǎ","shuǐ","sòng","jìn","guǎn","zi","","yì","zhí","sòng","dào","lóu","lǐ","","guǎn","zi","lǐ","de","shuǐ","yì","zhí","yǒu","yā","lì","","xiàng","bèi","rén","zài","hòu","miàn","tuī","zhe","wǎng","qián","zǒu",""]},{"t":"水龙头就是一个阀门。关上，水被挡住；拧开，水就被推出来。所以水不是吸上来的，是压上来的。","p":["shuǐ","lóng","tóu","jiù","shì","yí","gè","fá","mén","","guān","shàng","","shuǐ","bèi","dǎng","zhù","","níng","kāi","","shuǐ","jiù","bèi","tuī","chū","lái","","suǒ","yǐ","shuǐ","bú","shì","xī","shàng","lái","de","","shì","yā","shàng","lái","de",""]},{"t":"停水的时候，拧开也没有水，因为后面推水的力气没有了。小雨把龙头关紧，不想让水白流。","p":["tíng","shuǐ","de","shí","hòu","","níng","kāi","yě","méi","yǒu","shuǐ","","yīn","wèi","hòu","miàn","tuī","shuǐ","de","lì","qì","méi","yǒu","le","","xiǎo","yǔ","bǎ","lóng","tóu","guān","jǐn","","bù","xiǎng","ràng","shuǐ","bái","liú",""]}]},{"id":"life17","title":"剪刀为什么能剪东西","tag":"生活","pages":[{"t":"小雨用剪刀剪纸，一下就剪开了。同样用这点力气去撕，纸却撕得歪歪扭扭，边缘还毛毛的。","p":["xiǎo","yǔ","yòng","jiǎn","dāo","jiǎn","zhǐ","","yī","xià","jiù","jiǎn","kāi","le","","tóng","yàng","yòng","zhè","diǎn","lì","qì","qù","sī","","zhǐ","què","sī","dé","wāi","wāi","niǔ","niǔ","","biān","yuán","hái","máo","máo","de",""]},{"t":"剪刀是两个杠杆。中间的轴是支点，手指按的地方长，刀刃短。按下去，刀刃上的力气就变大了，所以能剪断东西。","p":["jiǎn","dāo","shì","liǎng","gè","gàng","gǎn","","zhōng","jiān","de","zhóu","shì","zhī","diǎn","","shǒu","zhǐ","àn","de","dì","fāng","zhǎng","","dāo","rèn","duǎn","","àn","xià","qù","","dāo","rèn","shàng","de","lì","qì","jiù","biàn","dà","le","","suǒ","yǐ","néng","jiǎn","duàn","dōng","xī",""]},{"t":"剪硬的东西，要把它放在靠近轴的地方，那里力气最大。放在刀尖上，反而剪不动，还容易打滑。","p":["jiǎn","yìng","de","dōng","xī","","yào","bǎ","tā","fàng","zài","kào","jìn","zhóu","de","dì","fāng","","nà","lǐ","lì","qì","zuì","dà","","fàng","zài","dāo","jiān","shàng","","fǎn","ér","jiǎn","bù","dòng","","hái","róng","yì","dǎ","huá",""]},{"t":"小雨试着用刀尖剪厚纸板，真的剪不动。她想：省力不靠蛮劲，靠找对地方。","p":["xiǎo","yǔ","shì","zhe","yòng","dāo","jiān","jiǎn","hòu","zhǐ","bǎn","","zhēn","de","jiǎn","bù","dòng","","tā","xiǎng","","shěng","lì","bù","kào","mán","jìn","","kào","zhǎo","duì","dì","fāng",""]}]},{"id":"life18","title":"鞋带为什么会松","tag":"生活","pages":[{"t":"小雨跑了一圈，鞋带散了，拖在地上，差点踩到。她明明系得很紧，怎么跑几步就开了？","p":["xiǎo","yǔ","pǎo","le","yī","quān","","xié","dài","sàn","le","","tuō","zài","dì","shàng","","chà","diǎn","cǎi","dào","","tā","míng","míng","xì","dé","hěn","jǐn","","zěn","me","pǎo","jǐ","bù","jiù","kāi","le",""]},{"t":"跑步的时候，脚一上一下，鞋带被反复地拉。系的是活结，两头一拉就开，所以跑着跑着就松了。","p":["pǎo","bù","de","shí","hòu","","jiǎo","yī","shàng","yī","xià","","xié","dài","bèi","fǎn","fù","dì","lā","","xì","de","shì","huó","jié","","liǎng","tóu","yī","lā","jiù","kāi","","suǒ","yǐ","pǎo","zhe","pǎo","zhe","jiù","sōng","le",""]},{"t":"妈妈教她系两次：先系一个结，再系一个结。两个结互相压住，就不容易开。鞋带也不能留太长，太长容易被踩到。","p":["mā","mā","jiào","tā","xì","liǎng","cì","","xiān","xì","yí","gè","jié","","zài","xì","yí","gè","jié","","liǎng","gè","jié","hù","xiāng","yā","zhù","","jiù","bù","róng","yì","kāi","","xié","dài","yě","bù","néng","liú","tài","zhǎng","","tài","zhǎng","róng","yì","bèi","cǎi","dào",""]},{"t":"小雨蹲下来重新系了一遍，又跑了两圈，鞋带还紧紧的。她想：小事上多做一步，后面就少麻烦。","p":["xiǎo","yǔ","dūn","xià","lái","chóng","xīn","xì","le","yī","biàn","","yòu","pǎo","le","liǎng","quān","","xié","dài","hái","jǐn","jǐn","de","","tā","xiǎng","","xiǎo","shì","shàng","duō","zuò","yī","bù","","hòu","miàn","jiù","shǎo","má","fán",""]}]},{"id":"life19","title":"感冒为什么要多喝水","tag":"生活","pages":[{"t":"小雨感冒了，鼻子不通，头有点晕，说话也闷闷的。妈妈给她倒了一大杯温水，让她多喝。","p":["xiǎo","yǔ","gǎn","mào","le","","bí","zi","bù","tōng","","tóu","yǒu","diǎn","yūn","","shuō","huà","yě","mèn","mèn","de","","mā","mā","gěi","tā","dào","le","yī","dà","bēi","wēn","shuǐ","","ràng","tā","duō","hē",""]},{"t":"发烧的时候，身体会出汗，水分跟着跑掉。水喝够了，身体才不会干，鼻子里的鼻涕也不会太稠，擤起来不费劲。","p":["fā","shāo","de","shí","hòu","","shēn","tǐ","huì","chū","hàn","","shuǐ","fèn","gēn","zhe","pǎo","diào","","shuǐ","hē","gòu","le","","shēn","tǐ","cái","bú","huì","gàn","","bí","zi","lǐ","de","bí","tì","yě","bú","huì","tài","chóu","","xǐng","qǐ","lái","bù","fèi","jìn",""]},{"t":"水还能帮着把身体里的废物带走，尿得多，废物也走得快。不过不能一次灌一大瓶，要一口一口慢慢喝。","p":["shuǐ","hái","néng","bāng","zhe","bǎ","shēn","tǐ","lǐ","de","fèi","wù","dài","zǒu","","niào","dé","duō","","fèi","wù","yě","zǒu","dé","kuài","","bù","guò","bù","néng","yī","cì","guàn","yī","dà","píng","","yào","yī","kǒu","yī","kǒu","màn","màn","hē",""]},{"t":"小雨捧着杯子，一小口一小口地喝。她想：水不治病，但它在帮忙。","p":["xiǎo","yǔ","pěng","zhe","bēi","zi","","yī","xiǎo","kǒu","yī","xiǎo","kǒu","dì","hē","","tā","xiǎng","","shuǐ","bù","zhì","bìng","","dàn","tā","zài","bāng","máng",""]}]},{"id":"life20","title":"迷路了怎么办","tag":"生活","pages":[{"t":"商场里人很多，小雨一转身，妈妈不见了。她的心咚地一下，眼睛有点酸，差点就要哭出来。","p":["shāng","chǎng","lǐ","rén","hěn","duō","","xiǎo","yǔ","yī","zhuǎn","shēn","","mā","mā","bú","jiàn","le","","tā","de","xīn","dōng","dì","yī","xià","","yǎn","jīng","yǒu","diǎn","suān","","chà","diǎn","jiù","yào","kū","chū","lái",""]},{"t":"她想起妈妈说过：走散了就站在原地别乱跑，妈妈会回来找。她站在一根柱子旁边，一步也不走，眼睛盯着刚才来的方向。","p":["tā","xiǎng","qǐ","mā","mā","shuō","guò","","zǒu","sàn","le","jiù","zhàn","zài","yuán","dì","bié","luàn","pǎo","","mā","mā","huì","huí","lái","zhǎo","","tā","zhàn","zài","yī","gēn","zhù","zi","páng","biān","","yī","bù","yě","bù","zǒu","","yǎn","jīng","dīng","zhe","gāng","cái","lái","de","fāng","xiàng",""]},{"t":"过了一会儿，她看见一个穿制服的工作人员，就走过去说：我和妈妈走散了。阿姨带她去了服务台，广播一响，妈妈很快就跑来了。","p":["guò","le","yī","huì","er","","tā","kàn","jiàn","yí","gè","chuān","zhì","fú","de","gōng","zuò","rén","yuán","","jiù","zǒu","guò","qù","shuō","","wǒ","hé","mā","mā","zǒu","sàn","le","","ā","yí","dài","tā","qù","le","fú","wù","tái","","guǎng","bō","yī","xiǎng","","mā","mā","hěn","kuài","jiù","pǎo","lái","le",""]},{"t":"小雨后来记住了三件事：不乱跑，找穿制服的人，记住自己在哪里。她说，害怕的时候，要先做对的事。","p":["xiǎo","yǔ","hòu","lái","jì","zhù","le","sān","jiàn","shì","","bù","luàn","pǎo","","zhǎo","chuān","zhì","fú","de","rén","","jì","zhù","zì","jǐ","zài","nǎ","lǐ","","tā","shuō","","hài","pà","de","shí","hòu","","yào","xiān","zuò","duì","de","shì",""]}]},{"id":"nat01","title":"蚂蚁搬家要下雨","tag":"自然","pages":[{"t":"小雨在院子里看见一长队蚂蚁，每一只都扛着东西，往高处走。有的是白色的卵，有的是半片叶子。奶奶说：“要下雨了。”","p":["xiǎo","yǔ","zài","yuàn","zi","lǐ","kàn","jiàn","yī","zhǎng","duì","mǎ","yǐ","","měi","yī","zhǐ","dōu","káng","zhe","dōng","xī","","wǎng","gāo","chù","zǒu","","yǒu","de","shì","bái","sè","de","luǎn","","yǒu","de","shì","bàn","piàn","yè","zi","","nǎi","nǎi","shuō","","","yào","xià","yǔ","le","",""]},{"t":"蚂蚁住在土里，洞里怕进水。下雨前空气变湿，它们能感觉到。所以它们把卵和食物搬到高一点的地方。有的蚂蚁在前面带路，有的在后面守着，队伍一直没乱。","p":["mǎ","yǐ","zhù","zài","tǔ","lǐ","","dòng","lǐ","pà","jìn","shuǐ","","xià","yǔ","qián","kōng","qì","biàn","shī","","tā","men","néng","gǎn","jué","dào","","suǒ","yǐ","tā","men","bǎ","luǎn","hé","shí","wù","bān","dào","gāo","yì","diǎn","de","dì","fāng","","yǒu","de","mǎ","yǐ","zài","qián","miàn","dài","lù","","yǒu","de","zài","hòu","miàn","shǒu","zhe","","duì","wǔ","yì","zhí","méi","luàn",""]},{"t":"傍晚，雨真的下起来了，很大，院子里积了一个小水洼。小雨趴在窗边看，那一条蚂蚁的路已经被水冲平了。她想，它们应该已经搬完了吧。","p":["bàng","wǎn","","yǔ","zhēn","de","xià","qǐ","lái","le","","hěn","dà","","yuàn","zi","lǐ","jī","le","yí","gè","xiǎo","shuǐ","wā","","xiǎo","yǔ","pā","zài","chuāng","biān","kàn","","nà","yī","tiáo","mǎ","yǐ","de","lù","yǐ","jīng","bèi","shuǐ","chōng","píng","le","","tā","xiǎng","","tā","men","yīng","gāi","yǐ","jīng","bān","wán","le","ba",""]},{"t":"第二天一早她跑去看，原来的洞口旁边堆着一小堆新土，一条新的路已经出现了。她想，它们一晚上就把家重盖了一遍。","p":["dì","èr","tiān","yī","zǎo","tā","pǎo","qù","kàn","","yuán","lái","de","dòng","kǒu","páng","biān","duī","zhe","yī","xiǎo","duī","xīn","tǔ","","yī","tiáo","xīn","de","lù","yǐ","jīng","chū","xiàn","le","","tā","xiǎng","","tā","men","yī","wǎn","shàng","jiù","bǎ","jiā","zhòng","gài","le","yī","biàn",""]}]},{"id":"nat02","title":"萤火虫的小灯笼","tag":"自然","pages":[{"t":"夏天的晚上，草丛里会亮起一点一点的小光，一闪，又一闪。小雨伸手去接，光会飞走，飞得不高，像有人在草上提着小灯走路。","p":["xià","tiān","de","wǎn","shàng","","cǎo","cóng","lǐ","huì","liàng","qǐ","yì","diǎn","yì","diǎn","de","xiǎo","guāng","","yī","shǎn","","yòu","yī","shǎn","","xiǎo","yǔ","shēn","shǒu","qù","jiē","","guāng","huì","fēi","zǒu","","fēi","dé","bù","gāo","","xiàng","yǒu","rén","zài","cǎo","shàng","tí","zhe","xiǎo","dēng","zǒu","lù",""]},{"t":"那是萤火虫。它的肚子后面有一个特别的地方，能发出冷绿色的光，发光的时候几乎不热。不同的萤火虫闪的方式不一样，像在打暗号，找自己的同伴。","p":["nà","shì","yíng","huǒ","chóng","","tā","de","dǔ","zi","hòu","miàn","yǒu","yí","gè","tè","bié","de","dì","fāng","","néng","fā","chū","lěng","lǜ","sè","de","guāng","","fā","guāng","de","shí","hòu","jī","hū","bù","rè","","bù","tóng","de","yíng","huǒ","chóng","shǎn","de","fāng","shì","bù","yí","yàng","","xiàng","zài","dǎ","àn","hào","","zhǎo","zì","jǐ","de","tóng","bàn",""]},{"t":"小雨蹲在草地上看了很久，没有再去抓。她想，光在飞的时候更好看。回家的路上，她回头看了三次。","p":["xiǎo","yǔ","dūn","zài","cǎo","dì","shàng","kàn","le","hěn","jiǔ","","méi","yǒu","zài","qù","zhuā","","tā","xiǎng","","guāng","zài","fēi","de","shí","hòu","gèng","hǎo","kàn","","huí","jiā","de","lù","shàng","","tā","huí","tóu","kàn","le","sān","cì",""]},{"t":"后来她才知道，萤火虫的幼虫住在潮湿的草里，吃很小的虫子。她想，会发光的小虫，小时候长得完全不一样。","p":["hòu","lái","tā","cái","zhī","dào","","yíng","huǒ","chóng","de","yòu","chóng","zhù","zài","cháo","shī","de","cǎo","lǐ","","chī","hěn","xiǎo","de","chóng","zi","","tā","xiǎng","","huì","fā","guāng","de","xiǎo","chóng","","xiǎo","shí","hòu","zhǎng","dé","wán","quán","bù","yí","yàng",""]}]},{"id":"nat03","title":"蜘蛛网不是家","tag":"自然","pages":[{"t":"早上，草上挂着一张蜘蛛网，上面全是水珠，像一串小珠子。太阳一照，每个水珠里都有一个小小的彩虹。","p":["zǎo","shàng","","cǎo","shàng","guà","zhe","yī","zhāng","zhī","zhū","wǎng","","shàng","miàn","quán","shì","shuǐ","zhū","","xiàng","yī","chuàn","xiǎo","zhū","zi","","tài","yáng","yī","zhào","","měi","gè","shuǐ","zhū","lǐ","dōu","yǒu","yí","gè","xiǎo","xiǎo","de","cǎi","hóng",""]},{"t":"蜘蛛网不是蜘蛛的家，是它捕虫子的工具。蜘蛛躲在边上等，虫子一撞上来，网会动，它就爬过去。网破了，它会吃掉旧的丝，再织一张新的，一夜就能织好。","p":["zhī","zhū","wǎng","bú","shì","zhī","zhū","de","jiā","","shì","tā","bǔ","chóng","zi","de","gōng","jù","","zhī","zhū","duǒ","zài","biān","shàng","děng","","chóng","zi","yī","zhuàng","shàng","lái","","wǎng","huì","dòng","","tā","jiù","pá","guò","qù","","wǎng","pò","le","","tā","huì","chī","diào","jiù","de","sī","","zài","zhī","yī","zhāng","xīn","de","","yī","yè","jiù","néng","zhī","hǎo",""]},{"t":"小雨看见一只蜘蛛在网中间，一动不动。她等了很久，蜘蛛也没动。她想，原来耐心也是一种本事。","p":["xiǎo","yǔ","kàn","jiàn","yī","zhī","zhī","zhū","zài","wǎng","zhōng","jiān","","yī","dòng","bù","dòng","","tā","děng","le","hěn","jiǔ","","zhī","zhū","yě","méi","dòng","","tā","xiǎng","","yuán","lái","nài","xīn","yě","shì","yī","zhǒng","běn","shì",""]},{"t":"一阵风把网吹破了，第二天早上，她又看见一张新的，还是六个角。她认真地数了数，一根丝都没有少。","p":["yī","zhèn","fēng","bǎ","wǎng","chuī","pò","le","","dì","èr","tiān","zǎo","shàng","","tā","yòu","kàn","jiàn","yī","zhāng","xīn","de","","hái","shì","liù","gè","jiǎo","","tā","rèn","zhēn","dì","shù","le","shù","","yī","gēn","sī","dōu","méi","yǒu","shǎo",""]}]},{"id":"nat04","title":"猫的胡须是尺子","tag":"自然","pages":[{"t":"小雨家的猫要钻桌子底下，先停下来，把胡须往前探一探，再钻进去。它钻进去以后，只露出一个尾巴尖，慢慢地摇。","p":["xiǎo","yǔ","jiā","de","māo","yào","zuān","zhuō","zi","dǐ","xià","","xiān","tíng","xià","lái","","bǎ","hú","xū","wǎng","qián","tàn","yī","tàn","","zài","zuān","jìn","qù","","tā","zuān","jìn","qù","yǐ","hòu","","zhǐ","lù","chū","yí","gè","wěi","ba","jiān","","màn","màn","dì","yáo",""]},{"t":"妈妈说，猫的胡须很敏感，能感觉出洞有多宽。胡须差不多和身体一样宽，如果胡须能过去，身子就能过去。天黑了，胡须也能帮它走路，不会撞到墙。","p":["mā","mā","shuō","","māo","de","hú","xū","hěn","mǐn","gǎn","","néng","gǎn","jué","chū","dòng","yǒu","duō","kuān","","hú","xū","chà","bu","duō","hé","shēn","tǐ","yī","yàng","kuān","","rú","guǒ","hú","xū","néng","guò","qù","","shēn","zi","jiù","néng","guò","qù","","tiān","hēi","le","","hú","xū","yě","néng","bāng","tā","zǒu","lù","","bú","huì","zhuàng","dào","qiáng",""]},{"t":"小雨伸手比了比猫的胡须，比她的手指还长。猫把她的手推开，跳走了。她笑了：“你还要用呢。”","p":["xiǎo","yǔ","shēn","shǒu","bǐ","le","bǐ","māo","de","hú","xū","","bǐ","tā","de","shǒu","zhǐ","hái","zhǎng","","māo","bǎ","tā","de","shǒu","tuī","kāi","","tiào","zǒu","le","","tā","xiào","le","","","nǐ","hái","yào","yòng","ne","",""]},{"t":"后来她注意到，猫晚上走路从来不撞墙，走到柜子边就自己拐弯。她想，它一直带着一把看不见的尺子。","p":["hòu","lái","tā","zhù","yì","dào","","māo","wǎn","shàng","zǒu","lù","cóng","lái","bù","zhuàng","qiáng","","zǒu","dào","guì","zi","biān","jiù","zì","jǐ","guǎi","wān","","tā","xiǎng","","tā","yì","zhí","dài","zhe","yī","bǎ","kàn","bú","jiàn","de","chǐ","zi",""]}]},{"id":"nat05","title":"大象的鼻子","tag":"自然","pages":[{"t":"动物园里，大象用鼻子卷起一根树枝，送到嘴里。那根树枝比小雨的胳膊还粗。小雨想，那么长的鼻子，用起来会不会很难？","p":["dòng","wù","yuán","lǐ","","dà","xiàng","yòng","bí","zi","juǎn","qǐ","yī","gēn","shù","zhī","","sòng","dào","zuǐ","lǐ","","nà","gēn","shù","zhī","bǐ","xiǎo","yǔ","de","gē","bó","hái","cū","","xiǎo","yǔ","xiǎng","","nà","me","zhǎng","de","bí","zi","","yòng","qǐ","lái","huì","bú","huì","hěn","nán",""]},{"t":"饲养员说，大象的鼻子既是手，也是鼻子。它能吸水，喷到背上洗澡；能闻出很远的气味；还能捡起一颗花生，不捏碎。鼻子的尖上有两个小孔，像手指。","p":["sì","yǎng","yuán","shuō","","dà","xiàng","de","bí","zi","jì","shì","shǒu","","yě","shì","bí","zi","","tā","néng","xī","shuǐ","","pēn","dào","bèi","shàng","xǐ","zǎo","","néng","wén","chū","hěn","yuǎn","de","qì","wèi","","hái","néng","jiǎn","qǐ","yī","kē","huā","shēng","","bù","niē","suì","","bí","zi","de","jiān","shàng","yǒu","liǎng","gè","xiǎo","kǒng","","xiàng","shǒu","zhǐ",""]},{"t":"大象走过来，把鼻子伸向小雨。她把手举起来，隔着一层玻璃。它闻了闻，又把鼻子放下去了。","p":["dà","xiàng","zǒu","guò","lái","","bǎ","bí","zi","shēn","xiàng","xiǎo","yǔ","","tā","bǎ","shǒu","jǔ","qǐ","lái","","gé","zhe","yī","céng","bō","lí","","tā","wén","le","wén","","yòu","bǎ","bí","zi","fàng","xià","qù","le",""]},{"t":"饲养员还告诉她，大象打招呼的时候，两只鼻子会缠在一起。小雨回家用两只手比了比，怎么也缠不成那个样子。","p":["sì","yǎng","yuán","hái","gào","sù","tā","","dà","xiàng","dǎ","zhāo","hū","de","shí","hòu","","liǎng","zhǐ","bí","zi","huì","chán","zài","yì","qǐ","","xiǎo","yǔ","huí","jiā","yòng","liǎng","zhǐ","shǒu","bǐ","le","bǐ","","zěn","me","yě","chán","bù","chéng","nà","ge","yàng","zi",""]}]},{"id":"nat06","title":"蜗牛背着房子走","tag":"自然","pages":[{"t":"下过雨，墙上有一只蜗牛，慢慢地往上爬，背上驼着一个螺旋的壳。壳上有一圈一圈的纹，像有人画上去的。","p":["xià","guò","yǔ","","qiáng","shàng","yǒu","yī","zhī","wō","niú","","màn","màn","dì","wǎng","shàng","pá","","bèi","shàng","tuó","zhe","yí","gè","luó","xuán","de","ké","","ké","shàng","yǒu","yī","quān","yī","quān","de","wén","","xiàng","yǒu","rén","huà","shàng","qù","de",""]},{"t":"壳是它自己做的，长在背上，拿不下来。天太热或者遇到危险，它就把身子缩进壳里，再把门口用一层膜封住，能睡很久。它走过的地方，会留下一道亮亮的线。","p":["ké","shì","tā","zì","jǐ","zuò","de","","zhǎng","zài","bèi","shàng","","ná","bù","xià","lái","","tiān","tài","rè","huò","zhě","yù","dào","wēi","xiǎn","","tā","jiù","bǎ","shēn","zi","suō","jìn","ké","lǐ","","zài","bǎ","mén","kǒu","yòng","yī","céng","mó","fēng","zhù","","néng","shuì","hěn","jiǔ","","tā","zǒu","guò","de","dì","fāng","","huì","liú","xià","yī","dào","liàng","liàng","de","xiàn",""]},{"t":"小雨跟着它看了十分钟，它才走了一小段，还没有她的手掌长。她伸手碰了碰壳，蜗牛立刻缩进去了。她把手拿开，等了一会儿，它的触角又慢慢伸出来。","p":["xiǎo","yǔ","gēn","zhe","tā","kàn","le","shí","fēn","zhōng","","tā","cái","zǒu","le","yī","xiǎo","duàn","","hái","méi","yǒu","tā","de","shǒu","zhǎng","zhǎng","","tā","shēn","shǒu","pèng","le","pèng","ké","","wō","niú","lì","kè","suō","jìn","qù","le","","tā","bǎ","shǒu","ná","kāi","","děng","le","yī","huì","er","","tā","de","chù","jiǎo","yòu","màn","màn","shēn","chū","lái",""]},{"t":"后来她发现，蜗牛爬过的地方留下的线是干的，还亮亮的。她用手指碰了一下，一点水也没有。她想，那是它走路留下的记号，告诉别人自己往哪儿去了。","p":["hòu","lái","tā","fā","xiàn","","wō","niú","pá","guò","de","dì","fāng","liú","xià","de","xiàn","shì","gàn","de","","hái","liàng","liàng","de","","tā","yòng","shǒu","zhǐ","pèng","le","yī","xià","","yì","diǎn","shuǐ","yě","méi","yǒu","","tā","xiǎng","","nà","shì","tā","zǒu","lù","liú","xià","de","jì","hào","","gào","sù","bié","rén","zì","jǐ","wǎng","nǎ","ér","qù","le",""]}]},{"id":"nat07","title":"竹子长得快","tag":"自然","pages":[{"t":"春天，院子里的竹笋一夜之间高了一截。小雨早上看，晚上再看，又高了。她蹲下来，看见笋尖上还有一层毛。","p":["chūn","tiān","","yuàn","zi","lǐ","de","zhú","sǔn","yī","yè","zhī","jiān","gāo","le","yī","jié","","xiǎo","yǔ","zǎo","shàng","kàn","","wǎn","shàng","zài","kàn","","yòu","gāo","le","","tā","dūn","xià","lái","","kàn","jiàn","sǔn","jiān","shàng","hái","yǒu","yī","céng","máo",""]},{"t":"竹子是长得最快的植物之一，一天能长几十厘米。它的茎是一节一节的，每一节都能往上长。竹子里面是空的，所以又轻又结实，可以搭棚子，也可以做笛子。","p":["zhú","zi","shì","zhǎng","dé","zuì","kuài","de","zhí","wù","zhī","yī","","yī","tiān","néng","zhǎng","jǐ","shí","lí","mǐ","","tā","de","jīng","shì","yī","jié","yī","jié","de","","měi","yī","jié","dōu","néng","wǎng","shàng","zhǎng","","zhú","zi","lǐ","miàn","shì","kōng","de","","suǒ","yǐ","yòu","qīng","yòu","jiē","shí","","kě","yǐ","dā","péng","zi","","yě","kě","yǐ","zuò","dí","zi",""]},{"t":"小雨拿尺子量了一根，在墙上画了一条线做记号。第二天早上，竹笋已经过了那条线。她画了第二条，说：“我要看看你能长多高。”","p":["xiǎo","yǔ","ná","chǐ","zi","liàng","le","yī","gēn","","zài","qiáng","shàng","huà","le","yī","tiáo","xiàn","zuò","jì","hào","","dì","èr","tiān","zǎo","shàng","","zhú","sǔn","yǐ","jīng","guò","le","nà","tiáo","xiàn","","tā","huà","le","dì","èr","tiáo","","shuō","","","wǒ","yào","kàn","kàn","nǐ","néng","zhǎng","duō","gāo","",""]},{"t":"一个星期后，那根竹子长得比她还高。她抬头看，竹叶在风里响，像有人在远处说话。她在墙上写下第三句话：长得快的，也要长得结实。","p":["yí","gè","xīng","qī","hòu","","nà","gēn","zhú","zi","zhǎng","dé","bǐ","tā","hái","gāo","","tā","tái","tóu","kàn","","zhú","yè","zài","fēng","lǐ","xiǎng","","xiàng","yǒu","rén","zài","yuǎn","chù","shuō","huà","","tā","zài","qiáng","shàng","xiě","xià","dì","sān","jù","huà","","zhǎng","dé","kuài","de","","yě","yào","zhǎng","dé","jiē","shí",""]}]},{"id":"nat08","title":"蒲公英的降落伞","tag":"自然","pages":[{"t":"草地上有一朵蒲公英，白色的，圆圆的一团。小雨吹了一口气，好多小伞飞了起来，飞得比她的头还高。","p":["cǎo","dì","shàng","yǒu","yī","duǒ","pú","gōng","yīng","","bái","sè","de","","yuán","yuán","de","yī","tuán","","xiǎo","yǔ","chuī","le","yì","kǒu","qì","","hǎo","duō","xiǎo","sǎn","fēi","le","qǐ","lái","","fēi","dé","bǐ","tā","de","tóu","hái","gāo",""]},{"t":"每个小伞下面都挂着一颗种子。风把它们带到别的地方，落下来，明年就长出新的蒲公英。伞上的毛很细，风一吹就能托住它，慢慢飘，飘得很远。","p":["měi","gè","xiǎo","sǎn","xià","miàn","dōu","guà","zhe","yī","kē","zhǒng","zi","","fēng","bǎ","tā","men","dài","dào","bié","de","dì","fāng","","là","xià","lái","","míng","nián","jiù","zhǎng","chū","xīn","de","pú","gōng","yīng","","sǎn","shàng","de","máo","hěn","xì","","fēng","yī","chuī","jiù","néng","tuō","zhù","tā","","màn","màn","piāo","","piāo","dé","hěn","yuǎn",""]},{"t":"小雨追着一把伞跑，跑到院子外面，看着它翻过墙头。她想，它会在哪里停下来呢。","p":["xiǎo","yǔ","zhuī","zhe","yī","bǎ","sǎn","pǎo","","pǎo","dào","yuàn","zi","wài","miàn","","kàn","zhe","tā","fān","guò","qiáng","tóu","","tā","xiǎng","","tā","huì","zài","nǎ","lǐ","tíng","xià","lái","ne",""]},{"t":"秋天，她在墙那边的空地上看见一片新蒲公英，叶子贴着地。她想，那就是去年那把伞落下的地方。","p":["qiū","tiān","","tā","zài","qiáng","nà","biān","de","kòng","dì","shàng","kàn","jiàn","yī","piàn","xīn","pú","gōng","yīng","","yè","zi","tiē","zhe","dì","","tā","xiǎng","","nà","jiù","shì","qù","nián","nà","bǎ","sǎn","là","xià","de","dì","fāng",""]}]},{"id":"nat09","title":"海边的潮水","tag":"自然","pages":[{"t":"早上去海边，水退得很远，露出一片湿湿的沙，还有几块石头。中午再来，水又涨回来了，把沙盖住，石头也看不见了。","p":["zǎo","shàng","qù","hǎi","biān","","shuǐ","tuì","dé","hěn","yuǎn","","lù","chū","yī","piàn","shī","shī","de","shā","","hái","yǒu","jǐ","kuài","shí","tou","","zhōng","wǔ","zài","lái","","shuǐ","yòu","zhǎng","huí","lái","le","","bǎ","shā","gài","zhù","","shí","tou","yě","kàn","bú","jiàn","le",""]},{"t":"海水一天涨落两次，是月亮和太阳的吸引力在拉着它。月亮离我们近，拉得最明显。涨潮的时候，海边的人要把船拉高一点，不然船会飘走。","p":["hǎi","shuǐ","yī","tiān","zhǎng","luò","liǎng","cì","","shì","yuè","liàng","hé","tài","yáng","de","xī","yǐn","lì","zài","lā","zhe","tā","","yuè","liàng","lí","wǒ","men","jìn","","lā","dé","zuì","míng","xiǎn","","zhǎng","cháo","de","shí","hòu","","hǎi","biān","de","rén","yào","bǎ","chuán","lā","gāo","yì","diǎn","","bù","rán","chuán","huì","piāo","zǒu",""]},{"t":"小雨在退潮的沙上捡到一只小蟹，壳是透明的，腿很细。她把它放回水里，看着它横着爬走，爬得很快。","p":["xiǎo","yǔ","zài","tuì","cháo","de","shā","shàng","jiǎn","dào","yī","zhī","xiǎo","xiè","","ké","shì","tòu","míng","de","","tuǐ","hěn","xì","","tā","bǎ","tā","fàng","huí","shuǐ","lǐ","","kàn","zhe","tā","héng","zhe","pá","zǒu","","pá","dé","hěn","kuài",""]},{"t":"回家的路上，她问妈妈潮水会不会一直涨。妈妈说，涨到最高就会退，一天两次。她想，海也有自己的呼吸。","p":["huí","jiā","de","lù","shàng","","tā","wèn","mā","mā","cháo","shuǐ","huì","bú","huì","yì","zhí","zhǎng","","mā","mā","shuō","","zhǎng","dào","zuì","gāo","jiù","huì","tuì","","yī","tiān","liǎng","cì","","tā","xiǎng","","hǎi","yě","yǒu","zì","jǐ","de","hū","xī",""]}]},{"id":"nat10","title":"天上的绿光","tag":"自然","pages":[{"t":"有一年冬天，爸爸带小雨去看极光。半夜，天特别黑，星星特别多，呼出的气都是白的。","p":["yǒu","yī","nián","dōng","tiān","","bà","bà","dài","xiǎo","yǔ","qù","kàn","jí","guāng","","bàn","yè","","tiān","tè","bié","hēi","","xīng","xīng","tè","bié","duō","","hū","chū","de","qì","dōu","shì","bái","de",""]},{"t":"忽然，北边的天上出现一条淡绿色的带子，慢慢地展开，像窗帘在动。爸爸说，那是太阳送来的小粒子，撞到高空的气体，就发出了光。绿的是氧，紫的是氮。","p":["hū","rán","","běi","biān","de","tiān","shàng","chū","xiàn","yī","tiáo","dàn","lǜ","sè","de","dài","zi","","màn","màn","dì","zhǎn","kāi","","xiàng","chuāng","lián","zài","dòng","","bà","bà","shuō","","nà","shì","tài","yáng","sòng","lái","de","xiǎo","lì","zi","","zhuàng","dào","gāo","kōng","de","qì","tǐ","","jiù","fā","chū","le","guāng","","lǜ","de","shì","yǎng","","zǐ","de","shì","dàn",""]},{"t":"小雨躺着看，冷得缩成一团，但不想回车里。绿光一直变，一会儿像河流，一会儿像扇子。她想，这是天在给她看一场电影。","p":["xiǎo","yǔ","tǎng","zhe","kàn","","lěng","dé","suō","chéng","yī","tuán","","dàn","bù","xiǎng","huí","chē","lǐ","","lǜ","guāng","yì","zhí","biàn","","yī","huì","er","xiàng","hé","liú","","yī","huì","er","xiàng","shàn","zi","","tā","xiǎng","","zhè","shì","tiān","zài","gěi","tā","kàn","yī","cháng","diàn","yǐng",""]},{"t":"回车里之前，她把手套摘下来，伸手在空气里接了一下。什么也没接住，可她还是笑了：“这是我看过最安静的一场热闹。”","p":["huí","chē","lǐ","zhī","qián","","tā","bǎ","shǒu","tào","zhāi","xià","lái","","shēn","shǒu","zài","kōng","qì","lǐ","jiē","le","yī","xià","","shén","me","yě","méi","jiē","zhù","","kě","tā","hái","shì","xiào","le","","","zhè","shì","wǒ","kàn","guò","zuì","ān","jìng","de","yī","chǎng","rè","nào","",""]}]},{"id":"nat11","title":"树叶为什么会变黄","tag":"自然","pages":[{"t":"秋天到了，银杏叶从绿色变成金黄，一片片落下来，铺了一地。小雨捡起一片，像一把小扇子。","p":["qiū","tiān","dào","le","","yín","xìng","yè","cóng","lǜ","sè","biàn","chéng","jīn","huáng","","yī","piàn","piàn","là","xià","lái","","pù","le","yī","dì","","xiǎo","yǔ","jiǎn","qǐ","yī","piàn","","xiàng","yī","bǎ","xiǎo","shàn","zi",""]},{"t":"叶子里有绿色的东西，叫叶绿素，它帮树做食物。天冷了，阳光少了，绿色就慢慢退掉。","p":["yè","zi","lǐ","yǒu","lǜ","sè","de","dōng","xī","","jiào","yè","lǜ","sù","","tā","bāng","shù","zuò","shí","wù","","tiān","lěng","le","","yáng","guāng","shǎo","le","","lǜ","sè","jiù","màn","màn","tuì","diào",""]},{"t":"绿色退掉以后，叶子里本来就有的黄色就露出来了。有的叶子还会变红，那是另一种颜色显了出来。","p":["lǜ","sè","tuì","diào","yǐ","hòu","","yè","zi","lǐ","běn","lái","jiù","yǒu","de","huáng","sè","jiù","lù","chū","lái","le","","yǒu","de","yè","zi","hái","huì","biàn","hóng","","nà","shì","lìng","yī","zhǒng","yán","sè","xiǎn","le","chū","lái",""]},{"t":"树把叶子放掉，是为了冬天少失水，安安静静地过冬。小雨把叶子夹进书里，想把这个颜色留住。","p":["shù","bǎ","yè","zi","fàng","diào","","shì","wèi","le","dōng","tiān","shǎo","shī","shuǐ","","ān","ān","jìng","jìng","dì","guò","dōng","","xiǎo","yǔ","bǎ","yè","zi","jiā","jìn","shū","lǐ","","xiǎng","bǎ","zhè","ge","yán","sè","liú","zhù",""]}]},{"id":"nat12","title":"候鸟怎么认路","tag":"自然","pages":[{"t":"每年秋天，成群的鸟往南飞，春天又飞回来。它们飞那么远，穿过城市和大海，怎么不会迷路？","p":["měi","nián","qiū","tiān","","chéng","qún","de","niǎo","wǎng","nán","fēi","","chūn","tiān","yòu","fēi","huí","lái","","tā","men","fēi","nà","me","yuǎn","","chuān","guò","chéng","shì","hé","dà","hǎi","","zěn","me","bú","huì","mí","lù",""]},{"t":"白天，它们看太阳的方向；晚上，它们看星星。有的鸟还能感觉到地球的磁场，像随身带着一个看不见的指南针。","p":["bái","tiān","","tā","men","kàn","tài","yáng","de","fāng","xiàng","","wǎn","shàng","","tā","men","kàn","xīng","xīng","","yǒu","de","niǎo","hái","néng","gǎn","jué","dào","dì","qiú","de","cí","chǎng","","xiàng","suí","shēn","dài","zhe","yí","gè","kàn","bú","jiàn","de","zhǐ","nán","zhēn",""]},{"t":"它们也记得地面上的样子：大河、海岸、山脉。飞过熟悉的地方，就知道该往哪边拐。","p":["tā","men","yě","jì","de","dì","miàn","shàng","de","yàng","zi","","dà","hé","","hǎi","àn","","shān","mài","","fēi","guò","shú","xī","de","dì","fāng","","jiù","zhī","dào","gāi","wǎng","nǎ","biān","guǎi",""]},{"t":"小雨在窗台上看见一群鸟排成人字，一直往前。她想：它们不认识路牌，但它们记得家。","p":["xiǎo","yǔ","zài","chuāng","tái","shàng","kàn","jiàn","yī","qún","niǎo","pái","chéng","rén","zì","","yì","zhí","wǎng","qián","","tā","xiǎng","","tā","men","bù","rèn","shí","lù","pái","","dàn","tā","men","jì","de","jiā",""]}]},{"id":"nat13","title":"蝉为什么夏天叫","tag":"自然","pages":[{"t":"夏天的中午，树上一阵阵知了知了地响，吵得人睡不着。小雨抬头找了半天，什么也没看见。","p":["xià","tiān","de","zhōng","wǔ","","shù","shàng","yī","zhèn","zhèn","zhī","liǎo","zhī","liǎo","dì","xiǎng","","chǎo","dé","rén","shuì","bù","zhe","","xiǎo","yǔ","tái","tóu","zhǎo","le","bàn","tiān","","shén","me","yě","méi","kàn","jiàn",""]},{"t":"叫的是雄蝉。它肚子上有一层薄薄的膜，一鼓一收，就发出声音。它叫，是为了让雌蝉听见，找到它。","p":["jiào","de","shì","xióng","chán","","tā","dǔ","zi","shàng","yǒu","yī","céng","báo","báo","de","mó","","yī","gǔ","yī","shōu","","jiù","fā","chū","shēng","yīn","","tā","jiào","","shì","wèi","le","ràng","cí","chán","tīng","jiàn","","zhǎo","dào","tā",""]},{"t":"蝉在地底下要住好几年，靠吸树根的汁长大。出来以后只能活几个星期，叫完、产卵，一生就结束了。","p":["chán","zài","dì","dǐ","xià","yào","zhù","hǎo","jǐ","nián","","kào","xī","shù","gēn","de","zhī","zhǎng","dà","","chū","lái","yǐ","hòu","zhǐ","néng","huó","jǐ","gè","xīng","qī","","jiào","wán","","chǎn","luǎn","","yī","shēng","jiù","jié","shù","le",""]},{"t":"小雨听了，觉得吵也没那么烦了。她想：它叫得这么急，是因为时间太短了。","p":["xiǎo","yǔ","tīng","le","","jué","de","chǎo","yě","méi","nà","me","fán","le","","tā","xiǎng","","tā","jiào","dé","zhè","me","jí","","shì","yīn","wèi","shí","jiān","tài","duǎn","le",""]}]},{"id":"nat14","title":"青蛙怎么抓虫子","tag":"自然","pages":[{"t":"池塘边的青蛙蹲着一动不动，眼睛鼓鼓的，像两颗小珠子。一只小虫在它眼前飞过，啪一下，虫子不见了。","p":["chí","táng","biān","de","qīng","wā","dūn","zhe","yī","dòng","bù","dòng","","yǎn","jīng","gǔ","gǔ","de","","xiàng","liǎng","kē","xiǎo","zhū","zi","","yī","zhī","xiǎo","chóng","zài","tā","yǎn","qián","fēi","guò","","pā","yī","xià","","chóng","zi","bú","jiàn","le",""]},{"t":"青蛙的舌头长在嘴巴前面，舌尖上有黏黏的东西。虫子一靠近，舌头弹出去，粘住，再收回来，快得看不清。","p":["qīng","wā","de","shé","tou","zhǎng","zài","zuǐ","bā","qián","miàn","","shé","jiān","shàng","yǒu","nián","nián","de","dōng","xī","","chóng","zi","yī","kào","jìn","","shé","tou","dàn","chū","qù","","zhān","zhù","","zài","shōu","huí","lái","","kuài","dé","kàn","bù","qīng",""]},{"t":"它的眼睛很特别。虫子不动，它常常看不出来；虫子一动，它立刻就发现。所以它专门抓活虫。","p":["tā","de","yǎn","jīng","hěn","tè","bié","","chóng","zi","bù","dòng","","tā","cháng","cháng","kàn","bù","chū","lái","","chóng","zi","yī","dòng","","tā","lì","kè","jiù","fā","xiàn","","suǒ","yǐ","tā","zhuān","mén","zhuā","huó","chóng",""]},{"t":"小雨试着站着不动，青蛙果然不理她。她想：原来动，才是虫子的破绽。","p":["xiǎo","yǔ","shì","zhe","zhàn","zhe","bù","dòng","","qīng","wā","guǒ","rán","bù","lǐ","tā","","tā","xiǎng","","yuán","lái","dòng","","cái","shì","chóng","zi","de","pò","zhàn",""]}]},{"id":"nat15","title":"鱼在水里怎么睡觉","tag":"自然","pages":[{"t":"鱼缸里的鱼，晚上也不闭眼睛。小雨盯着看了好久，它一直在水里游，好像从来不用休息。","p":["yú","gāng","lǐ","de","yú","","wǎn","shàng","yě","bù","bì","yǎn","jīng","","xiǎo","yǔ","dīng","zhe","kàn","le","hǎo","jiǔ","","tā","yì","zhí","zài","shuǐ","lǐ","yóu","","hǎo","xiàng","cóng","lái","bù","yòng","xiū","xī",""]},{"t":"鱼没有眼皮，闭不了眼。它睡觉的时候，只是停在水里，尾巴轻轻摆，反应变慢，叫它也不怎么动。","p":["yú","méi","yǒu","yǎn","pí","","bì","bù","liǎo","yǎn","","tā","shuì","jiào","de","shí","hòu","","zhǐ","shì","tíng","zài","shuǐ","lǐ","","wěi","ba","qīng","qīng","bǎi","","fǎn","yìng","biàn","màn","","jiào","tā","yě","bù","zěn","me","dòng",""]},{"t":"有的鱼躲在石头缝里睡，有的钻到沙子里睡，还有的吐一个泡泡把自己包起来，像盖了一层被子。","p":["yǒu","de","yú","duǒ","zài","shí","tou","fèng","lǐ","shuì","","yǒu","de","zuān","dào","shā","zi","lǐ","shuì","","hái","yǒu","de","tǔ","yí","gè","pào","pào","bǎ","zì","jǐ","bāo","qǐ","lái","","xiàng","gài","le","yī","céng","bèi","zi",""]},{"t":"小雨半夜起来看，那条鱼停在水草旁边，一动不动。她想：不闭眼，也是在睡觉。","p":["xiǎo","yǔ","bàn","yè","qǐ","lái","kàn","","nà","tiáo","yú","tíng","zài","shuǐ","cǎo","páng","biān","","yī","dòng","bù","dòng","","tā","xiǎng","","bù","bì","yǎn","","yě","shì","zài","shuì","jiào",""]}]},{"id":"nat16","title":"月亮为什么会变胖变瘦","tag":"自然","pages":[{"t":"小雨发现，月亮有时候圆圆的，有时候弯弯的，像一个被咬过几口的饼。它是不是也在长大和变小？","p":["xiǎo","yǔ","fā","xiàn","","yuè","liàng","yǒu","shí","hòu","yuán","yuán","de","","yǒu","shí","hòu","wān","wān","de","","xiàng","yí","gè","bèi","yǎo","guò","jǐ","kǒu","de","bǐng","","tā","shì","bú","shì","yě","zài","zhǎng","dà","hé","biàn","xiǎo",""]},{"t":"月亮自己不会发光，它照的是太阳的光。我们能看见多少，要看它站在哪里。","p":["yuè","liàng","zì","jǐ","bú","huì","fā","guāng","","tā","zhào","de","shì","tài","yáng","de","guāng","","wǒ","men","néng","kàn","jiàn","duō","shǎo","","yào","kàn","tā","zhàn","zài","nǎ","lǐ",""]},{"t":"月亮绕着地球转，位置一变，被照亮的那一半朝向我们的部分就变了。从细弯到半圆，再到整个圆，然后又一点点少下去。","p":["yuè","liàng","rào","zhe","dì","qiú","zhuǎn","","wèi","zhì","yī","biàn","","bèi","zhào","liàng","de","nà","yí","bàn","cháo","xiàng","wǒ","men","de","bù","fèn","jiù","biàn","le","","cóng","xì","wān","dào","bàn","yuán","","zài","dào","zhěng","gè","yuán","","rán","hòu","yòu","yì","diǎn","diǎn","shǎo","xià","qù",""]},{"t":"一个月里，它就这么胖一次瘦一次。小雨在日历上画圈，想把月亮的样子一个个记下来。","p":["yí","gè","yuè","lǐ","","tā","jiù","zhè","me","pàng","yī","cì","shòu","yī","cì","","xiǎo","yǔ","zài","rì","lì","shàng","huà","quān","","xiǎng","bǎ","yuè","liàng","de","yàng","zi","yí","gè","gè","jì","xià","lái",""]}]},{"id":"nat17","title":"云是怎么变成雨的","tag":"自然","pages":[{"t":"天上的云白白软软，看着很轻，好像一吹就散。可一下雨，水就像从天上倒下来。这些水是从哪儿来的？","p":["tiān","shàng","de","yún","bái","bái","ruǎn","ruǎn","","kàn","zhe","hěn","qīng","","hǎo","xiàng","yī","chuī","jiù","sàn","","kě","yī","xià","yǔ","","shuǐ","jiù","xiàng","cóng","tiān","shàng","dǎo","xià","lái","","zhè","xiē","shuǐ","shì","cóng","nǎ","ér","lái","de",""]},{"t":"地面上的水蒸发成水蒸气，升到高处变冷，变成很小很小的水滴，聚在一起就是云。一朵云里，藏着很多水。","p":["dì","miàn","shàng","de","shuǐ","zhēng","fā","chéng","shuǐ","zhēng","qì","","shēng","dào","gāo","chù","biàn","lěng","","biàn","chéng","hěn","xiǎo","hěn","xiǎo","de","shuǐ","dī","","jù","zài","yì","qǐ","jiù","shì","yún","","yī","duǒ","yún","lǐ","","cáng","zhe","hěn","duō","shuǐ",""]},{"t":"小水滴在云里撞来撞去，越撞越大。大到空气托不住，就掉下来，成了雨，落回地面。","p":["xiǎo","shuǐ","dī","zài","yún","lǐ","zhuàng","lái","zhuàng","qù","","yuè","zhuàng","yuè","dà","","dà","dào","kōng","qì","tuō","bú","zhù","","jiù","diào","xià","lái","","chéng","le","yǔ","","luò","huí","dì","miàn",""]},{"t":"冬天，如果高处特别冷，水滴会变成小冰晶，落下来就是雪。小雨看着窗外的雨，想：原来云是一包水。","p":["dōng","tiān","","rú","guǒ","gāo","chù","tè","bié","lěng","","shuǐ","dī","huì","biàn","chéng","xiǎo","bīng","jīng","","là","xià","lái","jiù","shì","xuě","","xiǎo","yǔ","kàn","zhe","chuāng","wài","de","yǔ","","xiǎng","","yuán","lái","yún","shì","yī","bāo","shuǐ",""]}]},{"id":"nat18","title":"彩虹是从哪儿来的","tag":"自然","pages":[{"t":"雨停了，太阳出来了，天边挂着一条彩虹。小雨数了数，真的有好几种颜色，一道一道排着。","p":["yǔ","tíng","le","","tài","yáng","chū","lái","le","","tiān","biān","guà","zhe","yī","tiáo","cǎi","hóng","","xiǎo","yǔ","shù","le","shù","","zhēn","de","yǒu","hǎo","jǐ","zhǒng","yán","sè","","yī","dào","yī","dào","pái","zhe",""]},{"t":"阳光看着是白的，其实里面藏着很多颜色。它钻进空中的小水滴，会被折一下，散成一条彩带。","p":["yáng","guāng","kàn","zhe","shì","bái","de","","qí","shí","lǐ","miàn","cáng","zhe","hěn","duō","yán","sè","","tā","zuān","jìn","kōng","zhōng","de","xiǎo","shuǐ","dī","","huì","bèi","zhé","yī","xià","","sàn","chéng","yī","tiáo","cǎi","dài",""]},{"t":"看彩虹要背对太阳。太阳越低，彩虹就越高。晴了很久没有彩虹，是因为空中没有小水滴。","p":["kàn","cǎi","hóng","yào","bèi","duì","tài","yáng","","tài","yáng","yuè","dī","","cǎi","hóng","jiù","yuè","gāo","","qíng","le","hěn","jiǔ","méi","yǒu","cǎi","hóng","","shì","yīn","wèi","kōng","zhōng","méi","yǒu","xiǎo","shuǐ","dī",""]},{"t":"小雨用喷壶对着阳光喷水，真的看见了一小段彩虹。她笑了：原来彩虹可以自己做出来。","p":["xiǎo","yǔ","yòng","pēn","hú","duì","zhe","yáng","guāng","pēn","shuǐ","","zhēn","de","kàn","jiàn","le","yī","xiǎo","duàn","cǎi","hóng","","tā","xiào","le","","yuán","lái","cǎi","hóng","kě","yǐ","zì","jǐ","zuò","chū","lái",""]}]},{"id":"nat19","title":"蚯蚓为什么下雨天出来","tag":"自然","pages":[{"t":"下过雨，水泥地上爬着好几条蚯蚓，慢慢往前挪。小雨蹲下来看，它们滑滑的，一节一节的。","p":["xià","guò","yǔ","","shuǐ","ní","dì","shàng","pá","zhe","hǎo","jǐ","tiáo","qiū","yǐn","","màn","màn","wǎng","qián","nuó","","xiǎo","yǔ","dūn","xià","lái","kàn","","tā","men","huá","huá","de","","yī","jié","yī","jié","de",""]},{"t":"蚯蚓住在土里，靠皮肤呼吸。土里太干，它们不舒服；可雨水把土里的缝灌满，它们又会喘不上气。","p":["qiū","yǐn","zhù","zài","tǔ","lǐ","","kào","pí","fū","hū","xī","","tǔ","lǐ","tài","gàn","","tā","men","bù","shū","fú","","kě","yǔ","shuǐ","bǎ","tǔ","lǐ","de","fèng","guàn","mǎn","","tā","men","yòu","huì","chuǎn","bù","shàng","qì",""]},{"t":"所以下雨的时候，它们爬到地面上来透气。太阳一晒，地面变干，它们就得赶紧回去，不然会被晒死。","p":["suǒ","yǐ","xià","yǔ","de","shí","hòu","","tā","men","pá","dào","dì","miàn","shàng","lái","tòu","qì","","tài","yáng","yī","shài","","dì","miàn","biàn","gàn","","tā","men","jiù","dé","gǎn","jǐn","huí","qù","","bù","rán","huì","bèi","shài","sǐ",""]},{"t":"小雨用树叶把它们送到土边。她想：它们出来不是玩耍，是没有办法。","p":["xiǎo","yǔ","yòng","shù","yè","bǎ","tā","men","sòng","dào","tǔ","biān","","tā","xiǎng","","tā","men","chū","lái","bú","shì","wán","shuǎ","","shì","méi","yǒu","bàn","fǎ",""]}]},{"id":"nat20","title":"雪花的六个角","tag":"自然","pages":[{"t":"下雪的时候，小雨用一块黑布接雪花，凑近看。每一片都有角，大多像六根小树枝，中间还有细细的纹路。","p":["xià","xuě","de","shí","hòu","","xiǎo","yǔ","yòng","yī","kuài","hēi","bù","jiē","xuě","huā","","còu","jìn","kàn","","měi","yī","piàn","dōu","yǒu","jiǎo","","dà","duō","xiàng","liù","gēn","xiǎo","shù","zhī","","zhōng","jiān","hái","yǒu","xì","xì","de","wén","lù",""]},{"t":"雪是水汽在冷空气里长出来的冰晶。水汽结冰的时候，会按六个方向排好，所以长出六只角。","p":["xuě","shì","shuǐ","qì","zài","lěng","kōng","qì","lǐ","zhǎng","chū","lái","de","bīng","jīng","","shuǐ","qì","jié","bīng","de","shí","hòu","","huì","àn","liù","gè","fāng","xiàng","pái","hǎo","","suǒ","yǐ","zhǎng","chū","liù","zhǐ","jiǎo",""]},{"t":"有的角长，有的角短，和当时冷不冷、水汽多不多有关。所以每一片雪花都不一样，没有两片完全相同。","p":["yǒu","de","jiǎo","zhǎng","","yǒu","de","jiǎo","duǎn","","hé","dāng","shí","lěng","bù","lěng","","shuǐ","qì","duō","bù","duō","yǒu","guān","","suǒ","yǐ","měi","yī","piàn","xuě","huā","dōu","bù","yí","yàng","","méi","yǒu","liǎng","piàn","wán","quán","xiāng","tóng",""]},{"t":"雪花落到手上，一下就化了。小雨觉得可惜，又觉得神奇：这么小的一片，也长得这么讲究。","p":["xuě","huā","luò","dào","shǒu","shàng","","yī","xià","jiù","huà","le","","xiǎo","yǔ","jué","de","kě","xī","","yòu","jué","de","shén","qí","","zhè","me","xiǎo","de","yī","piàn","","yě","zhǎng","dé","zhè","me","jiǎng","jiū",""]}]}];
+/* ============ ReadBuddy · main logic ============ */
+(function(){
+'use strict';
+
+var LS_KEYS = {
+  readings: 'rb.readings.v1',
+  badges:   'rb.badges.v1',
+  settings: 'rb.settings.v1',
+  progress: 'rb.progress.v1'
+};
+
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function pad2(n){ return n<10 ? '0'+n : String(n); }
+function fmtClock(ms){
+  var s = Math.floor(ms/1000), m = Math.floor(s/60), h = Math.floor(m/60);
+  if(h>0) return h+':'+pad2(m%60)+':'+pad2(s%60);
+  return m+':'+pad2(s%60);
+}
+function pct(x){ return Math.round(x*100)+'%'; }
+
+/* ---------- Storage ---------- */
+function lsGet(k, d){
+  try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; }
+}
+function lsSet(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
+  catch(e){ toast('存储空间不足，这次的记录没能写入'); return false; }
+}
+var settings = Object.assign({sound:true, mode:'mic'}, lsGet(LS_KEYS.settings, {}));
+function saveSettings(){ lsSet(LS_KEYS.settings, settings); }
+
+/* ---------- Sound ---------- */
+var AC = null;
+function audioCtx(){
+  if(!settings.sound) return null;
+  // Browsers block audio until the user interacts; skip quietly to avoid console warnings
+  var act = navigator.userActivation;
+  if(act && !act.hasBeenActive) return null;
+  if(!AC){
+    try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  if(AC.state === 'suspended'){ AC.resume().catch(function(){}); }
+  return AC;
+}
+function tone(freq, dur, type, gain, delay){
+  var ctx = audioCtx(); if(!ctx) return;
+  var t0 = ctx.currentTime + (delay||0);
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(gain==null?0.1:gain, t0+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t0); o.stop(t0+dur+0.03);
+}
+var sfx = {
+  tap:    function(){ tone(660,0.05,'sine',0.05); },
+  mark:   function(){ tone(280,0.14,'triangle',0.11); tone(220,0.1,'sine',0.06,0.1); },
+  start:  function(){ tone(520,0.1,'sine',0.09); tone(740,0.12,'sine',0.09,0.11); },
+  page:   function(){ tone(880,0.08,'sine',0.07); tone(1100,0.1,'sine',0.055,0.08); },
+  finish: function(){ [523,659,784,1046].forEach(function(f,i){ tone(f,0.2,'sine',0.1,i*0.13); }); },
+  badge:  function(){ [659,784,988,1319].forEach(function(f,i){ tone(f,0.22,'triangle',0.1,i*0.12); }); }
+};
+
+/* ---------- Toast ---------- */
+var toastTimer = null;
+function toast(msg){
+  var el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2400);
+}
+
+/* ---------- Badges ---------- */
+var BADGES = [
+  {id:'first',   name:'第一本',     icon:'i-book',   desc:'读完第一篇故事'},
+  {id:'perfect', name:'一字不错',   icon:'i-star',   desc:'一篇故事连一个错字也没有'},
+  {id:'acc95',   name:'神射手',     icon:'i-target', desc:'单篇准确率达到 95%'},
+  {id:'acc90',   name:'稳稳的',     icon:'i-check',  desc:'单篇准确率达到 90%'},
+  {id:'day3',    name:'三天不落',   icon:'i-cal',    desc:'连续三天朗读'},
+  {id:'day7',    name:'一周之约',   icon:'i-medal',  desc:'连续七天朗读'},
+  {id:'streak5', name:'五连好成绩', icon:'i-star',   desc:'连续五篇准确率都在 85% 以上'},
+  {id:'read10',  name:'十篇',       icon:'i-stack',  desc:'累计读完十篇'},
+  {id:'read30',  name:'三十篇',     icon:'i-stack',  desc:'累计读完三十篇'},
+  {id:'mc10',    name:'方块探险家', icon:'i-gem',    desc:'读完十篇《我的世界》故事'},
+  {id:'tech5',   name:'小工程师',   icon:'i-gear',   desc:'读完五篇科技故事'},
+  {id:'readall', name:'满架的书',   icon:'i-crown',  desc:'读完全部故事'}
+];
+
+function dayNum(ts){ var d = new Date(ts); d.setHours(0,0,0,0); return +d; }
+function longestStreak(readings){
+  var days = [];
+  readings.forEach(function(r){ var n = dayNum(r.ts); if(days.indexOf(n) < 0) days.push(n); });
+  days.sort(function(a,b){ return a-b; });
+  var best = days.length ? 1 : 0, cur = 1;
+  for(var i=1;i<days.length;i++){
+    if(days[i]-days[i-1] === 86400000){ cur++; } else { cur = 1; }
+    if(cur > best) best = cur;
+  }
+  return best;
+}
+var BADGE_RULES = {
+  first:   function(rs){ return rs.length >= 1; },
+  perfect: function(rs){ return rs.some(function(r){ return r.wrong === 0 && r.right > 0; }); },
+  acc95:   function(rs){ return rs.some(function(r){ return r.acc >= 0.95; }); },
+  acc90:   function(rs){ return rs.some(function(r){ return r.acc >= 0.90; }); },
+  day3:    function(rs){ return longestStreak(rs) >= 3; },
+  day7:    function(rs){ return longestStreak(rs) >= 7; },
+  streak5: function(rs){
+    if(rs.length < 5) return false;
+    var last5 = rs.slice().sort(function(a,b){ return b.ts-a.ts; }).slice(0,5);
+    return last5.every(function(r){ return r.acc >= 0.85; });
+  },
+  read10:  function(rs){ return uniqueStories(rs) >= 10; },
+  read30:  function(rs){ return uniqueStories(rs) >= 30; },
+  mc10:    function(rs){ return ruleUnique(rs,'我的世界') >= 10; },
+  tech5:   function(rs){ return ruleUnique(rs,'科技') >= 5; },
+  readall: function(rs){ return uniqueStories(rs) >= STORIES.length; }
+};
+function uniqueStories(rs){
+  var set = {};
+  rs.forEach(function(r){ set[r.storyId] = 1; });
+  return Object.keys(set).length;
+}
+function ruleUnique(rs, tag){
+  var set = {};
+  rs.forEach(function(r){ if(r.tag === tag) set[r.storyId] = 1; });
+  return Object.keys(set).length;
+}
+function syncBadges(readings, quiet){
+  var earned = lsGet(LS_KEYS.badges, {});
+  var fresh = [];
+  BADGES.forEach(function(b){
+    if(earned[b.id]) return;
+    if(BADGE_RULES[b.id] && BADGE_RULES[b.id](readings)){
+      earned[b.id] = Date.now();
+      fresh.push(b);
+    }
+  });
+  if(fresh.length){
+    lsSet(LS_KEYS.badges, earned);
+    if(!quiet) fresh.forEach(function(b,i){ setTimeout(function(){ showBadgePop(b); }, i*600); });
+  }
+  return fresh;
+}
+function showBadgePop(b){
+  sfx.badge();
+  var el = document.createElement('div');
+  el.className = 'badge-pop';
+  el.innerHTML = '<div class="disc"><svg viewBox="0 0 24 24" width="22" height="22" style="color:var(--gold)"><use href="#'+b.icon+'" xlink:href="#'+b.icon+'"/></svg></div>'+
+                 '<div><b>获得徽章：'+esc(b.name)+'</b><span>'+esc(b.desc)+'</span></div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(function(){ el.classList.add('show'); });
+  setTimeout(function(){
+    el.classList.remove('show');
+    setTimeout(function(){ el.remove(); }, 400);
+  }, 3200);
+}
+
+/* ---------- Stats ---------- */
+function agg(rs){
+  var right = 0, total = 0;
+  rs.forEach(function(r){ right += (r.right||0); total += (r.right||0) + (r.wrong||0); });
+  return { right:right, total:total, count:rs.length, acc: total ? right/total : null };
+}
+function statsOf(readings){
+  // Group by story, ordered by timestamp
+  var byStory = {};
+  readings.slice().sort(function(a,b){ return a.ts - b.ts; }).forEach(function(r){
+    if(!r.storyId) return;
+    if(!byStory[r.storyId]) byStory[r.storyId] = [];
+    byStory[r.storyId].push(r);
+  });
+  var firstSum = 0, firstN = 0, revSum = 0, revN = 0;
+  Object.keys(byStory).forEach(function(id){
+    var rs = byStory[id];
+    // First-reading accuracy: only the first attempt of each story
+    if(rs[0] && rs[0].acc != null){ firstSum += rs[0].acc; firstN++; }
+    // Review-reading accuracy: stories read twice or more, averaged from the second attempt on
+    if(rs.length >= 2){
+      var later = rs.slice(1).filter(function(r){ return r.acc != null; });
+      if(later.length){
+        var s = 0;
+        later.forEach(function(r){ s += r.acc; });
+        revSum += s / later.length;
+        revN++;
+      }
+    }
+  });
+  return {
+    first:  { acc: firstN ? firstSum / firstN : null, stories: firstN },
+    review: { acc: revN  ? revSum   / revN   : null, stories: revN }
+  };
+}
+function bestAccByStory(readings){
+  var map = {};
+  readings.forEach(function(r){
+    if(!map[r.storyId] || r.acc > map[r.storyId]) map[r.storyId] = r.acc;
+  });
+  return map;
+}
+
+/* ---------- Home screen ---------- */
+var WEEKDAY = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+var clockTimer = null;
+function tickClock(){
+  var d = new Date();
+  $('clkTime').textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  $('clkDate').textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日 · ' + WEEKDAY[d.getDay()];
+}
+var currentTag = '全部';
+var tocPage = 0;
+var TOC_PER = 10;
+function renderHome(){
+  var readings = lsGet(LS_KEYS.readings, []).filter(function(r){ return r && r.ts; });
+  var st = statsOf(readings);
+
+  $('clkTime') && tickClock();
+
+  // Scores
+  var dEl = $('accDay'), dSub = $('accDaySub'), dBar = $('barDay');
+  if(st.first.acc == null){
+    dEl.textContent = '未开始'; dEl.classList.add('empty'); dSub.textContent = '读完第一篇就会有成绩'; dBar.style.width = '0';
+  }else{
+    dEl.textContent = pct(st.first.acc); dEl.classList.remove('empty');
+    dSub.textContent = st.first.stories + ' 篇 · 每篇第一次的成绩平均';
+    dBar.style.width = pct(st.first.acc);
+  }
+  var wEl = $('accWeek'), wSub = $('accWeekSub'), wBar = $('barWeek');
+  if(st.review.acc == null){
+    wEl.textContent = '未开始'; wEl.classList.add('empty'); wSub.textContent = '同一篇再读一遍，才有复习成绩'; wBar.style.width = '0';
+  }else{
+    wEl.textContent = pct(st.review.acc); wEl.classList.remove('empty');
+    wSub.textContent = st.review.stories + ' 篇 · 第 2 遍起的成绩平均';
+    wBar.style.width = pct(st.review.acc);
+  }
+  $('readTotal').textContent = readings.length ? ('共 ' + readings.length + ' 次朗读') : '还没有朗读记录';
+
+  renderBadges();
+  renderToc(readings);
+}
+function renderBadges(){
+  var earned = lsGet(LS_KEYS.badges, {});
+  var box = $('badges');
+  var html = '';
+  BADGES.forEach(function(b){
+    var on = !!earned[b.id];
+    html += '<button class="badge '+(on?'on':'')+'" data-badge="'+b.id+'" aria-label="'+esc(b.name)+'">'+
+              '<span class="disc"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#'+b.icon+'" xlink:href="#'+b.icon+'"/></svg></span>'+
+              '<span class="nm">'+esc(b.name)+'</span></button>';
+  });
+  box.innerHTML = html;
+  var n = BADGES.filter(function(b){ return earned[b.id]; }).length;
+  $('badgeCount').textContent = n + ' / ' + BADGES.length;
+}
+function renderChips(){
+  var tags = ['全部','我的世界','科技','生活','自然'];
+  var html = '';
+  tags.forEach(function(t){
+    html += '<button class="chip '+(t===currentTag?'on':'')+'" data-tag="'+t+'">'+t+'</button>';
+  });
+  $('chips').innerHTML = html;
+}
+function renderToc(readings){
+  var best = bestAccByStory(readings || lsGet(LS_KEYS.readings, []));
+  var prog = lsGet(LS_KEYS.progress, {});
+  var list = STORIES.filter(function(s){ return currentTag === '全部' || s.tag === currentTag; });
+  var total = Math.max(1, Math.ceil(list.length / TOC_PER));
+  if(tocPage > total - 1) tocPage = total - 1;
+  if(tocPage < 0) tocPage = 0;
+  var from = tocPage * TOC_PER;
+  var slice = list.slice(from, from + TOC_PER);
+
+  var html = '';
+  slice.forEach(function(s, i){
+    var b = best[s.id];
+    var right = '';
+    if(prog[s.id]) right = '<b class="cont">继续</b><span>第 '+(prog[s.id].page+1)+' 页</span>';
+    else if(b != null) right = '<b class="done">'+pct(b)+'</b><span>上次</span>';
+    else right = '<b>未读</b><span>&nbsp;</span>';
+    html += '<button class="toc-row" data-story="'+s.id+'">'+
+              '<span class="toc-num">'+pad2(from + i + 1)+'</span>'+
+              '<span class="toc-body"><span class="toc-name">'+esc(s.title)+'</span>'+
+              '<span class="toc-meta">'+esc(s.tag)+' · '+s.pages.length+' 页</span></span>'+
+              '<span class="toc-right">'+right+'</span></button>';
+  });
+  $('toc').innerHTML = html;
+
+  var pager = $('tocPager');
+  if(total <= 1){
+    pager.style.display = 'none';
+  }else{
+    pager.style.display = 'flex';
+    $('tocPrev').disabled = (tocPage === 0);
+    $('tocNext').disabled = (tocPage === total - 1);
+    $('tocPrev').textContent = '上一页';
+    $('tocNext').textContent = '下一页';
+    $('tocInfo').textContent = '第 ' + (tocPage + 1) + ' / ' + total + ' 页　' +
+      '（第 ' + (from + 1) + '–' + (from + slice.length) + ' 篇，共 ' + list.length + ' 篇）';
+  }
+  $('libHint').textContent = (currentTag === '全部')
+    ? ('共 ' + list.length + ' 篇')
+    : (currentTag + ' · ' + list.length + ' 篇');
+  $('libCount').textContent = STORIES.length;
+}
+
+/* ---------- Sound toggle / export ---------- */
+function refreshSoundBtn(){
+  var b = $('btnSound');
+  b.textContent = settings.sound ? '音效：开' : '音效：关';
+  b.classList.toggle('on', settings.sound);
+}
+function exportCSV(){
+  var readings = lsGet(LS_KEYS.readings, []);
+  if(!readings.length){ toast('还没有成绩可以导出，先读一篇吧'); return; }
+  var head = ['日期','时间','故事','类别','用时(秒)','读对字数','读错字数','准确率','错字'];
+  var rows = [head];
+  readings.slice().sort(function(a,b){ return a.ts-b.ts; }).forEach(function(r){
+    var d = new Date(r.ts);
+    rows.push([
+      d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()),
+      pad2(d.getHours())+':'+pad2(d.getMinutes()),
+      r.title, r.tag||'', Math.round((r.sec||0)),
+      r.right, r.wrong, Math.round((r.acc||0)*100)+'%',
+      (r.wrongList||[]).map(function(w){ return w.c+'('+w.py+')'; }).join(' ')
+    ]);
+  });
+  var csv = rows.map(function(row){
+    return row.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+  var d = new Date();
+  var name = '阅读成绩-'+d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'.csv';
+  try{
+    var blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1200);
+    toast('已导出 '+name);
+  }catch(e){
+    toast('这台设备不允许直接下载，请用 iTunes 或隔空投送备份');
+  }
+}
+
+/* ---------- Reader ---------- */
+var R = null;
+var PUNCT_RE = /[^\u4e00-\u9fa5A-Za-z0-9]/;
+function isPunct(c){ return PUNCT_RE.test(c); }
+
+function buildChars(story){
+  var out = [];
+  story.pages.forEach(function(pg, pi){
+    for(var k=0;k<pg.t.length;k++){
+      out.push({ c: pg.t.charAt(k), py: (pg.p[k]||''), page: pi, gi: out.length });
+    }
+  });
+  return out;
+}
+function storyById(id){
+  for(var i=0;i<STORIES.length;i++){ if(STORIES[i].id === id) return STORIES[i]; }
+  return null;
+}
+
+function openReader(id, resumeFlag){
+  var story = storyById(id);
+  if(!story){ toast('找不到这篇故事'); return; }
+  var prog = lsGet(LS_KEYS.progress, {})[id];
+  var resume = resumeFlag && prog;
+
+  R = {
+    story: story,
+    chars: buildChars(story),
+    status: [],
+    page: 0,
+    mode: settings.mode === 'tap' ? 'tap' : 'mic',
+    listening: false,
+    finished: false,
+    heard: '',
+    prevHeard: '',
+    sess: '',
+    t0: performance.now(),
+    accMs: 0,
+    rec: null,
+    restartTimer: null,
+    startGuard: null,
+    dirty: false,
+    manual: {},
+    cursor: 0,
+    hypDone: 0,
+    finalHeard: '',
+    finalSess: ''
+  };
+  R.status = R.chars.map(function(){ return 0; });
+
+  // Non-punctuation character list (for alignment) + start offset of each page
+  R.src = []; R.srcIdx = []; R.pageStart = [];
+  var gi = 0, cnt = 0;
+  story.pages.forEach(function(pg, p){
+    R.pageStart[p] = cnt;
+    for(var k=0;k<pg.t.length;k++){
+      var ch = pg.t.charAt(k);
+      if(isPunct(ch)){ R.srcIdx.push(-1); }
+      else { R.srcIdx.push(cnt); R.src.push({ c: ch.toLowerCase(), gi: gi }); cnt++; }
+      gi++;
+    }
+  });
+
+  if(resume && prog.status && prog.status.length === R.chars.length){
+    R.status = prog.status.slice();
+    R.page = Math.min(prog.page||0, story.pages.length-1);
+    R.accMs = prog.elapsed || 0;
+    R.t0 = performance.now();
+    R.dirty = true;
+  }
+  R.cursor = R.pageStart[R.page] || 0;
+
+  $('view-home').classList.add('hidden');
+  $('view-read').classList.remove('hidden');
+  $('rdTitle').textContent = story.title;
+  $('rdSub').textContent = story.tag + ' · ' + story.pages.length + ' 页';
+  $('overlay').innerHTML = '';
+
+  renderPage();
+  syncModeUI();
+  updateTimerLabel();
+  updateAcc();
+  updatePager();
+  if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
+  R.accTimer = setInterval(function(){ updateTimerLabel(); }, 300);
+  if(resume && prog){ toast('接着上次的第 ' + (R.page+1) + ' 页继续'); }
+}
+
+function renderPage(){
+  if(!R) return;
+  var html = '';
+  var pageChars = R.chars.filter(function(ch){ return ch.page === R.page; });
+  for(var i=0;i<pageChars.length;i++){
+    html += charHTML(pageChars[i]);
+  }
+  $('pageText').innerHTML = html;
+  $('rdScroll').scrollTop = 0;
+}
+function charHTML(ch){
+  var st = R.status[ch.gi];
+  var tap = isPunct(ch.c) ? '' : ' tap';
+  var cls = 'ch' + tap + (st===2 ? ' bad' : st===1 ? ' ok' : '');
+  if(isPunct(ch.c)) return '<span class="ch punct" id="c'+ch.gi+'">'+esc(ch.c)+'</span>';
+  if(st === 2) return '<ruby class="'+cls+'" id="c'+ch.gi+'">'+esc(ch.c)+'<rt>'+esc(ch.py)+'</rt></ruby>';
+  return '<span class="'+cls+'" id="c'+ch.gi+'">'+esc(ch.c)+'</span>';
+}
+function paintChar(gi){
+  var el = document.getElementById('c'+gi);
+  if(!el) return;
+  var ch = R.chars[gi];
+  var wrap = document.createElement('span');
+  wrap.innerHTML = charHTML(ch);
+  var next = wrap.firstChild;
+  el.parentNode.replaceChild(next, el);
+}
+function setStatus(gi, st){
+  if(!R) return;
+  if(R.status[gi] === st) return;
+  R.status[gi] = st;
+  R.dirty = true;
+  paintChar(gi);
+  updateAcc();
+  updateProgress();
+}
+function updateProgress(){
+  var read = 0;
+  for(var i=0;i<R.status.length;i++){ if(R.status[i]) read++; }
+  var total = R.chars.filter(function(c){ return !isPunct(c.c); }).length || 1;
+  $('progLine').style.width = Math.min(100, Math.round(read/total*100)) + '%';
+}
+function counts(){
+  var r = 0, w = 0;
+  if(!R) return {r:0,w:0};
+  for(var i=0;i<R.status.length;i++){
+    if(R.status[i] === 1) r++; else if(R.status[i] === 2) w++;
+  }
+  return {r:r, w:w};
+}
+function updateAcc(){
+  var c = counts();
+  var total = c.r + c.w;
+  $('rdAcc').textContent = total ? pct(c.r/total) : '—';
+}
+function elapsed(){
+  if(!R) return 0;
+  return R.accMs + (performance.now() - R.t0);
+}
+function updateTimerLabel(){ if(R) $('rdTimer').textContent = fmtClock(elapsed()); }
+function updatePager(){
+  var n = R.story.pages.length;
+  $('pageNum').textContent = (R.page+1) + ' / ' + n;
+  $('btnPrev').disabled = R.page === 0;
+  $('btnNext').textContent = (R.page === n-1) ? '读完了' : '下一页';
+  updateProgress();
+}
+
+/* ---- Page turn ---- */
+function goPage(delta){
+  var n = R.story.pages.length;
+  var next = R.page + delta;
+  if(next < 0 || next >= n) return;
+  R.page = next;
+  // Going back a page: reread it and re-anchor the alignment
+  var ps = R.pageStart[R.page] || 0;
+  if(ps < R.cursor){
+    R.cursor = ps; R.hypDone = 0;
+    R.heard = ''; R.finalHeard = ''; R.prevHeard = ''; R.sess = ''; R.finalSess = '';
+  }
+  renderPage();
+  updatePager();
+  sfx.page();
+  saveProgress(true);
+}
+function saveProgress(silent){
+  if(!R || R.finished) return;
+  var c = counts();
+  if(c.r + c.w === 0 && R.page === 0) return;
+  var prog = lsGet(LS_KEYS.progress, {});
+  prog[R.story.id] = { page: R.page, status: R.status, elapsed: elapsed(), ts: Date.now() };
+  lsSet(LS_KEYS.progress, prog);
+  if(!silent) toast('进度已保存');
+}
+
+/* ---- Tap-to-mark ---- */
+var press = { gi: null, timer: null, long: false, x:0, y:0 };
+function attachTap(){
+  var box = $('pageText');
+
+  // Press starts the timer; holding for 560 ms marks the character as wrong
+  box.addEventListener('pointerdown', function(e){
+    var t = e.target.closest ? e.target.closest('.ch.tap') : null;
+    if(!t || !t.id) return;
+    press.gi = parseInt(t.id.slice(1), 10);
+    press.long = false;
+    press.x = e.clientX; press.y = e.clientY;
+    clearTimeout(press.timer);
+    press.timer = setTimeout(function(){
+      if(press.gi === null) return;
+      press.long = true;
+      R.manual[press.gi] = 1;
+      setStatus(press.gi, 2);
+      sfx.mark();
+    }, 560);
+  }, {passive:true});
+
+  box.addEventListener('pointermove', function(e){
+    if(press.gi === null || press.long) return;
+    if(Math.abs(e.clientX-press.x) > 12 || Math.abs(e.clientY-press.y) > 12){
+      clearTimeout(press.timer);
+      press.gi = null;
+    }
+  }, {passive:true});
+
+  box.addEventListener('pointerup', function(){ clearTimeout(press.timer); }, {passive:true});
+  box.addEventListener('pointercancel', function(){ clearTimeout(press.timer); press.gi = null; press.long = false; });
+
+  // Quick tap: mark correct / undo
+  box.addEventListener('click', function(e){
+    var t = e.target.closest ? e.target.closest('.ch.tap') : null;
+    if(!t || !t.id) return;
+    if(press.long){ press.long = false; press.gi = null; return; }
+    var gi = parseInt(t.id.slice(1), 10);
+    var cur = R.status[gi];
+    R.manual[gi] = 1;
+    setStatus(gi, cur === 1 ? 0 : 1);
+    if(cur !== 1) sfx.tap();
+    press.gi = null;
+  });
+
+  box.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+}
+
+/* ---- Speech recognition ---- */
+function speechAvailable(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function setHint(text){ $('rdHint').textContent = text; }
+function syncModeUI(){
+  if(!R) return;
+  var mic = $('btnMic'), modeBtn = $('btnMode');
+  if(R.mode === 'tap'){
+    mic.classList.add('hidden');
+    modeBtn.textContent = '跟读模式';
+    modeBtn.style.flex = '1';
+    modeBtn.style.fontSize = '15px';
+    modeBtn.style.color = 'var(--ink)';
+    setHint('点一下字：读对变蓝；长按字：读错变红并显示拼音。再点一下可以改回读对。');
+  }else{
+    mic.classList.remove('hidden');
+    modeBtn.style.flex = '0 0 auto';
+    modeBtn.style.fontSize = '13px';
+    modeBtn.style.color = 'var(--ink-soft)';
+    modeBtn.textContent = '点读模式';
+    if(speechAvailable()){
+      setHint('大声读出来，读对的字会变蓝，读错的字会变红并标上拼音。读错了也可以长按那个字手动改。');
+    }else{
+      setHint('这台设备的浏览器不支持语音识别，建议切到点读模式。');
+    }
+    if(!R.listening) mic.textContent = '开始朗读';
+    else mic.textContent = '正在听…';
+  }
+  mic.classList.toggle('on', !!R.listening);
+}
+
+async function ensureMicPermission(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return true;
+  try{
+    var stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(function(t){ t.stop(); });
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+async function startMic(){
+  if(!R || R.mode !== 'mic') return;
+  if(!speechAvailable()){
+    toast('这台设备的浏览器不支持语音识别，请用点读模式');
+    R.mode = 'tap'; settings.mode = 'tap'; saveSettings(); syncModeUI(); renderPage();
+    return;
+  }
+  var ok = await ensureMicPermission();
+  if(!ok){
+    toast('没有拿到麦克风权限，请在浏览器或系统设置里允许这个页面使用麦克风');
+    return;
+  }
+  sfx.start();
+  R.listening = true;
+  if(!R.heard){ R.prevHeard = ''; R.sess = ''; R.heard = ''; }
+  newSession();
+  syncModeUI();
+}
+function newSession(){
+  if(!R || !R.listening) return;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = new SR();
+  rec.lang = 'zh-CN';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  rec.onstart = function(){
+    clearTimeout(R.startGuard);
+    $('btnMic').textContent = '正在听…';
+    $('btnMic').classList.add('on');
+  };
+  rec.onresult = function(ev){
+    var all = '', fin = '';
+    for(var i=0;i<ev.results.length;i++){
+      var item = ev.results[i];
+      var txt = item[0].transcript;
+      all += txt;
+      if(item.isFinal) fin += txt;
+    }
+    R.sess = all;
+    R.finalSess = fin;
+    R.heard = R.prevHeard + all;
+    R.finalHeard = R.prevHeard + fin;
+    scheduleAlign();
+  };
+  rec.onerror = function(ev){
+    var err = ev && ev.error;
+    if(err === 'not-allowed' || err === 'service-not-allowed'){
+      toast('麦克风被拒绝了：请允许这个页面使用麦克风，或切到点读模式');
+      stopMic(true);
+    }else if(err === 'network'){
+      toast('语音识别需要联网，检查一下网络');
+    }else if(err === 'audio-capture'){
+      toast('找不到麦克风，检查一下有没有被别的应用占用');
+    }
+  };
+  rec.onend = function(){
+    if(!R) return;
+    R.prevHeard = R.prevHeard + R.sess;
+    R.sess = '';
+    if(R.listening && !R.finished){
+      R.startGuard = setTimeout(function(){
+        if(R && R.listening){ setHint('语音服务暂停了，点「继续听」接着读。'); $('btnMic').textContent = '继续听'; }
+      }, 2500);
+      setTimeout(function(){ if(R && R.listening && !R.finished) newSession(); }, 260);
+    }
+  };
+  R.rec = rec;
+  try{ rec.start(); }
+  catch(e){ toast('启动语音识别失败，请点「开始朗读」重试'); }
+}
+function stopMic(silent){
+  if(!R) return;
+  R.listening = false;
+  if(R.rec){ try{ R.rec.onend = null; R.rec.abort(); }catch(e){} R.rec = null; }
+  clearTimeout(R.startGuard);
+  syncModeUI();
+  if(!silent) toast('已暂停');
+}
+
+/* ---- Speech/text alignment ---- */
+var alignTimer = null;
+function scheduleAlign(){
+  if(alignTimer) return;
+  alignTimer = setTimeout(function(){ alignTimer = null; doAlign(); }, 160);
+}
+function doAlign(){
+  if(!R || !R.heard || !R.src) return;
+
+  // Split the transcript into non-punctuation characters
+  var hypAll = [];
+  for(var j=0;j<R.heard.length;j++){
+    var hc = R.heard.charAt(j);
+    if(!isPunct(hc)) hypAll.push(hc.toLowerCase());
+  }
+  if(R.hypDone > hypAll.length) R.hypDone = 0;      // transcript was reset
+  if(hypAll.length - R.hypDone < 1) return;
+
+  // Guard: when the recogniser re-reports the previous segment, do not treat it as newly read
+  var newLen = hypAll.length - R.hypDone;
+  if(newLen <= R.hypDone){
+    var np = hypAll.slice(R.hypDone).join('');
+    var pp = hypAll.slice(R.hypDone - newLen, R.hypDone).join('');
+    if(np === pp && np.length >= 2) return;
+  }
+
+  var n = R.src.length;
+  var start = Math.max(0, Math.min(R.cursor || 0, n));
+  if(start >= n) return;
+
+  // Align only from the current position onwards, so identical characters later are not marked as read
+  var WIN = 200;
+  var end = Math.min(n, start + WIN);
+  var hyp = hypAll.slice(R.hypDone);
+  var ns = end - start, m = hyp.length;
+  if(ns * m > 400000) return;
+
+  var w = m + 1;
+  var INF = 999999;
+  var B = 24;                                       // band width: positional drift of at most 24 characters is allowed
+  var dp = new Int32Array((ns + 1) * w);
+  for(var z=0;z<dp.length;z++) dp[z] = INF;
+  dp[0] = 0;
+  for(var a=1;a<=ns && a<=B;a++) dp[a*w] = a * 3;   // start anchoring: skipping characters at the beginning costs more
+  for(var b=1;b<=m && b<=B;b++) dp[b] = b;
+  for(var ia=1;ia<=ns;ia++){
+    var sc = R.src[start + ia - 1].c;
+    var lo = ia - B; if(lo < 1) lo = 1;
+    var hi = ia + B; if(hi > m) hi = m;
+    for(var ib=lo;ib<=hi;ib++){
+      var cost = (sc === hyp[ib-1]) ? 0 : 1;
+      var d1 = dp[(ia-1)*w + (ib-1)] + cost;
+      var d2 = dp[(ia-1)*w + ib] + 1;
+      var d3 = dp[ia*w + (ib-1)] + 1;
+      dp[ia*w+ib] = Math.min(d1, Math.min(d2, d3));
+    }
+  }
+
+  // Traceback: end at the cheapest cell of the last column; characters beyond stay unread
+  var bestX = -1, bestV = INF;
+  var xlo = m - B; if(xlo < 0) xlo = 0;
+  var xhi = m + B; if(xhi > ns) xhi = ns;
+  for(var bx=xlo;bx<=xhi;bx++){
+    var v = dp[bx*w + m];
+    if(v < bestV){ bestV = v; bestX = bx; }
+  }
+  if(bestX < 0 || bestV >= INF){
+    // No feasible path inside the band (nothing matched, for example): fall back to anchoring at the start
+    bestX = Math.min(ns, m); if(bestX < 0) bestX = 0;
+  }
+  var ops = [];
+  var x = bestX, y = m;
+  while(x > 0 || y > 0){
+    if(y === 0){
+      if(dp[x*w] >= INF) break;
+      ops.push({ t:'d', si:start + x - 1 }); x--; continue;
+    }
+    var cur = dp[x*w+y];
+    var same = (x > 0 && R.src[start+x-1].c === hyp[y-1]);
+    if(x > 0 && cur === dp[(x-1)*w + (y-1)] + (same ? 0 : 1)){
+      ops.push({ t: same ? 'm' : 's', si: start + x - 1 });
+      x--; y--;
+    }else if(cur === dp[x*w + (y-1)] + 1){
+      ops.push({ t:'i' });
+      y--;
+    }else if(x > 0 && cur === dp[(x-1)*w + y] + 1){
+      ops.push({ t:'d', si: start + x - 1 });
+      x--;
+    }else{
+      break;
+    }
+  }
+  ops.reverse();
+
+  // Committed transcript length: only final results advance progress
+  var finalCount = 0;
+  if(R.finalHeard){
+    for(var q0=0;q0<R.finalHeard.length;q0++){
+      if(!isPunct(R.finalHeard.charAt(q0))) finalCount++;
+    }
+  }
+
+  var st = R.status.slice();
+  var run = [];
+  var hypPos = R.hypDone;         // transcript position matching the current operation
+  var lastFinalSrc = start - 1;
+  function flushRun(nextIsMatch){
+    if(run.length && nextIsMatch && run.length <= 2){
+      run.forEach(function(si){ st[R.src[si].gi] = 2; });
+    }
+    run = [];
+  }
+  for(var k=0;k<ops.length;k++){
+    var op = ops[k], pos = hypPos;
+    if(op.t === 'm'){
+      flushRun(true); st[R.src[op.si].gi] = 1; hypPos++;
+      if(pos <= finalCount) lastFinalSrc = Math.max(lastFinalSrc, op.si);
+    }else if(op.t === 's'){
+      flushRun(true); st[R.src[op.si].gi] = 2; hypPos++;
+      if(pos <= finalCount) lastFinalSrc = Math.max(lastFinalSrc, op.si);
+    }else if(op.t === 'd'){
+      run.push(op.si);
+    }else{
+      flushRun(false); hypPos++;
+    }
+  }
+  flushRun(false);
+
+  // Manually corrected characters survive speech updates (manual keys are character indices, gi)
+  for(var mg in R.manual){
+    if(R.manual.hasOwnProperty(mg)) st[Number(mg)] = R.status[Number(mg)];
+  }
+
+  var changed = [];
+  for(var q=0;q<st.length;q++){
+    if(st[q] !== R.status[q]){ R.status[q] = st[q]; changed.push(q); }
+  }
+  if(changed.length){
+    R.dirty = true;
+    changed.forEach(function(gi){
+      if(R.chars[gi].page === R.page){ paintChar(gi); }
+    });
+    updateAcc();
+    updateProgress();
+  }
+
+  // Advance progress on final transcripts only, so interim results cannot flip back and forth
+  if(lastFinalSrc >= start){
+    R.cursor = Math.max(R.cursor, lastFinalSrc + 1);
+    R.hypDone = Math.max(R.hypDone, finalCount);
+  }
+}
+
+/* ---- Finish ---- */
+function finishReading(){
+  if(!R || R.finished) return;
+  var c = counts();
+  if(c.r + c.w === 0){ toast('还没读到字，先大声读出来，或者切到点读模式'); return; }
+  R.finished = true;
+  stopMic(true);
+  clearInterval(R.accTimer);
+
+  var sec = Math.round(elapsed()/1000);
+  var acc = c.r/(c.r+c.w);
+  var wrongMap = {}, wrongList = [];
+  R.chars.forEach(function(ch){
+    if(R.status[ch.gi] === 2 && !wrongMap[ch.c]){
+      wrongMap[ch.c] = 1;
+      wrongList.push({ c: ch.c, py: ch.py });
+    }
+  });
+
+  var record = {
+    id: String(Date.now()),
+    storyId: R.story.id,
+    title: R.story.title,
+    tag: R.story.tag,
+    ts: Date.now(),
+    sec: sec,
+    right: c.r,
+    wrong: c.w,
+    total: c.r + c.w,
+    acc: acc,
+    wrongList: wrongList.slice(0, 24)
+  };
+  var readings = lsGet(LS_KEYS.readings, []);
+  readings.push(record);
+  if(!lsSet(LS_KEYS.readings, readings)){
+    toast('保存失败，可能是设备的存储空间满了');
+  }
+
+  // Clear the saved progress for this story
+  var prog = lsGet(LS_KEYS.progress, {});
+  delete prog[R.story.id];
+  lsSet(LS_KEYS.progress, prog);
+
+  sfx.finish();
+  syncBadges(readings, false);
+  showSummary(record);
+  renderHome();
+}
+function showSummary(record){
+  var wrongHTML = record.wrongList.length
+    ? record.wrongList.map(function(w){
+        return '<span class="wrong-item"><em>'+esc(w.py)+'</em><span>'+esc(w.c)+'</span></span>';
+      }).join('')
+    : '<span class="none">这篇没有一个错字</span>';
+
+  var el = document.createElement('div');
+  el.className = 'scrim';
+  el.innerHTML = '<div class="sheet">'+
+      '<h3>读完了</h3>'+
+      '<p class="lede">'+esc(record.title)+'</p>'+
+      '<div class="big-acc">'+pct(record.acc)+'<small>准确率</small></div>'+
+      '<div class="sum-row">'+
+        '<div class="sum-cell"><i>用时</i><b>'+fmtClock(record.sec*1000)+'</b></div>'+
+        '<div class="sum-cell"><i>读对</i><b>'+record.right+' 字</b></div>'+
+        '<div class="sum-cell"><i>读错</i><b>'+record.wrong+' 字</b></div>'+
+      '</div>'+
+      '<div class="wrong-title">这些字读错了，明天再读一遍</div>'+
+      '<div class="wrong-list">'+wrongHTML+'</div>'+
+      '<div class="sheet-actions">'+
+        '<button class="secondary" id="sumHome">回书架</button>'+
+        '<button class="primary" id="sumAgain">再读一次</button>'+
+      '</div></div>';
+  $('overlay').innerHTML = '';
+  $('overlay').appendChild(el);
+
+  $('sumHome').addEventListener('click', function(){ goHome(); });
+  $('sumAgain').addEventListener('click', function(){
+    $('overlay').innerHTML = '';
+    resetReading();
+  });
+}
+function resetReading(){
+  if(!R) return;
+  R.status = R.chars.map(function(){ return 0; });
+  R.manual = {};
+  R.cursor = 0; R.hypDone = 0;
+  R.heard = ''; R.finalHeard = ''; R.prevHeard = ''; R.sess = ''; R.finalSess = '';
+  R.page = 0;
+  R.finished = false;
+  R.heard = ''; R.prevHeard = ''; R.sess = '';
+  R.accMs = 0; R.t0 = performance.now();
+  renderPage(); updatePager(); updateAcc(); updateTimerLabel();
+  clearInterval(R.accTimer);
+  R.accTimer = setInterval(function(){ updateTimerLabel(); }, 300);
+}
+
+/* ---- Exit ---- */
+function requestExit(){
+  if(!R) return goHome();
+  var c = counts();
+  if(R.finished || (c.r + c.w) === 0){ return goHome(); }
+  var el = document.createElement('div');
+  el.className = 'scrim';
+  el.innerHTML = '<div class="sheet">'+
+      '<h3>这篇还没读完</h3>'+
+      '<p class="lede">已经读到第 '+(R.page+1)+' 页，要保存进度吗？</p>'+
+      '<div class="sheet-actions">'+
+        '<button class="secondary" id="exDiscard">不保存</button>'+
+        '<button class="primary" id="exSave">保存并退出</button>'+
+      '</div>'+
+      '<div style="margin-top:10px"><button class="secondary" id="exStay" style="width:100%;padding:12px;border-radius:10px;font-size:14px">继续读</button></div>'+
+      '</div>';
+  $('overlay').innerHTML = '';
+  $('overlay').appendChild(el);
+  $('exStay').addEventListener('click', function(){ $('overlay').innerHTML = ''; });
+  $('exSave').addEventListener('click', function(){
+    saveProgress(true);
+    $('overlay').innerHTML = '';
+    toast('已保存，下次可以接着读');
+    goHome();
+  });
+  $('exDiscard').addEventListener('click', function(){
+    var prog = lsGet(LS_KEYS.progress, {});
+    delete prog[R.story.id];
+    lsSet(LS_KEYS.progress, prog);
+    $('overlay').innerHTML = '';
+    goHome();
+  });
+}
+function goHome(){
+  if(R){
+    stopMic(true);
+    clearInterval(R.accTimer);
+    R = null;
+  }
+  clearTimeout(alignTimer); alignTimer = null;
+  $('overlay').innerHTML = '';
+  $('view-read').classList.add('hidden');
+  $('view-home').classList.remove('hidden');
+  if(location.hash && location.hash !== '#/'){ history.replaceState(null,'','#/'); }
+  renderHome();
+  if(clockTimer) clearInterval(clockTimer);
+  clockTimer = setInterval(tickClock, 30000);
+  window.scrollTo(0,0);
+}
+
+/* ---------- Boot ---------- */
+function boot(){
+  renderChips();
+  refreshSoundBtn();
+  renderHome();
+  attachTap();
+  clockTimer = setInterval(tickClock, 30000);
+  tickClock();
+
+  $('chips').addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(!chip) return;
+    currentTag = chip.dataset.tag;
+    tocPage = 0;
+    renderChips();
+    renderToc(lsGet(LS_KEYS.readings, []));
+  });
+  $('tocPrev').addEventListener('click', function(){
+    if(tocPage > 0){ tocPage--; renderToc(lsGet(LS_KEYS.readings, [])); sfx.page(); }
+  });
+  $('tocNext').addEventListener('click', function(){
+    tocPage++; renderToc(lsGet(LS_KEYS.readings, [])); sfx.page();
+  });
+  $('toc').addEventListener('click', function(e){
+    var row = e.target.closest('.toc-row');
+    if(!row) return;
+    var id = row.dataset.story;
+    var prog = lsGet(LS_KEYS.progress, {})[id];
+    openReader(id, !!prog);
+  });
+  $('badges').addEventListener('click', function(e){
+    var b = e.target.closest('.badge');
+    if(!b) return;
+    var id = b.dataset.badge;
+    var def = BADGES.filter(function(x){ return x.id === id; })[0];
+    var earned = lsGet(LS_KEYS.badges, {});
+    if(!def) return;
+    toast(earned[id] ? ('已获得：'+def.name+'。'+def.desc) : ('还没拿到：'+def.name+'。'+def.desc));
+  });
+  $('btnExport').addEventListener('click', exportCSV);
+  $('btnSound').addEventListener('click', function(){
+    settings.sound = !settings.sound;
+    saveSettings();
+    refreshSoundBtn();
+    if(settings.sound){ audioCtx(); sfx.tap(); }
+    toast(settings.sound ? '音效已打开' : '音效已关闭');
+  });
+
+  $('btnBack').addEventListener('click', requestExit);
+  $('btnPrev').addEventListener('click', function(){ goPage(-1); });
+  $('btnNext').addEventListener('click', function(){
+    if(!R) return;
+    if(R.page === R.story.pages.length-1){ finishReading(); }
+    else goPage(1);
+  });
+  $('btnMic').addEventListener('click', function(){
+    if(!R) return;
+    if(R.listening){ stopMic(); }
+    else { startMic(); }
+  });
+  $('btnMode').addEventListener('click', function(){
+    if(!R) return;
+    if(R.mode === 'mic'){
+      R.mode = 'tap';
+      if(R.listening) stopMic(true);
+      setHint('点一下字：读对变蓝；长按字：读错变红并显示拼音。再点一下可以取消。');
+    }else{
+      R.mode = 'mic';
+      R.prevHeard = R.heard || '';
+    }
+    settings.mode = R.mode; saveSettings();
+    renderPage(); syncModeUI();
+    toast(R.mode === 'mic' ? '跟读模式：点「开始朗读」' : '点读模式：手指点字');
+  });
+
+  window.addEventListener('beforeunload', function(){
+    if(R && !R.finished){
+      var c = counts();
+      var prog = lsGet(LS_KEYS.progress, {});
+      if(c.r + c.w === 0 && R.page === 0) delete prog[R.story.id];
+      else prog[R.story.id] = { page:R.page, status:R.status, elapsed:elapsed(), ts:Date.now() };
+      lsSet(LS_KEYS.progress, prog);
+    }
+  });
+}
+
+if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', boot); }
+else { boot(); }
+})();
+</script>
+</body>
+</html>
