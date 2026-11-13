@@ -1,6 +1,6 @@
 /* ReadBuddy offline cache.
    Bump CACHE whenever a new build is published; the old cache is dropped on activate. */
-const CACHE = 'readbuddy-v1';
+const CACHE = 'readbuddy-v2';
 const ASSETS = ['./ReadBuddy.html', './icon-180.png'];
 
 self.addEventListener('install', function (e) {

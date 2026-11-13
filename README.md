@@ -16,6 +16,7 @@ Everything lives in one HTML file: no server, no account, no database, no build 
 - **Badges** — 12 achievements (first story, no mistakes, 95 %, 90 %, 3-day streak, 7-day streak, 5 good scores in a row, 10 stories, 30 stories, 10 Minecraft stories, 5 tech stories, whole shelf).
 - **Sound effects** — short synthesised tones (Web Audio) for correct/incorrect marking, page turn, finishing, badge unlocked. Can be muted.
 - **CSV export** — one row per reading session, UTF-8 with BOM, opens cleanly in Excel.
+- **Reset scores** — clears every reading, badge and unfinished progress entry behind a confirmation sheet; sound and mode settings are kept.
 - **Resume** — an unfinished story can be continued from the page where the child stopped.
 - **Local-only storage** — all data stays in the browser's `localStorage` on the device. No upload, no tracking.
 

@@ -141,11 +141,14 @@
     margin-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;
     padding-top:18px;border-top:1px solid var(--line);
   }
+  .foot-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
   .ghost{
     border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
     border-radius:999px;padding:11px 16px;font-size:14px;font-family:var(--ui);cursor:pointer;min-height:44px;
   }
   .ghost.on{color:var(--ink);border-color:var(--ink-faint)}
+  .ghost.danger{color:var(--red);border-color:rgba(190,63,44,.32)}
+  .ghost.danger:active{background:rgba(190,63,44,.07)}
   .foot-note{
     align-self:stretch;width:100%;text-align:center;
     font-size:12px;color:var(--ink-faint);line-height:1.6;
@@ -273,6 +276,7 @@
   .sheet-actions{display:flex;gap:10px;margin-top:20px}
   .sheet-actions button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-family:var(--ui);cursor:pointer;min-height:48px}
   .primary{background:var(--ink);color:#FFF9EC;border:1px solid var(--ink)}
+  .danger-solid{background:var(--red);color:#FFF6EC;border:1px solid var(--red)}
   .secondary{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 
   #toast{
@@ -437,7 +441,10 @@
     </section>
 
     <div class="home-foot">
-      <button class="ghost" id="btnExport">导出成绩文件</button>
+      <div class="foot-actions">
+        <button class="ghost" id="btnExport">导出成绩文件</button>
+        <button class="ghost danger" id="btnReset">重置成绩</button>
+      </div>
       <div class="foot-note">Copy Right © 2026 JunyanTech</div>
     </div>
   </section>
@@ -828,6 +835,41 @@ function exportCSV(){
   }catch(e){
     toast('这台设备不允许直接下载，请用 iTunes 或隔空投送备份');
   }
+}
+
+/* Clear every recorded score, badge and unfinished reading. Settings (sound, mode) are kept. */
+function resetScores(){
+  var readings = lsGet(LS_KEYS.readings, []);
+  var badges = lsGet(LS_KEYS.badges, {});
+  var prog = lsGet(LS_KEYS.progress, {});
+  if(!readings.length && !Object.keys(badges).length && !Object.keys(prog).length){
+    toast('还没有成绩可以清空');
+    return;
+  }
+  var el = document.createElement('div');
+  el.className = 'scrim';
+  el.innerHTML = '<div class="sheet">'+
+      '<h3>要清空全部成绩吗？</h3>'+
+      '<p class="lede">会删除 '+readings.length+' 次朗读记录、'+
+        Object.keys(badges).length+' 枚已获得的徽章，以及未读完的进度。清空后不能恢复；'+
+        '想留一份，先点「导出成绩文件」。</p>'+
+      '<div class="sheet-actions">'+
+        '<button class="secondary" id="rsCancel">不清空</button>'+
+        '<button class="danger-solid" id="rsOk">清空成绩</button>'+
+      '</div>'+
+      '</div>';
+  $('overlay').innerHTML = '';
+  $('overlay').appendChild(el);
+  $('rsCancel').addEventListener('click', function(){ $('overlay').innerHTML = ''; });
+  $('rsOk').addEventListener('click', function(){
+    $('overlay').innerHTML = '';
+    lsSet(LS_KEYS.readings, []);
+    lsSet(LS_KEYS.badges, {});
+    lsSet(LS_KEYS.progress, {});
+    tocPage = 0;
+    renderHome();
+    toast('成绩已清空');
+  });
 }
 
 /* ---------- Reader ---------- */
@@ -1525,6 +1567,7 @@ function boot(){
     toast(earned[id] ? ('已获得：'+def.name+'。'+def.desc) : ('还没拿到：'+def.name+'。'+def.desc));
   });
   $('btnExport').addEventListener('click', exportCSV);
+  $('btnReset').addEventListener('click', resetScores);
   $('btnSound').addEventListener('click', function(){
     settings.sound = !settings.sound;
     saveSettings();
