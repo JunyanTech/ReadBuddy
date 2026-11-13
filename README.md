@@ -1,4 +1,4 @@
-# ReadBuddy (For practising reading Chinese)
+# ReadBuddy
 
 A single-file, offline-first web app that helps primary-school children (around grade 3) practise reading aloud. The child reads a short original story page by page; characters read correctly turn blue, misread or skipped characters turn red with their pinyin shown above, and the app reports time spent and reading accuracy the moment the story is finished.
 
@@ -36,6 +36,18 @@ The layout is responsive down to 360 px wide screens and up to wide desktop view
 3. Allow microphone access if you want read-aloud tracking, then tap **Start reading**.
 4. If the browser has no speech recognition, or the room is too noisy, switch to tap mode.
 
+## Hosting it for yourself (GitHub Pages)
+
+iOS will not run speech recognition from a local `file://` page, and a raw GitHub link opens as plain text. For iPad/iPhone use, serve the page over HTTPS:
+
+1. Repository **Settings → Pages**: source *Deploy from a branch*, branch `main`, folder `/ (root)`; save.
+2. Open `https://<user>.github.io/<repo>/ReadBuddy.html` in Safari.
+3. *Share → Add to Home Screen* — the page already ships as a full-screen web app with a title, theme colour and `icon-180.png`.
+
+`sw.js` caches the page and icon so the app still opens offline. Bump `CACHE` in `sw.js` whenever you publish a new build, and close/reopen the home-screen app once so the new version takes effect. On `file://` (or any non-HTTP protocol) the registration is skipped, so the single-file download behaves exactly as before.
+
+Note that the two launch paths keep separate storage: the Safari tab and the home-screen app each have their own `localStorage`. Pick one and stay with it.
+
 ## Privacy and data
 
 - Data is written to `localStorage` under four keys: `rb.readings.v1`, `rb.badges.v1`, `rb.settings.v1`, `rb.progress.v1`.
@@ -46,6 +58,8 @@ The layout is responsive down to 360 px wide screens and up to wide desktop view
 
 ```
 ReadBuddy.html                built, ready-to-open single-file app (do not edit by hand)
+icon-180.png                  iOS home-screen icon (180 x 180)
+sw.js                         optional offline cache for the hosted build
 README.md                     this file
 requirements.txt              Python dependency for the build
 build/

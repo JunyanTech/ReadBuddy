@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="阅读陪伴者">
 <meta name="theme-color" content="#FBF3E4">
 <title>ReadBuddy</title>
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FBF3E4'/%3E%3Cpath d='M14 18h15v30H14z' fill='%23C9762B'/%3E%3Cpath d='M35 18h15v30H35z' fill='%23E0A15E'/%3E%3Cpath d='M32 20v28' stroke='%232A2622' stroke-width='2'/%3E%3C/svg%3E">
 <style>
   :root{
@@ -1573,6 +1574,13 @@ function boot(){
 if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', boot); }
 else { boot(); }
 })();
+
+/* Offline cache for the hosted build; skipped on file://, where workers cannot register. */
+if('serviceWorker' in navigator && (/^https?:$/.test(location.protocol))){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
