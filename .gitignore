@@ -9,6 +9,7 @@ venv/
 # Throwaway harnesses and check scripts generated during development
 build/_*.html
 build/_*.py
+build/_*.js
 
 # ---- Screenshots and temporary captures ----
 *.png

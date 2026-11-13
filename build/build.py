@@ -11,7 +11,7 @@ from stories_extra import STORIES_TECH2, STORIES_LIFE2, STORIES_NATURE2
 from stories_page4 import PAGE4
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.abspath(os.path.join(HERE, '..', 'ReadBuddy.html'))
+OUT = os.path.abspath(os.path.join(HERE, '..', 'ReadBuddy_cn.html'))
 TPL = os.path.join(HERE, 'app_template.html')
 
 # The original 50 stories had 3 pages each; add a fourth page to every one

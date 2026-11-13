@@ -3,7 +3,7 @@
 import io, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, '..', 'ReadBuddy.html')
+SRC = os.path.join(HERE, '..', 'ReadBuddy_cn.html')
 OUT = os.path.join(HERE, '_align_test.html')
 
 SEED = """if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', boot); }"""

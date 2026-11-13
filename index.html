@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ReadBuddy</title>
+<meta name="theme-color" content="#F6F3EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ReadBuddy">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FBF3E4'/%3E%3Cpath d='M14 20c8-3 14-1 18 3v24c-4-4-10-6-18-3z' fill='%232B66AC'/%3E%3Cpath d='M50 20c-8-3-14-1-18 3v24c4-4 10-6 18-3z' fill='%233C7FBF'/%3E%3Cpath d='M32 16v31' stroke='%23FBF3E4' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#F6F3EA;
+    --paper-2:#EFEADA;
+    --card:#FFFDF6;
+    --ink:#2A2721;
+    --ink-soft:#6B6558;
+    --line:#DED7C4;
+    --cn:#2B66AC;
+    --de:#2F7D4A;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue","Noto Sans",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);
+    display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;
+    -webkit-text-size-adjust:100%;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(rgba(43,39,33,.05) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
+  main{
+    position:relative;z-index:1;flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:18px;
+    padding:32px 20px calc(72px + env(safe-area-inset-bottom));
+  }
+  .lang{
+    width:min(360px,88vw);min-height:76px;display:flex;align-items:center;justify-content:center;
+    gap:10px;text-decoration:none;border-radius:16px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);font-size:23px;font-weight:600;letter-spacing:.04em;
+    box-shadow:0 2px 0 rgba(43,39,33,.06), 0 8px 22px rgba(43,39,33,.06);
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .lang:hover{border-color:currentColor}
+  .lang:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(43,39,33,.06)}
+  .lang:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  .lang .tag{
+    font-size:12px;font-weight:600;letter-spacing:.14em;padding:2px 7px;border-radius:6px;
+    border:1px solid currentColor;opacity:.9;
+  }
+  .lang.cn{color:var(--cn)}
+  .lang.de{color:var(--de)}
+  footer{
+    position:relative;z-index:1;text-align:center;padding:0 20px calc(18px + env(safe-area-inset-bottom));
+    color:var(--ink-soft);font-size:12.5px;letter-spacing:.02em;
+  }
+  @media (min-width:768px){
+    .lang{min-height:84px;font-size:25px}
+    main{gap:22px}
+  }
+</style>
+</head>
+<body>
+<main>
+  <a class="lang cn" href="ReadBuddy_cn.html" aria-label="中文版 · Chinesische Version">
+    <span class="tag">中文</span>中文版
+  </a>
+  <a class="lang de" href="ReadBuddy_de.html" aria-label="Deutsch (German edition)">
+    <span class="tag">DE</span>Deutsch
+  </a>
+</main>
+<footer>Copy Right © 2026 JunyanTech</footer>
+
+<script>
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="阅读陪伴者">
+<meta name="apple-mobile-web-app-title" content="ReadBuddy">
 <meta name="theme-color" content="#FBF3E4">
 <title>ReadBuddy</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
@@ -55,6 +55,13 @@
   .brand{display:flex;align-items:center;gap:14px}
   .brand svg{flex:0 0 auto;width:46px;height:46px}
   .hello{margin:0;font-size:clamp(24px,3.4vw,32px);font-weight:600;letter-spacing:.02em;line-height:1.25}
+  .lang-btn{
+    margin-left:auto;flex:0 0 auto;font-size:13px;font-weight:600;letter-spacing:.06em;
+    padding:6px 12px;min-height:36px;min-width:44px;border-radius:999px;
+    border:1px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer;
+    font-family:var(--ui);
+  }
+  .lang-btn:active{background:rgba(201,118,43,.10)}
   .clock{
     margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
     font-variant-numeric:tabular-nums;color:var(--ink-soft);font-size:15px;
@@ -390,6 +397,7 @@
         <path d="M12 6.4v12.2" stroke="currentColor" stroke-width="1.5"/>
       </svg>
       <h1 class="hello">欢迎使用阅读陪伴者</h1>
+      <button class="lang-btn" id="btnLang" aria-label="Zur deutschen Version">DE</button>
     </div>
     <div class="clock">
       <span class="t" id="clkTime">--:--</span>
@@ -1535,6 +1543,8 @@ function boot(){
   attachTap();
   clockTimer = setInterval(tickClock, 30000);
   tickClock();
+
+  $('btnLang').addEventListener('click', function(){ location.href = 'ReadBuddy_de.html'; });
 
   $('chips').addEventListener('click', function(e){
     var chip = e.target.closest('.chip');

@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ReadBuddy">
+<meta name="theme-color" content="#EEF6EA">
+<title>ReadBuddy · Deutsch</title>
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23EEF6EA'/%3E%3Cpath d='M14 18h15v30H14z' fill='%232F7D4A'/%3E%3Cpath d='M35 18h15v30H35z' fill='%2369AE78'/%3E%3Cpath d='M32 20v28' stroke='%2320301C' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#EEF6EA;
+    --paper-2:#E3F0DD;
+    --card:#FCFEF8;
+    --ink:#20301C;
+    --ink-soft:#5A6C53;
+    --ink-faint:#8A9A80;
+    --line:#CFDEC6;
+    --line-soft:#DFEBD7;
+    --blue:#2563A6;
+    --red:#BE3F2C;
+    --accent:#2F7D4A;
+    --accent-2:#69AE78;
+    --gold:#B08A3C;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    --read:"Iowan Old Style","Charter","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--ui);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overscroll-behavior-y:none;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(rgba(72,102,62,.06) 1px, transparent 1px);
+    background-size:20px 20px;
+  }
+  .view{position:relative;z-index:1}
+  .hidden{display:none !important}
+
+  /* ---------- Home screen ---------- */
+  .home{
+    max-width:840px;margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 22px) 20px calc(env(safe-area-inset-bottom) + 26px);
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand svg{flex:0 0 auto;width:46px;height:46px}
+  .hello{margin:0;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:.01em;line-height:1.25}
+  .lang-btn{
+    margin-left:auto;flex:0 0 auto;font-size:13px;font-weight:600;letter-spacing:.06em;
+    padding:6px 12px;min-height:36px;min-width:44px;border-radius:999px;
+    border:1px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer;
+    font-family:var(--ui);
+  }
+  .lang-btn:active{background:rgba(47,125,74,.10)}
+  .clock{
+    margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    font-variant-numeric:tabular-nums;color:var(--ink-soft);font-size:15px;
+  }
+  .clock .t{font-size:22px;color:var(--ink);font-weight:600;letter-spacing:.04em}
+  .clock .sound-btn{
+    margin-left:auto;font-size:12.5px;padding:7px 13px;min-height:36px;letter-spacing:.02em;
+  }
+
+  .sect{margin-top:30px}
+  .sect-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .sect-title{margin:0;font-size:15px;font-weight:600;letter-spacing:.10em;color:var(--ink-soft)}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 16px 14px;min-width:0;
+  }
+  .stat .lab{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;line-height:1.35}
+  .stat .val{
+    margin-top:8px;font-size:clamp(30px,5vw,42px);font-weight:600;
+    font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.05;
+  }
+  .stat .val.empty{color:var(--ink-soft);font-weight:500;font-size:clamp(20px,3vw,24px);letter-spacing:.02em}
+  .stat .sub{margin-top:6px;font-size:12px;color:var(--ink-faint);line-height:1.4}
+  .stat .bar{margin-top:10px;height:3px;border-radius:2px;background:var(--line-soft);overflow:hidden}
+  .stat .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+  .badge-strip{
+    display:flex;gap:10px;flex-wrap:wrap;padding:2px 2px 6px;
+  }
+  .badge-strip::-webkit-scrollbar{display:none}
+  .badge{flex:0 0 auto;width:64px;text-align:center;background:none;border:0;padding:0;cursor:pointer}
+  .badge .disc{
+    width:56px;height:56px;margin:0 auto;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px dashed var(--line);color:var(--ink-faint);background:rgba(255,255,255,.35);
+  }
+  .badge.on .disc{border:1.5px solid var(--gold);background:#F6FAE8;color:var(--gold);box-shadow:0 2px 0 rgba(176,138,60,.22)}
+  .badge .nm{margin-top:6px;font-size:11px;color:var(--ink-soft);line-height:1.3}
+  .badge.on .nm{color:var(--ink)}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    border-radius:999px;padding:8px 15px;font-size:14px;font-family:var(--ui);cursor:pointer;
+    min-height:44px;
+  }
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#F5FBEF}
+
+  .toc{margin-top:8px;border-top:1px solid var(--line)}
+  .toc-row{
+    display:flex;align-items:center;gap:12px;padding:13px 4px;
+    border-bottom:1px solid var(--line-soft);cursor:pointer;background:none;
+    width:100%;text-align:left;border-left:0;border-right:0;border-top:0;font-family:var(--ui);
+    color:var(--ink);min-height:56px;
+  }
+  .toc-row:active{background:rgba(47,125,74,.07)}
+  .toc-num{width:26px;flex:0 0 auto;font-size:12px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+  .toc-body{flex:1;min-width:0}
+  .toc-name{display:block;font-size:18px;font-weight:500;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toc-meta{display:block;margin-top:3px;font-size:12px;color:var(--ink-faint)}
+  .toc-right{flex:0 0 auto;text-align:right;font-size:12px;color:var(--ink-faint)}
+  .toc-right b{display:block;font-size:14px;font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .toc-right .done{color:var(--accent)}
+  .toc-right .cont{color:var(--accent-2)}
+
+  .toc-pager{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap;
+  }
+  .page-btn{
+    font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--card);
+    border:1px solid var(--line);border-radius:10px;padding:0 16px;min-height:44px;
+    min-width:92px;cursor:pointer;
+  }
+  .page-btn:disabled{opacity:.35;cursor:default}
+  .page-btn:active:not(:disabled){background:rgba(47,125,74,.08)}
+  .page-info{font-size:13px;color:var(--ink-faint);flex:1;text-align:center;line-height:1.5}
+  .page-info .pager-range{margin-left:22px}
+
+  .home-foot{
+    margin-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+    padding-top:18px;border-top:1px solid var(--line);
+  }
+  .foot-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .ghost{
+    border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    border-radius:999px;padding:11px 16px;font-size:14px;font-family:var(--ui);cursor:pointer;min-height:44px;
+  }
+  .ghost.on{color:var(--ink);border-color:var(--ink-faint)}
+  .ghost.danger{color:var(--red);border-color:rgba(190,63,44,.32)}
+  .ghost.danger:active{background:rgba(190,63,44,.07)}
+  .foot-note{
+    align-self:stretch;width:100%;text-align:center;
+    font-size:12px;color:var(--ink-faint);line-height:1.6;
+    padding-bottom:4px;
+  }
+
+  /* ---------- Reader screen ---------- */
+  .read-view{
+    display:flex;flex-direction:column;
+    height:100vh;height:100dvh;max-width:900px;margin:0 auto;
+  }
+  .rd-top{
+    display:flex;align-items:center;gap:12px;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+  }
+  .icon-btn{
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:18px;
+  }
+  .rd-title{flex:1;min-width:0}
+  .rd-title h2{margin:0;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rd-title span{font-size:11px;color:var(--ink-faint)}
+  .rd-metrics{display:flex;gap:14px;flex:0 0 auto}
+  .metric{text-align:right}
+  .metric i{display:block;font-style:normal;font-size:10px;color:var(--ink-faint);letter-spacing:.08em}
+  .metric b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+
+  .progress-line{height:2px;background:var(--line-soft);position:relative;flex:0 0 auto}
+  .progress-line i{position:absolute;left:0;top:0;height:100%;width:0;background:var(--accent);transition:width .3s}
+
+  .rd-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px 26px;display:flex}
+
+  .paper{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:26px 22px 30px;
+    box-shadow:0 1px 0 rgba(120,150,110,.10),0 22px 34px -26px rgba(50,70,40,.5);
+    min-height:46vh;flex:1 0 auto;width:100%;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .txt{
+    font-family:var(--read);
+    font-size:clamp(19px,2.8vw,25px);
+    line-height:1.9;
+    letter-spacing:0;
+    color:var(--ink);
+    margin:0;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+    -webkit-hyphens:auto;hyphens:auto;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    touch-action:manipulation;
+  }
+  .ch{
+    border-radius:3px;transition:color .1s ease,background-color .1s ease;
+    cursor:default;
+  }
+  .ch.word{padding:0 1px}
+  .ch.word.tap{cursor:pointer}
+  .ch.ok{color:var(--blue);background:rgba(37,99,166,.11)}
+  .ch.bad{color:var(--red);background:rgba(190,63,44,.12)}
+
+  .rd-bottom{
+    flex:0 0 auto;border-top:1px solid var(--line);
+    background:var(--paper);
+    padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);
+  }
+  .pager{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .pill{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:999px;padding:10px 18px;font-size:14px;font-family:var(--ui);
+    cursor:pointer;min-height:44px;
+  }
+  .pill:disabled{opacity:.35}
+  .page-num{font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .mic-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .mic{
+    flex:1;border:1px solid var(--accent);background:var(--accent);color:#F5FBEF;
+    border-radius:999px;padding:12px 18px;font-size:15px;font-family:var(--ui);font-weight:600;
+    cursor:pointer;min-height:48px;letter-spacing:.02em;
+  }
+  .mic.on{background:var(--ink);border-color:var(--ink)}
+  .mic.stop{background:var(--card);border-color:var(--ink-faint);color:var(--ink)}
+  .mode-btn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+    border-radius:999px;padding:10px 14px;font-size:13px;font-family:var(--ui);cursor:pointer;min-height:44px;
+  }
+  .hint{margin-top:9px;font-size:12px;color:var(--ink-faint);line-height:1.55;text-align:center}
+
+  /* ---------- Dialogs ---------- */
+  .scrim{
+    position:fixed;inset:0;z-index:40;background:rgba(30,40,25,.42);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    animation:fadeIn .18s ease;
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .sheet{
+    width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:22px;box-shadow:0 30px 60px -20px rgba(30,45,25,.45);
+    animation:pop .22s cubic-bezier(.2,.9,.3,1);max-height:86vh;overflow:auto;
+  }
+  .sheet h3{margin:0 0 4px;font-size:19px}
+  .sheet .lede{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.55}
+  .big-acc{margin:16px 0 4px;font-size:56px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+  .big-acc small{font-size:20px;font-weight:500;margin-left:2px}
+  .sum-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  .sum-cell{background:var(--paper);border:1px solid var(--line-soft);border-radius:10px;padding:10px 8px;text-align:center}
+  .sum-cell i{display:block;font-style:normal;font-size:11px;color:var(--ink-faint)}
+  .sum-cell b{font-size:16px;font-variant-numeric:tabular-nums}
+  .wrong-title{margin:20px 0 8px;font-size:12px;letter-spacing:.06em;color:var(--ink-soft);line-height:1.5}
+  .wrong-list{display:flex;flex-wrap:wrap;gap:8px}
+  .wrong-item{
+    display:flex;flex-direction:column;align-items:center;min-width:44px;
+    background:#FBEAE6;border:1px solid #F0CFC7;border-radius:8px;padding:5px 8px;
+  }
+  .wrong-item span{font-family:var(--read);font-size:19px;color:var(--red);line-height:1.25}
+  .none{font-size:13px;color:var(--ink-soft)}
+  .sheet-actions{display:flex;gap:10px;margin-top:20px}
+  .sheet-actions button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-family:var(--ui);cursor:pointer;min-height:48px}
+  .primary{background:var(--ink);color:#F5FBEF;border:1px solid var(--ink)}
+  .danger-solid{background:var(--red);color:#FFF6EC;border:1px solid var(--red)}
+  .secondary{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+
+  #toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 26px);
+    transform:translate(-50%,20px);z-index:60;
+    background:rgba(30,40,25,.94);color:#F5FBEF;padding:11px 18px;border-radius:999px;
+    font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:86vw;
+    text-align:center;line-height:1.4;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .badge-pop{
+    position:fixed;top:calc(env(safe-area-inset-top) + 14px);left:50%;transform:translate(-50%,-120%);
+    z-index:70;background:#F6FAE8;border:1px solid var(--gold);border-radius:14px;
+    padding:12px 18px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 18px 40px -18px rgba(176,138,60,.6);transition:transform .32s cubic-bezier(.2,.9,.3,1);
+  }
+  .badge-pop.show{transform:translate(-50%,0)}
+  .badge-pop .disc{width:42px;height:42px;border-radius:50%;background:#F1F7DA;display:flex;align-items:center;justify-content:center;color:var(--gold)}
+  .badge-pop b{display:block;font-size:14px}
+  .badge-pop span{display:block;font-size:11px;color:var(--ink-soft)}
+
+  @media (max-width:430px){
+    .stats{gap:8px}
+    .stat{padding:13px 12px}
+    .paper{padding:20px 16px 24px}
+    .rd-metrics{gap:10px}
+    .metric b{font-size:15px}
+    .chips{flex-wrap:wrap;overflow:visible}
+    .chip{padding:7px 12px;font-size:13px;min-height:40px}
+    .badge-strip{flex-wrap:wrap;overflow:visible;gap:6px}
+    .clock{flex-wrap:nowrap;gap:8px}
+    .clock .t{font-size:19px}
+    .clock #clkDate{font-size:12px;line-height:1.4}
+    .clock .sound-btn{padding:6px 10px;font-size:12px;min-height:34px;flex:0 0 auto}
+    .hello{font-size:19px}
+    .lang-btn{padding:6px 10px;font-size:12px;min-height:32px}
+  }
+  @media (max-width:380px){
+    .home{padding-left:16px;padding-right:16px}
+    .hello{font-size:17px;line-height:1.3}
+    .brand svg{width:40px;height:40px}
+    .txt{font-size:18px;line-height:1.85}
+    .paper{padding:16px 14px 20px;min-height:42vh}
+    .toc-name{font-size:17px}
+    .metric i{font-size:9px}
+    .metric b{font-size:14px}
+    .rd-top{padding-left:12px;padding-right:12px;gap:8px}
+    .page-btn{min-width:84px;font-size:14px;padding:0 12px}
+    .page-info{font-size:12px}
+    .page-info .pager-range{margin-left:12px}
+  }
+  @media (min-width:760px){
+    .stats{gap:16px}
+    .paper{padding:38px 44px 44px;min-height:44vh}
+    .rd-scroll{padding:26px 30px 30px}
+  }
+  @media (min-width:1024px){
+    .home{max-width:940px;padding-left:28px;padding-right:28px}
+    .read-view{max-width:860px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+    .paper{padding:44px 52px 48px;min-height:40vh}
+    .txt{font-size:clamp(21px,1.7vw,27px);line-height:1.95}
+    .rd-scroll{padding:26px 22px 30px}
+    .rd-top{padding-left:24px;padding-right:24px}
+    .rd-bottom{padding:14px 24px calc(env(safe-area-inset-bottom) + 14px)}
+    .mic-row{max-width:560px;margin-left:auto;margin-right:auto}
+    .hint{max-width:620px;margin-left:auto;margin-right:auto}
+    .toc-row{padding:15px 8px}
+    .toc-name{font-size:19px}
+  }
+  @media (min-width:1500px){
+    .home{max-width:1000px}
+    .rd-scroll{padding:40px 60px 44px}
+  }
+  @media (hover:hover) and (pointer:fine){
+    .toc-row:hover{background:rgba(47,125,74,.07)}
+    .chip:hover{border-color:var(--accent-2);color:var(--ink)}
+    .ghost:hover,.pill:hover,.mode-btn:hover,.page-btn:hover:not(:disabled){border-color:var(--accent-2)}
+    .icon-btn:hover{border-color:var(--accent-2)}
+    .lang-btn:hover{background:rgba(47,125,74,.08)}
+    .mic:hover{filter:brightness(1.06)}
+    .badge:hover{transform:translateY(-1px)}
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.4C10 5 7.5 4.6 4.6 5.4v12.2c2.9-.8 5.4-.4 7.4 1 2-1.4 4.5-1.8 7.4-1V5.4C16.5 4.6 14 5 12 6.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 6.4v12.2" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.3 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.3 9.4l6.1-.8L12 3z" fill="currentColor"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10.2h17" stroke="currentColor" stroke-width="1.7"/><path d="M8 3.2v4.2M16 3.2v4.2" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></symbol>
+  <symbol id="i-gem" viewBox="0 0 24 24"><path d="M7 3h10l4 6-9 12L3 9l4-6z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M9 3l-2 6 5 12 5-12-2-6" stroke="currentColor" stroke-width="1.2" fill="none"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8l4 4 5-7 5 7 4-4-2 10H5L3 8z" fill="currentColor"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4c-8 0-14 3.6-14 10a6 6 0 0 0 6 6c5.6 0 8-6 8-16z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M20 4L7 19" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.4 2.2" stroke="currentColor" stroke-width="1.6" fill="none"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 12.4l2.7 2.8 5.3-5.9" fill="none" stroke="currentColor" stroke-width="1.9"/></symbol>
+  <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="9.4" r="5.3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.8 13.3L7.2 21.4l4.8-2.5 4.8 2.5-1.6-8.1" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+  <symbol id="i-stack" viewBox="0 0 24 24"><rect x="4" y="5.6" width="13" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="10.3" width="15.5" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="15" width="18" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.2v3M12 17.8v3M3.2 12h3M17.8 12h3M5.8 5.8l2.1 2.1M16.1 16.1l2.1 2.1M18.2 5.8l-2.1 2.1M7.9 16.1l-2.1 2.1" stroke="currentColor" stroke-width="1.7"/></symbol>
+</svg>
+
+<div id="app">
+
+  <!-- ===== View: home ===== -->
+  <section id="view-home" class="view home">
+    <div class="brand">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="46" height="46" style="color:var(--accent)">
+        <path d="M12 6.4C10 5 7.5 4.6 4.6 5.4v12.2c2.9-.8 5.4-.4 7.4 1 2-1.4 4.5-1.8 7.4-1V5.4C16.5 4.6 14 5 12 6.4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 6.4v12.2" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <h1 class="hello">Willkommen beim Lesekumpel</h1>
+      <button class="lang-btn" id="btnLang" aria-label="Zur chinesischen Version">CN</button>
+    </div>
+    <div class="clock">
+      <span class="t" id="clkTime">--:--</span>
+      <span id="clkDate">Lädt</span>
+      <button class="ghost on sound-btn" id="btnSound">Ton: an</button>
+    </div>
+
+    <section class="sect">
+      <div class="sect-head">
+        <h2 class="sect-title">Meine Ergebnisse</h2>
+        <span class="sect-title" style="letter-spacing:0;color:var(--ink-faint)" id="readTotal">Noch kein Vorlesen</span>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="lab">Genauigkeit beim ersten Lesen</div>
+          <div class="val empty" id="accDay">—</div>
+          <div class="sub" id="accDaySub">Noch keine Daten</div>
+          <div class="bar"><i id="barDay"></i></div>
+        </div>
+        <div class="stat">
+          <div class="lab">Genauigkeit beim Wiederholen</div>
+          <div class="val empty" id="accWeek">—</div>
+          <div class="sub" id="accWeekSub">Noch keine Daten</div>
+          <div class="bar"><i id="barWeek"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sect">
+      <div class="sect-head">
+        <h2 class="sect-title">Abzeichen</h2>
+        <span class="sect-title" style="letter-spacing:0;color:var(--ink-faint)" id="badgeCount">0 / 12</span>
+      </div>
+      <div class="badge-strip" id="badges"></div>
+    </section>
+
+    <section class="sect">
+      <div class="sect-head">
+        <h2 class="sect-title">Bücherregal · <span id="libCount">80</span> Geschichten</h2>
+        <span class="sect-title" style="letter-spacing:0;color:var(--ink-faint)" id="libHint">Wähle eine Geschichte</span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="toc" id="toc"></div>
+      <div class="toc-pager" id="tocPager">
+        <button class="page-btn" id="tocPrev">Zurück</button>
+        <span class="page-info" id="tocInfo"></span>
+        <button class="page-btn" id="tocNext">Weiter</button>
+      </div>
+    </section>
+
+    <div class="home-foot">
+      <div class="foot-actions">
+        <button class="ghost" id="btnExport">Ergebnisse exportieren</button>
+        <button class="ghost danger" id="btnReset">Ergebnisse löschen</button>
+      </div>
+      <div class="foot-note">Copy Right © 2026 JunyanTech</div>
+    </div>
+  </section>
+
+  <!-- ===== View: reader ===== -->
+  <section id="view-read" class="view read-view hidden">
+    <header class="rd-top">
+      <button class="icon-btn" id="btnBack" aria-label="Zurück zum Regal">
+        <svg viewBox="0 0 24 24" width="20" height="20" style="color:var(--ink)"><path d="M14.5 5L7.5 12l7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="rd-title">
+        <h2 id="rdTitle">Geschichte</h2>
+        <span id="rdSub">Minecraft · 4 Seiten</span>
+      </div>
+      <div class="rd-metrics">
+        <div class="metric"><i>Zeit</i><b id="rdTimer">0:00</b></div>
+        <div class="metric"><i>Genauigkeit</i><b id="rdAcc">—</b></div>
+      </div>
+    </header>
+    <div class="progress-line"><i id="progLine"></i></div>
+    <div class="rd-scroll" id="rdScroll">
+      <div class="paper"><p class="txt" id="pageText"></p></div>
+    </div>
+    <footer class="rd-bottom">
+      <div class="pager">
+        <button class="pill" id="btnPrev">Zurück</button>
+        <span class="page-num" id="pageNum">1 / 4</span>
+        <button class="pill" id="btnNext">Weiter</button>
+      </div>
+      <div class="mic-row">
+        <button class="mic" id="btnMic">Vorlesen starten</button>
+        <button class="mode-btn" id="btnMode">Tipp-Modus</button>
+      </div>
+      <div class="hint" id="rdHint">Richtig gelesene Wörter werden blau, falsche oder fehlende Wörter rot.</div>
+    </footer>
+  </section>
+
+</div>
+
+<div id="overlay"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const STORIES = [{"id":"mc01","title":"Der erste Diamant","tag":"Minecraft","pages":["Milo ging zum ersten Mal allein in den Stollen. Die Fackel hielt er links, die Spitzhacke rechts. Auf der zehnten Stufe wurde der Stein graublau. Er steckte die Fackel in die Wand, und sein Schatten wurde lang. Von der Decke tropfte Wasser auf seine Mütze.","„Pling“, machte die Hacke plötzlich, ganz anders als sonst. Milo schob die Steine beiseite: Im Fels steckten kleine blaue Punkte. Diamanten! Er grub nicht sofort. Zuerst prüfte er, ob Wasser oder Lava in der Nähe war. Sein Bruder hatte gesagt: Wer hastig gräbt, fällt in die Lava.","Erst als alles ruhig war, nahm er die Diamanten heraus, drei Stücke. Er lachte so breit, dass seine Augen ganz schmal wurden. Als er aus dem Stollen stieg, war es schon dunkel. Zu Hause legte er die Steine auf den Tisch, wie drei kleine Sterne.","Am nächsten Tag setzte Milo einen Diamanten in seine Spitzhacke. Jetzt sprang der Stein beim ersten Schlag auf. Er erzählte es seinem kleinen Bruder, dessen Augen leuchteten. „Nächstes Mal nehme ich dich mit“, sagte Milo, „aber erst musst du lernen, den Weg zu lesen.“"]},{"id":"mc02","title":"Ein Creeper klopft an","tag":"Minecraft","pages":["Es wurde gerade dunkel, da zündete Lina in der Holzhütte die Fackel an. Draußen zischte es, als würde jemand Papier zerreißen. Durch den Türspalt sah sie einen grünen Kopf mit vier kurzen Beinen. Der Mond schien darauf. Das Gesicht hatte keine Augen, nur einen langen Mund.","„Ein Creeper!“ Lina trat schnell zurück. Sie wusste: Wenn er näher kommt, explodiert er und reißt ein Loch in die Wand. Sogar die Kisten drinnen würden aufspringen. Dann fiel ihr das Buch ein: Katzen. Sie hob ihre orangefarbene Katze hoch. Die Katze machte „Miau“. Der Creeper drehte sich um und ging langsam weg.","Lina schloss die Tür und nagelte noch ein Brett davor. „Du bist also meine Leibwächterin“, sagte sie und streichelte der Katze den Kopf. Die Katze gähnte und sprang ins Bett. Draußen verschwand der Schatten im Regen. Lina dachte: Morgen pflanze ich einen Baum vor der Tür.","Am nächsten Tag pflanzte sie wirklich einen kleinen Baum. Für die Katze legte sie ein weiches Kissen hin. Nachts raschelten die Blätter im Wind, und Lina hatte keine Angst mehr. Sie dachte: Wenn jemand im Haus miaut, ist die Nacht nicht mehr so dunkel."]},{"id":"mc03","title":"Eine kleine Holzhütte","tag":"Minecraft","pages":["Jonas baute sein erstes Haus, nur vier Bretter breit. Zuerst schlug er mit der Faust gegen einen Baum und sammelte Holz. Aus dem Holz machte er Bretter, aus den Brettern Wände, aus einem Stamm die Tür. Drinnen konnte nur eine Person stehen. Beim Umdrehen stieß seine Schulter an die Wand.","Vor Einbruch der Nacht fiel ihm etwas ein: Es war zu dunkel drinnen. Im Dunkeln kommen Monster. Er lief los, suchte Kohle, grub drei schwarze Steine aus und machte daraus vier Fackeln. Das orange Licht wärmte die Wände, und sein eigener Schatten erschien, klein und rund.","In dieser Nacht lag er im Bett und hörte den Wind. Das Dach hatte er Brett für Brett geflickt; eines saß schief, und ein Stück Nachthimmel schimmerte herein. Er dachte: Morgen pflanze ich einen Baum und grabe einen kleinen Weg.","Einen Monat später hatte das Haus zwei Zimmer, einen Weg davor und eine Lampe über der Tür. Jonas stand im Hof und lachte. Er erinnerte sich an die Hütte, in der kaum Platz für einen war: Ein Haus wächst langsam, genau wie man selbst."]},{"id":"mc04","title":"Handel mit dem Dorfbewohner","tag":"Minecraft","pages":["Am Dorfeingang stand ein alter Dorfbewohner mit Strohhut und großer Nase. Vor ihm lag ein Tisch mit Brot und Smaragden. Milo ging hin. Der Alte machte „Hmm“, als wollte er fragen: Was bringst du mit? Sein Kopf nickte dabei leicht, als würde er schlafen.","Milo legte sechs Brote auf den Tisch. Der Alte schaute, nahm das Brot und gab ihm einen Smaragd. Der funkelte wie ein kleines grünes Bonbon. Milo probierte es mit Weizen und bekam zwei Stück. Er merkte: Je mehr man gibt, desto mehr bekommt man.","Er zählte seine Smaragde: fünf Stück. Neben dem Tisch stand ein Blumentopf. Milo dachte: Nächstes Mal bringe ich Papier mit, damit ich eine Karte bekomme. Handeln heißt wohl, erst zu wissen, was der andere braucht.","Beim zweiten Mal brachte Milo wirklich Papier und bekam eine Landkarte. Er breitete sie auf dem Tisch aus und fand den Berg neben dem Dorf. Er dachte: Handeln ist nicht nur Tauschen. Man muss sich merken, was dem anderen fehlt."]},{"id":"mc05","title":"Das Redstone-Licht geht an","tag":"Minecraft","pages":["Onkel gab Mia eine Handvoll Redstone. Das sind kleine rote Körner, die gar nicht wie Kabel aussehen. „Leg sie auf den Boden“, sagte er, „und schließ eine Lampe an. Dann leuchtet sie von selbst.“ Mia steckte die Körner in die Tasche, und unterwegs blitzte es darin.","Sie legte die Körner in einer Linie aus und stellte am Ende eine Lampe hin. Doch die Lampe blieb dunkel. Mia überlegte lange und holte einen Hebel. Sie stellte ihn neben das Redstone und zog ihn. „Klick“, da leuchtete die Lampe, und das ganze Zimmer wurde hell.","Sie zog den Hebel, die Lampe ging aus. Sie zog ihn noch einmal, und sie ging an. Mia lachte: „Strom kann also laufen, nur ziemlich langsam.“ Der Onkel sagte, diese rote Linie könne auch Türen öffnen und Loren fahren lassen.","Am nächsten Tag baute Mia eine Tür, die aufging, wenn man näher kam. Die Kinder aus der Nachbarschaft probierten es sieben Mal aus und lachten. Mia erklärte: „Redstone ist keine Zauberei. Es schickt nur den Schalter ganz weit weg.“"]},{"id":"mc06","title":"Weizen im Regen","tag":"Minecraft","pages":["Jonas grub neun kleine Löcher in ein freies Feld und warf Samen hinein. Dann lief er zum Fluss, füllte einen Eimer mit Wasser und goss Loch für Loch. Die Erde wurde dunkel wie Schokolade. Seine Schuhe waren voller Schlamm, und jeder Schritt hinterließ einen Abdruck.","Drei Tage lang wuchs nur ein bisschen Grün, dünn wie junge Zwiebeln. Jonas wurde ungeduldig. Er zermahlte einen Knochen zu Pulver und streute es über den Weizen. Da schoss der Weizen in die Höhe, als würde ihn jemand von unten schieben.","Als es regnete, bog sich der Weizen im Wasser. Jonas stand unter dem Vordach und schaute zu. Er fand, der Weizen trinke, Schluck für Schluck, ganz langsam. Am nächsten Morgen stand er wieder gerade, mit Tropfen an den Blättern.","Als der Weizen reif war, rieb Jonas die Körner zwischen den Händen. Sie fielen warm in seine Handfläche. Er mahlte Mehl und backte Brot für die Freunde, die ihm beim Hausbau geholfen hatten. Etwas, das man erwartet hat, schmeckt besser."]},{"id":"mc07","title":"Auf der Suche nach Gold im Nether","tag":"Minecraft","pages":["Um in den Nether zu kommen, brauchte Milo erst eine Tür. Er grub zehn Obsidianblöcke aus und stellte sie zu einem Rahmen auf. Dann schlug er mit dem Feuerstein. „Wusch“, im Rahmen loderte violettes Licht, wie eine Wand, die sich bewegt.","Er trat hindurch. Der Nether war rot, überall Stein und Lava, die Luft heiß wie in einem Ofen. Er ging einen schmalen Pfad entlang, unter sich ein Lavasee. Rote Blasen stiegen auf, eine nach der anderen. Er traute sich nicht, schnell zu gehen.","In einem roten Stein sah er goldenes Licht: Gold im Nether. Er grub drei Stücke aus, steckte sie in den Rucksack und lief zurück. Durch das violette Licht, zurück in die Hütte, atmete er tief aus und setzte sich auf den Boden.","Milo machte aus dem Gold einen Helm. Wenn er ihn trug, hatten alle Dinge einen feinen goldenen Rand. Neben der Tür stellte er ein Schild auf: Schau erst auf den Weg, bevor du hineingehst. Ein Freund fragte, ob er keine Angst habe. „Doch“, sagte Milo, „aber ich weiß, wie ich zurückkomme.“"]},{"id":"mc08","title":"Der letzte Kampf gegen den Enderdrachen","tag":"Minecraft","pages":["Mia hatte lange vorbereitet: ein Diamantschwert, einen Schild und zwölf Enderaugen. Sie setzte die Augen eins nach dem anderen in den Rahmen. Ihre Finger zitterten. Beim letzten Auge erschien in der Mitte ein schwarzer Sternenhimmel, die Sterne drehten sich langsam.","Sie sprang hinein. Das Ende war eine Welt aus gelbem Stein, am Himmel schwebten schwarze Punkte. Der Enderdrache kreiste, und ein Flügelschlag trieb sie ein paar Schritte zurück. Schlimmer waren die Kristalle auf den Säulen: Sie heilten seine Wunden sofort.","Mia kletterte zuerst die Säulen hinauf und zerschlug einen Kristall nach dem anderen. Ihre Handflächen waren ganz nass. Als der Drache wieder herunterkam, leuchtete nichts mehr an ihm. Sie wich seinen Angriffen aus und schlug mit dem Schwert zu.","Mit einem langen Schrei wurde der Drache zu violetten Lichtpunkten und verschwand. Mia saß auf dem Boden, ihre Hände zitterten noch. An der Stelle, wo er verschwunden war, lag ein Ei. Sie wickelte es in Wolle und stellte es neben die Fackel."]},{"id":"mc09","title":"Ein Buch am Angelhaken","tag":"Minecraft","pages":["Milo saß einen ganzen Nachmittag am See. Er warf die Angel aus und wartete, dass der Schwimmer sank. Der Wind kräuselte das Wasser. Der erste Fisch war ein Lachs, der zweite auch. Beim dritten knurrte sein Bauch, aber er wollte noch einmal angeln.","Beim vierten Mal kam kein Fisch hoch, sondern etwas mit einem Strick drumherum. Er öffnete es: ein verzaubertes Buch mit seltsamen Zeichen, das sich warm anfühlte. Ein alter Mann aus dem Dorf erklärte ihm, dass ein solches Buch ein Werkzeug stärker macht.","Milo legte das Buch in eine Kiste und setzte sich wieder ans Wasser. Er dachte: Beim Angeln wartet man nicht nur auf Fische, sondern auch auf Glück. Als es dunkel wurde, zog er einen besonders großen Fisch heraus, länger als sein Arm.","Er legte das Buch neben seine Spitzhacke, und die Hacke leuchtete kurz auf. Danach sprang beim Graben viel weniger Geröll weg. Trotzdem ging er jede Woche zum See. Er hatte gemerkt: Beim Warten wird man selbst ruhig."]},{"id":"mc10","title":"Der Eisengolem bewacht das Dorf","tag":"Minecraft","pages":["Am Rand des Dorfes liefen nachts kleine Monster herum, und niemand traute sich hinaus. Mia dachte: Ein Wächter wäre gut. Im Buch stand: Vier Eisenblöcke übereinander und ein Kürbis obenauf ergeben einen Golem. Sie schleppte die Blöcke heran und keuchte dabei.","Sie setzte die Blöcke aufeinander und legte den Kürbis mit dem geschnitzten Gesicht obenauf. Es wurde still, dann bewegten sich die Blöcke und formten einen hohen Mann. Seine Arme waren lang, seine Schritte schwer, seine Augen zwei rote Lichter. Er drehte den Kopf zu Mia.","In dieser Nacht kam ein Zombie. Der Golem machte einen großen Schritt und schleuderte ihn weit weg. Am nächsten Morgen stand er am Dorfeingang und hielt Mia eine rote Blume hin. Sie nahm sie und fand: Dieser große Kerl, der nicht spricht, hat ein weiches Herz.","Als der Winter kam, banden die Dorfbewohner ihm einen roten Schal um. Er stand ganz still. Mia klopfte ihm jeden Tag im Vorbeigehen auf den Arm. Sie dachte: Wer andere beschützt, sollte auch jemanden haben, der an ihn denkt."]},{"id":"mc11","title":"Die Lore fährt los","tag":"Minecraft","pages":["Jonas grub einen langen Tunnel und legte Schienen hinein. Auf normalen Schienen muss man die Lore selbst schieben. Es gibt aber goldene Schienen: Mit ein wenig Redstone lassen sie die Lore sehr schnell fahren.","Am Ende des Tunnels legte er die goldenen Schienen hin und zog den Hebel. „Klick“, die Lore fuhr los und wurde schneller und schneller. Der Wind rauschte an seinen Ohren. Im dunklen Tunnel leuchtete nur das Licht vorn, und die Steine an der Wand zogen vorbei.","Als er ankam, hielt die Lore langsam an. Er sprang heraus, seine Beine waren weich, und lief zum Start zurück, um noch einmal zu fahren. Fünfmal hintereinander, beim letzten Mal rief er laut.","Später hängte Jonas Lampen in den Tunnel, sodass er auch nachts hell war. Freunde kamen und stellten sich an, er zog den Hebel für sie. Jedes Mal, wenn eine Lore losfuhr, lachte er, als säße er selbst darin."]},{"id":"mc12","title":"Das Boot fliegt über das Eis","tag":"Minecraft","pages":["Im Winter war der See mit dickem Eis bedeckt. Lina setzte das Boot auf das Eis und stieß ab. Es glitt los, viel schneller als sie laufen konnte. Sie lachte so sehr, dass sie fast aus dem Boot fiel; ihre Mütze flog weg und landete auf dem Eis.","Sie merkte: Je glatter das Eis, desto schneller das Boot. Sie pflanzte Zuckerrohr als Markierungen und malte eine geschwungene Strecke. In Kurven rutschte das Boot, sie musste früher lenken. Sieben Mal probierte sie es, bis es klappte.","Sie fuhr auf die andere Seite des Sees, wo ein Hase im Schnee hüpfte. Sie hielt an und sah vom Boot aus in die untergehende Sonne. Das Eis war blau, der Himmel rosa, ihr Schatten sehr lang.","Im Frühling schmolz das Eis, das Boot lag wieder im Wasser und wurde langsam. Lina malte die Strecke auf dem Eis in ihr Heft, mit Datum. Sie sagte: „Was Spaß macht, denkt man später noch einmal.“"]},{"id":"mc13","title":"Hüpfen auf Honigblöcken","tag":"Minecraft","pages":["Milo fand einen Honigblock, gelb und halb durchsichtig, klebrig beim Anfassen. Er sprang von oben darauf. Beim Landen tat nichts weh, er sank langsam hinein und wurde langsam wieder hochgeschoben. Er probierte es dreimal und lachte jedes Mal.","Dann probierte er Schleimblöcke. Ganz anders: Er wurde in die Luft geschleudert, fiel herunter und wurde wieder hochgeworfen. Die beiden Blöcke sehen ähnlich aus, aber sie sind verschieden: Einer fängt dich auf, der andere wirft dich zurück.","Er legte Honigblöcke unter eine Klippe, wie ein weiches Bett, und baute aus Schleimblöcken ein Trampolin. Seine Freunde kamen zum Probieren. Er dachte: In dieser Welt kann sogar das Fallen Spaß machen.","Einmal fiel sein kleiner Bruder vom Baum und landete auf dem Honigblock, ohne zu weinen. Milo sagte, das sei gut vorbereitet gewesen. Der Bruder fragte nur: „Kann ich noch einmal springen?“"]},{"id":"mc14","title":"Schafe scheren","tag":"Minecraft","pages":["Hinter dem Dorf stand eine Herde Schafe, weiße, schwarze und ein rosa Schaf. Mia ging mit der Schere hin. Das Schaf machte „Mäh“ und blieb stehen. Sie schnitt ein ganzes Fell ab, und das Schaf sah plötzlich dünn aus. Es trat zwei Schritte zur Seite, als wäre ihm das peinlich.","Sie machte aus der Wolle ein Bett. Dann tauchte sie weiße Wolle in einen Farbtopf und gab eine blaue Blume dazu. Die Wolle wurde blau. Sie färbte rot, gelb und grün und hängte alles auf eine Leine, wie einen Regenbogen.","Der Wind bewegte die Wolle hin und her. Mia legte den Boden einer kleinen Hütte damit aus. „Das ist weich unter den Füßen“, sagte sie. Das geschorene Schaf stand in der Tür und machte wieder „Mäh“, als wollte es fragen: Meine Wolle ist gut, oder?","Im Winter legte Mia frisch geschorene Wolle in den Schafstall. Die Tiere schliefen dicht beieinander, mit Gras in der Wolle. Sie schaute eine Weile zu und fand es schön, dass die Wolle zu den Schafen zurückkam."]},{"id":"mc15","title":"Die Hühner legen Eier","tag":"Minecraft","pages":["Jonas hielt vier Hühner. Am Morgen fand er ein weißes Ei im Nest, noch warm. Er nahm es und schüttelte es leicht; drinnen war kein Ton. Die vier Hühner liefen um seine Füße und gackerten, als warteten sie auf Lob.","Er legte Eier, Milch, Zucker und Weizen zusammen und backte einen Kuchen. Der Kuchen war rund und hatte eine weiße Sahnehaube. Er wollte ihn nicht sofort essen, holte erst seine Schwester und wischte den Tisch dreimal ab.","Seine Schwester biss hinein und sagte: „Besser als aus dem Laden.“ Jonas lachte: „Die Eier sind von unseren eigenen Hühnern.“ Draußen suchten die vier Hühner nach Würmern und wussten nichts von ihrem Erfolg.","Später sammelte Jonas jeden Morgen Eier, jeden Tag etwas mehr. Die überzähligen gab er den Nachbarn. Der Nachbar sagte, seine Eier schmeckten besser in der Pfanne. Jonas dachte: Vielleicht, weil unsere Hühner viele Würmer fressen."]},{"id":"mc16","title":"Der Zombie in der Nacht","tag":"Minecraft","pages":["Es wurde dunkel, da hörte Milo draußen Schritte. Langsam, schwer, einer nach dem anderen. Er schaute aus dem Fenster: Im Mondlicht stand ein Mensch in zerrissenen Sachen, die Arme gerade nach vorn gestreckt. Ein Zombie. Er schleifte die Füße über den Boden.","Milo schloss die Tür fest und zündete noch eine Fackel an. Im Buch stand: Zombies fürchten das Licht und verbrennen, wenn die Sonne aufgeht. Er lag im Bett, hörte die Geräusche und zählte seine Atemzüge.","Am Morgen öffnete er die Tür. An der Stelle, wo der Zombie gestanden hatte, war nur ein kleiner schwarzer Fleck und ein bisschen Rauch. Milo schaute in die Sonne und fand den Tag plötzlich sehr schön. Er wechselte ein Brett an der Tür.","Milo schrieb in sein Heft: Monster fürchten das Licht, Menschen fürchten die Dunkelheit. Am nächsten Tag hängte er eine Lampe über die Tür. Seiner Schwester versprach er, sie abends bis zum Tor zu begleiten."]},{"id":"mc17","title":"Die Kürbislaterne","tag":"Minecraft","pages":["Am letzten Tag im Oktober pflückte Lina einen großen Kürbis im Gemüsegarten. Sie trug ihn im Arm und sah den Weg kaum. Mit einem kleinen Messer schnitt sie zwei Augen, eine dreieckige Nase und einen breiten Mund. Sie schnitzte sehr lange.","Sie höhlte den Kürbis aus und schüttelte die Kerne auf einen Teller. Dann stellte sie eine Fackel hinein. Sofort leuchtete der Kürbis, Augen und Mund schimmerten orange. Das Grinsen war ein bisschen gruselig und ein bisschen nett, und der Schatten an der Wand grinste mit.","Sie stellte ihn vor die Tür. Ein Kind aus der Nachbarschaft kam vorbei, erschrak zuerst und lachte dann. „Hast du den gemacht?“ Lina nickte. Der Wind bewegte die Flamme, und das Gesicht sah aus, als würde es sagen: Komm herein.","Eine Woche später wurde der Kürbis weich. Lina legte ihn in die Erde. Im nächsten Sommer wuchsen dort viele Kürbispflanzen mit großen Blättern. Sie dachte: Die Geschichte eines Kürbisses kann weitergehen."]},{"id":"mc18","title":"Der kleine weiße Punkt auf der Karte","tag":"Minecraft","pages":["Milo war zu weit gegangen und fand den Heimweg nicht mehr. Er zog eine Karte heraus. Sie war leer. Während er ging und schaute, erschienen langsam Farben: grüne Wälder, blaues Wasser, graue Berge.","In der Mitte der Karte war ein kleiner weißer Punkt, der sich bewegte. Das war er selbst. Er blieb stehen, und der Punkt blieb stehen. Er drehte sich um, und der Punkt drehte sich mit.","Er lief zwei Schritte schneller, und der Punkt lief mit, wie ein kleines Insekt, das ihm folgt. Er ging der Karte nach zurück, um einen Fluss herum und über einen kleinen Hügel. Vor der Dunkelheit sah er seine Fackeln und den Baum an der Tür.","Später hängte Milo die Karte in einen Holzrahmen an die Wand. Vor jedem Ausflug schaute er sie an, und danach malte er einige Striche dazu. Er merkte: Ein gutes Gedächtnis ist nicht so gut wie ein Blatt Papier."]},{"id":"mc19","title":"Eine Burg mit einem Freund","tag":"Minecraft","pages":["Lina und Milo bauten in derselben Welt eine Burg. Lina grub Steine, Milo baute die Mauern. Sie vereinbarten: Wer einen Diamanten findet, ruft es, und wer zuerst ruft, dem schenkt der andere ein Stück Kuchen.","Als die Mauer zehn Blöcke hoch war, rief Milo: „Ich bin runtergefallen!“ Lina lief hin und sah ihn in einer Grube stehen, den Kopf voller Staub, einen Stein in der Hand. Sie zog ihn hoch, und dann lachten beide, bis ihnen der Bauch weh tat.","Die Burg wurde fertig: ein runder Turm, zwei Tore, eine blaue Fahne oben. Sie standen auf dem Turm und schauten hinunter, die ganze Wiese war ihre. Milo sagte: „Allein hätte ich das nie geschafft.“ Lina sagte: „Dann bauen wir immer zusammen.“","Danach gruben sie vor der Burg einen Fluss und leiteten Wasser hinein. Jetzt hatte die Burg einen Graben. Nachts hörten sie das Wasser und saßen schweigend oben. Milo sagte: „Zwei Ideen zusammen sind größer als eine.“"]},{"id":"mc20","title":"Der Kaktus in der Wüste","tag":"Minecraft","pages":["In der Wüste war es sehr heiß, überall nur Sand und trockenes Gras. Milo lief lange, und in seiner Flasche war nur noch ein wenig Wasser. Da sah er einen grünen Kaktus, aufrecht und voller kleiner Dornen, ein wenig größer als er.","Er wollte ihn anfassen und wurde gestochen. Ein kleiner roter Punkt erschien auf seinem Finger, und er schüttelte die Hand. Er ging um den Kaktus herum. Ein Kaktus braucht kein Wasser von außen, seine Wurzeln reichen tief und holen das Wasser aus der Erde.","In der Nähe fand er eine Kiste mit Brot und einer Flasche Wasser. Er setzte sich in den Schatten des Kaktus, der nur ein schmaler Streifen war. Er dachte: Sogar in dieser heißen Wüste lebt eine Pflanze gut.","Bevor er ging, goss Milo das letzte Wasser an die Wurzeln des Kaktus. Der Kaktus sagte nicht danke, aber Milo winkte ihm zu. Er dachte: An einem Ort zu leben, der so trocken ist, ist auch eine Kunst."]},{"id":"tech01","title":"Woher das Handy weiß, wo du bist","tag":"Technik","pages":["Papa fuhr mit dem Auto, und der kleine Pfeil auf dem Handy folgte ihm. An jeder Kreuzung drehte der Pfeil mit. Lina fragte: „Woher weiß das Handy, wo wir sind?“ Papa zeigte nach oben: „Dort kreisen Satelliten und melden ständig ihre Zeit, keine Sekunde falsch.“","Das Handy empfängt die Signale mehrerer Satelliten und rechnet, wie spät sie ankommen. Daraus weiß es, wie weit jeder Satellit entfernt ist. Eine Entfernung ist ein Kreis, drei Kreise treffen sich in einem Punkt.","„Und drinnen im Haus?“ fragte Lina. Papa erklärte, dass man dort keine Satelliten empfängt und das Handy dann die Funkmasten und das WLAN nutzt. Lina fand den Pfeil wie ein unsichtbares Auge, das vom Himmel zuschaut.","Später fuhren sie in eine Tiefgarage, und der Pfeil sprang ein wenig und drehte sich im Kreis. Papa sagte, hier sei sogar das Signal schwach. Lina verstand: Das Handy kann viel, aber nicht alles."]},{"id":"tech02","title":"Woher der Strom kommt","tag":"Technik","pages":["Am Abend schaltete sie das Licht ein, „klick“, und das Zimmer war hell. Lina fragte, ob der Strom aus der Wand komme. Sie legte die Hand auf den Schalter und spürte nichts, nur ein bisschen Kühle.","Papa zeigte ihr ein Umspannwerk. Der Strom kommt von weit weg: An manchen Orten verbrennt man Kohle, das Wasser wird Dampf, der Dampf dreht Räder. An anderen Orten drückt Wasser die Räder, oder Wind dreht große Flügel, oder die Sonne liefert das Licht.","Der Strom läuft durch Kabel bis ins Haus und wird dort zu Licht und Ton. Auf dem Heimweg sah Lina die Straßenlampen nacheinander angehen. Sie sagte: „Hinter jeder Lampe steht ein Werk, weit weg.“ Papa sagte: „Sogar mehr als eins.“","Zu Hause schaltete Lina die Lampen in den leeren Zimmern aus. Mama fragte warum. Lina sagte: „Der Strom läuft so weit bis zu uns. Er soll nicht umsonst laufen.“ Mama lachte und schaltete auch den Fernseher aus."]},{"id":"tech03","title":"Das Labyrinth aus Quadraten","tag":"Technik","pages":["Mama kaufte Gemüse, hielt das Handy vor ein kleines Quadratmuster, „piep“, und bezahlt war es. Lina schaute genau hin: schwarze und weiße Kästchen, wie ein Labyrinth, wie verstreute Sesamkörner.","Papa erklärte, diese Kästchen seien ein Code. Das Handy liest ihn und weiß, wie viel man zahlt und an wen. Das Muster darf ein bisschen schief und ein bisschen schmutzig sein, solange die drei großen Quadrate in den Ecken da sind.","Lina malte selbst einen Code, ganz schief. Papa scannte ihn, und das Handy sagte „nicht lesbar“. Sie lachte: „Dann male ich ihn gerader.“ Beim zweiten Mal piepte das Handy: Das ist kein Produkt.","Papa sagte, in einem echten Code steckt eine Adresse im Internet. Lina schrieb ihren Namen auf Papier und machte daraus eine „Visitenkarte“. Mama scannte sie und las Linas Namen. Lina freute sich lange."]},{"id":"tech04","title":"Der Saugroboter","tag":"Technik","pages":["Der Saugroboter zu Hause ist rund und flach wie ein Kuchen, der laufen kann. Jeden Nachmittag fährt er allein los, dreht Runden im Wohnzimmer und wechselt die Richtung, wenn er an die Wand stößt. Dabei brummt er leise.","Vorne hat er kleine Augen, die sehen, ob etwas im Weg ist. Kabel weicht er aus. Tischbeine sind manchmal zu dünn, dann stößt er an, piept und versucht einen anderen Weg. Einen Teppichrand kann er sich festbeißen und dann selbst anhalten.","Wenn er fertig ist, fährt er zur Ladestation zurück, und sein Licht atmet grün. Lina nennt ihn „Kugel“. Einmal blieb er unter einem Stuhl stecken. Sie hob ihn heraus und sagte: „Heute hast du faul gearbeitet.“","Danach räumte sie alle Kabel in eine Kiste, und Kugel blieb kaum noch stecken. Sie merkte: Ob eine Maschine klug wirkt, hängt manchmal davon ab, ob Menschen ihr Platz machen."]},{"id":"tech05","title":"Der Aufzug wird nicht müde","tag":"Technik","pages":["Im Aufzug gibt es keine Treppe, nur eine Kabine. Lina fragte, wie die Kabine nach oben kommt. Und ob sie herunterfällt, wenn der Strom ausfällt.","Papa erklärte, oben im Haus hängt ein großes Rad mit schweren Eisengewichten. Steigt die Kabine, sinken die Gewichte. Beide sind fast gleich schwer, deshalb braucht der Motor nur wenig Kraft.","„Und bei einem Stromausfall?“ Papa zeigte auf einen kleinen Griff an der Wand: „Es gibt eine Bremse, sie hält an. Wenn er wirklich zwischen zwei Stockwerken steht, wartet man, bis jemand die Tür öffnet.“","Einmal fiel der Strom wirklich aus, und die Kabine hielt zwischen zwei Stockwerken, das Licht blieb an. Nach zehn Minuten ging die Tür auf. Seitdem hat Lina keine Angst mehr, sie schaut nur vorher auf die Knöpfe."]},{"id":"tech06","title":"Warum die Mikrowelle den Teller kalt lässt","tag":"Technik","pages":["Wenn die Milch warm wird, ist die Tasse heiß, der Teller darunter aber kalt. Lina fragte, ob die Mikrowelle nur die Milch erwärmt und nicht den Teller.","Mama erklärte: Die Wellen bringen die Wassermoleküle in schnelle Bewegung, und diese Reibung wird zu Wärme. Milch enthält Wasser, also wird sie warm. Ein trockener Teller hat fast kein Wasser, er wird nicht warm.","„Und wenn der Teller nass ist?“ Lina tropfte ein paar Wassertropfen darauf. Danach war der Teller wirklich ein bisschen warm. Sie lachte: „Die Mikrowelle mag Wasser.“ Mama erinnerte sie: Kein Metall hineinlegen.","Lina merkte auch, dass die Milch oben kalt und unten heiß war. Man muss sie umrühren. Mama sagte, die Wellen dringen von außen ein. Lina rührte mit dem Löffel, Runde für Runde."]},{"id":"tech07","title":"Solarplatten auf dem Dach","tag":"Technik","pages":["Auf dem Nachbardach liegen dunkelblaue Platten, eine ganze Reihe, schräg zur Sonne. Lina dachte lange, das sei ein Gestell zum Trocknen oder sehr großes Glas.","Es sind Solarplatten. Trifft Licht auf sie, machen kleine Teile darin Strom. Bei viel Sonne kommt viel Strom, bei trübem Wetter wenig, nachts keiner. Was tagsüber übrig bleibt, kann man in Batterien speichern.","Lina schaute nach oben. Die Platten spiegelten das Himmelslicht und sahen aus wie ein kleines, ruhiges Meer. Sie fand es erstaunlich, dass Sonnenlicht zu Strom wird und Lampen hell macht.","An einem trüben Tag schaute Lina die Platten wieder an, tief blau, als wollte es regnen. Sie dachte: Auch sie müssen sich ausruhen. Zu Hause zog sie die Vorhänge auf, damit das Zimmer länger hell blieb."]},{"id":"tech08","title":"Ein Paket vom Himmel","tag":"Technik","pages":["Omas Haus im Bergdorf bekam ein Paket, das vom Himmel kam. Ein Gerät mit vier kleinen Propellern hielt im Hof an, legte das Paket ab und flog wieder weg. Oma stand da mit erhobener Hand und vergaß sie herunterzunehmen.","Das war eine Drohne. Sie fliegt eine vorbereitete Strecke, kennt ihren Ort durch Satelliten und meidet mit kleinen Kameras Bäume und Kabel. Bei Wind fliegt sie langsamer und wartet in der Luft. Ist der Akku leer, kehrt sie selbst zurück.","Lina stand im Hof und hörte die Propeller wie einen Bienenschwarm. Sie dachte: Muss Oma dann nicht mehr zwei Stunden über den Bergweg laufen, um Medizin zu holen? Oma sagte: „Aber ich möchte noch Menschen sehen.“","Einige Tage später fuhr ein Bote mit dem Rad den Berg hoch, gab Oma die Medizin selbst und trank ein halbes Glas Wasser. Lina sah Oma im Video lachen und fand den Umweg es wert."]},{"id":"tech09","title":"Wie die Wettervorhersage rechnet","tag":"Technik","pages":["Auf dem Handy stand, dass es am nächsten Nachmittag regnen würde. Es regnete wirklich, zuerst wenig, dann immer dichter. Lina fand, eine Vorhersage sei wie Wahrsagen.","Mama erklärte, das sei kein Wahrsagen. Auf der ganzen Welt messen Wetterstationen Temperatur, Wind und Feuchtigkeit, auch Ballons steigen auf. Diese Zahlen rechnet ein schneller Computer zu Strömungen der Luft um.","„Und wenn es falsch ist?“ fragte Lina. „Die Luft ist zu kompliziert, je weiter voraus, desto schwerer“, sagte Mama. Lina schaute in den Regen und fand den Computer sehr klug und sehr bescheiden.","Später lernte Lina, Wolken zu lesen: tiefe, schnelle Wolken bringen oft Regen. Sie schrieb es in ihr Heft und verglich es täglich mit dem Handy. Die Hälfte stimmte, und sie freute sich trotzdem."]},{"id":"tech10","title":"Ein Stift aus dem Drucker","tag":"Technik","pages":["Auf Papas Tisch lag ein Stift mit feinen Streifen. Lina dachte, jemand habe sie mit einem Messer geschnitten, so ordentlich.","Er war nicht geschnitten, sondern gedruckt. Die Maschine erhitzt Plastik und legt es Schicht für Schicht, bis die Form entsteht. Eine Schicht ist dünner als Papier; nach hunderten Schichten ist es ein Körper.","„Deshalb die Ringe“, sagte Lina. Sie wollte ein kleines Haus. Papa erklärte, zuerst müsse man ein Modell zeichnen, damit die Maschine weiß, wohin jede Schicht gehört. Sie zeichnete einen Block, dann noch einen.","Später wurde das kleine Haus wirklich gedruckt, nur so groß wie ein Daumen. Lina stellte es aufs Fensterbrett: „Das ist die erste Schicht. Als Nächstes will ich ein Dach dazu.“"]},{"id":"tech11","title":"Warum der Kühlschrank innen kalt ist","tag":"Technik","pages":["Lina öffnete die Kühlschranktür, kalte Luft wehte ihr ins Gesicht. Sie legte die Hand auf die Außenseite, die war warm. Innen so kalt, außen warm, wie geht das?","Papa ließ sie hinter den Kühlschrank schauen. Dort war eine Reihe schwarzer Rohre, und die waren heiß. Er erklärte: Der Kühlschrank macht keine Kälte, er trägt die Wärme nach draußen. Ist sie weg, wird es innen kalt.","In den Rohren läuft eine besondere Flüssigkeit hin und her. Innen nimmt sie Wärme auf, hinten gibt sie die Wärme ab, kühlt ab und kommt zurück. Die heißen Rohre hinten sind ihr Abgabeplatz.","Deshalb braucht der Kühlschrank hinten etwas Platz, damit die Wärme weg kann. Steht er zu eng an der Wand, kann er nicht atmen und braucht mehr Strom. Lina lachte: Kälte kommt aus Wärme."]},{"id":"tech12","title":"Wie eine Nachricht so schnell reist","tag":"Technik","pages":["Lina schickte ihrer Cousine eine Geburtstagsnachricht. In weniger als einer Sekunde kam ein Danke zurück. Die Städte sind über tausend Kilometer entfernt, wie laufen die Wörter?","Das Handy wandelt die Wörter in unsichtbare Signale um und schickt sie zum Funkmast. Der Mast gibt sie in Glasfaserkabel unter der Erde oder im Meer. Darin läuft Licht, das in einer Sekunde siebenmal um die Erde käme.","Das Licht erreicht den Rechner in der Stadt der Cousine, dann den Mast bei ihr, dann ihr Handy. Unterwegs gibt es viele Stationen, jede hält nur kurz, wie beim Staffellauf.","Lina rechnete: Zweitausend Kilometer, und das Licht braucht nur einen Augenblick. Sie sagte: Schnell sein braucht einen Weg, und je besser der Weg, desto schneller die Wörter."]},{"id":"tech13","title":"Woher der Reiskocher weiß, dass der Reis fertig ist","tag":"Technik","pages":["Sie drückte den Knopf, das Licht ging an, im Topf brodelte es. Nach zwanzig Minuten klickte es, der Knopf sprang hoch, der Reis war fertig. Woher wusste er die Zeit?","Unten im Topf sitzt ein kleines Teil, das die Temperatur spürt. Solange Wasser im Topf ist, wird es nicht wärmer als hundert Grad, weil das kochende Wasser die Wärme mitnimmt.","Ist das Wasser vom Reis aufgesogen, steigt die Temperatur am Boden über hundert Grad. Das Teil spürt das und drückt den Schalter hoch, das Heizen hört auf.","Deshalb wird der Reis bei zu viel Wasser zu weich, bei zu wenig springt der Topf zu früh. Lina weiß jetzt: Das Klicken ist kein Zufall, die Temperatur spricht."]},{"id":"tech14","title":"Warum die Waschmaschine so schnell dreht","tag":"Technik","pages":["Nach dem Waschen begann die Maschine zu brummen, die Trommel drehte sich so schnell, dass man nichts mehr sah. Die Wäsche klebte an der Wand, als würde sie festgehalten.","Mama erklärte: Das ist das Schleudern. Je schneller die Trommel, desto stärker wird das Wasser nach außen geschleudert und läuft durch die kleinen Löcher hinaus. Schneller heißt trockener.","Dreht sie langsam, geht das Wasser nicht heraus, und die Wäsche bleibt nass. Deshalb ist es beim Schleudern am lautesten, und man darf die Tür dabei nicht öffnen.","Lina tastete die halbtrockene Wäsche an. Sie dachte: Nicht die Kraft der Maschine trocknet, sondern die Drehzahl. Wie beim Regenschirm, den man dreht und die Tropfen fliegen weg."]},{"id":"tech15","title":"Warum der Schnellzug so ruhig fährt","tag":"Technik","pages":["Der Zug fuhr los, die Bäume draußen flogen vorbei. Lina stellte einen Stift auf das Fensterbrett, und er fiel nicht um. Sie spürte kaum ein Wackeln.","Papa erklärte: Ein normaler Zug rumpelt an jeder Fuge der Schienen. Beim Schnellzug sind die Schienen zu einem langen Band verschweißt, ohne Fugen, deshalb rüttelt nichts.","Unter den Wagen sitzen Federn und Dämpfer wie unter Schuhen, sie schlucken die kleinen Bewegungen. Die Spitze vorn ist spitz, damit sie weniger Luft drückt.","Lina trank einen Schluck Wasser, die Oberfläche bewegte sich nur leicht. Sie dachte: Ruhig fahren ist kein Glück, sondern an vielen Stellen glatt und gerade gemacht."]},{"id":"tech16","title":"Wie ein Fingerschloss Menschen erkennt","tag":"Technik","pages":["Vor der Tür hing ein neues Schloss ohne Schlüsselloch. Lina drückte den Finger darauf, „piep“, und die Tür ging auf. Sie probierte es gleich noch einmal, es ging wieder.","Papa erklärte: Jeder Finger hat feine Linien wie eine kleine Landkarte, die es nur einmal gibt. Im Schloss sitzt ein winziges Auge, das diese Karte fotografiert.","Beim ersten Mal speichert es die Karte. Danach vergleicht es jedes neue Bild mit dem gespeicherten. Passt es, öffnet sich die Tür, passt es nicht, bleibt sie zu.","Lina probierte den Finger einer anderen Person, die Tür reagierte nicht. Sie lachte: Meine Hand ist der Schlüssel, und ich muss keine Angst haben, ihn zu verlieren."]},{"id":"tech17","title":"Warum die Automatiktür von selbst aufgeht","tag":"Technik","pages":["Im Supermarkt gingen die Türen auf, als Lina näher kam. Sie lief mehrere Male hin und zurück, und jedes Mal öffneten sie sich, als würden sie sie kennen.","Über der Tür sitzt ein kleiner Kasten, der etwas Unsichtbares aussendet. Steht jemand davor, kommt das Signal anders zurück, und die Tür weiß: Da ist jemand. Sie schaut nicht auf Gesichter, nur auf Hindernisse.","Nur Dinge, die das Signal zurückwerfen, lassen sie aufgehen. Wind reicht nicht, ein Mensch schon. Wenn niemand mehr da ist, schließt sie langsam, damit niemand eingeklemmt wird.","Lina blieb mitten in der Tür stehen, und sie blieb offen. Sie dachte: Das ist keine Höflichkeit, sie hat mich einfach gesehen."]},{"id":"tech18","title":"Wie Töne aufgenommen werden","tag":"Technik","pages":["Lina nahm mit dem Handy ihr Lied auf und spielte es ab. Die Stimme klang genau wie ihre. Sie fragte sich, wie etwas ohne Form ins Handy passt.","Beim Sprechen schwingt die Luft und läuft in Wellen zum Handy. Darin sitzt eine dünne Haut, die mitschwingt. Laut heißt: starke Bewegung, leise heißt: schwaches Zittern.","Diese Bewegung wird dahinter zu Strom. Der Strom wird in Zahlen gespeichert. Ein Lied ist eigentlich eine lange Reihe von Zahlen.","Beim Abspielen geht es rückwärts: Zahlen werden Strom, der bewegt einen kleinen Lautsprecher, und die Luft schwingt wieder. Lina fand, das sei wie Verleihen und Zurückgeben."]},{"id":"tech19","title":"Wo die Wolke im Computer ist","tag":"Technik","pages":["Mama sagte, die Fotos liegen in der Wolke. Lina schaute nach oben, am Himmel war keine Wolke. Wie können Fotos am Himmel sein?","Diese Wolke ist in Wahrheit ein großer Rechnerraum von jemand anderem, mit sehr vielen Maschinen, tausend passen in einen Saal. Die Fotos werden dorthin geschickt und warten dort auf uns.","Gespeichert wird mehrfach, an verschiedenen Orten. Geht eine Maschine kaputt, sind die anderen noch da, die Fotos bleiben. Das ist sicherer als nur eine Karte.","Lina verstand: Die Wolke schwebt nicht, sie steht auf der Erde. Wir holen die Dinge nur von weit her, so bequem, als kämen sie vom Himmel."]},{"id":"tech20","title":"Warum die Powerbank warm wird","tag":"Technik","pages":["Das Handy war leer, Lina steckte die Powerbank an. Nach einer Weile war sie warm, und Lina nahm die Hand schnell weg, aus Angst, sie könnte kaputtgehen.","Papa erklärte: In der Powerbank steckt Strom. Beim Herausfließen kommt nicht alles im Handy an, ein kleiner Teil wird Wärme. Wie beim Laufen: Ein Teil der Kraft wird Schweiß.","Je schneller geladen wird, desto eiliger fließt der Strom, desto mehr Wärme entsteht. Deshalb wird Schnellladen heißer. Zu viel Wärme schadet und ist gefährlich.","Lina legte die Powerbank auf den Tisch, nicht unter die Decke und nicht in die Sonne. Sie dachte: Sogar Strom schwitzt."]},{"id":"life01","title":"Warum wir Hände waschen","tag":"Alltag","pages":["Wenn Lina von draußen kam, sagte Mama immer: „Erst Hände waschen.“ Lina fand das lästig: Die Hände sahen doch sauber aus, nicht grau, nicht schmutzig.","Mama ließ sie die Hände unter eine besondere Lampe halten. Darauf sitzen winzige Dinge, die man nicht sieht: Bakterien. Sie sind so klein, dass kein Auge sie findet, und sie wandern von der Hand zum Essen. Seife spült sie weg, zwei Mal „Happy Birthday“ singen reicht.","Lina rieb die Fingerzwischenräume, der Schaum war weiß, auch zwischen den Fingern. Sie sang das Lied zu Ende und spülte die Hände. Sie dachte: Was man nicht sieht, muss man trotzdem ernst nehmen.","Später merkte sie, dass man zuerst die Ärmel hochschiebt, sonst bleibt der Schaum am Handgelenk. Sie brachte es ihrem Bruder bei. Er sang falsch, und beide lachten am Waschbecken."]},{"id":"life02","title":"Der kleine Wurm im Zahn","tag":"Alltag","pages":["Lina hatte die ganze Nacht Zahnschmerzen. Sie wälzte sich im Bett, hielt die Wange und spürte den Schmerz in Wellen. Am nächsten Tag schaute der Zahnarzt mit dem Spiegel und sagte: „Hier ist ein kleines Loch.“","Er erklärte: Wenn man nach dem Essen nicht putzt, bleibt Zucker zwischen den Zähnen. Bakterien fressen den Zucker und machen Säure, und diese bohrt Löcher in den Zahn. Ein Loch heilt nicht von selbst, es muss gefüllt werden.","Auf dem Heimweg tastete Lina ihren Zahn ab. Abends putzte sie drei Minuten, von vorn nach hinten, von oben nach unten, auch die Zungenränder. Sie dachte: Zähne müssen ein Leben lang halten.","Drei Monate später war die Füllung in Ordnung. Lina fragte, ob sie Süßes essen dürfe. Der Arzt sagte ja, aber danach spülen. Sie schrieb es auf einen Zettel neben die Zahnbürste."]},{"id":"life03","title":"Die Augen der Ampel","tag":"Alltag","pages":["Die Ampel an der Kreuzung spricht nie, sie zeigt nur drei Farben. Rot heißt stehen, Grün heißt gehen, Gelb heißt: Beeil dich, gleich wechselt es. Ihre Augen hängen hoch oben und schauen auf die Menschen.","Lina merkte, dass das Grün ein paar Mal blinkt, bevor es gelb wird. Mama erklärte, das sei eine Warnung für langsame Menschen: Wer die Mitte noch nicht erreicht hat, wartet lieber.","Einmal lief jemand bei Rot, ein Auto bremste scharf, und es war sehr laut. Lina hielt Mamas Hand fester, ihr Herz klopfte. Sie dachte: Diese drei Lichter sind keine Dekoration, sie sind eine Abmachung.","Danach schaute Lina auf die Zahlen am Rand der Ampel. Wenn nur noch wenige Sekunden blieben, blieb sie stehen. Sie sagte: „Wer warten kann, geht am sichersten.“"]},{"id":"life04","title":"Eine Minute bei der Feuerwehr","tag":"Alltag","pages":["Das Tor der Feuerwache steht immer offen. Wenn der Alarm klingelt, rutschen die Feuerwehrleute die Stange hinunter, ziehen die Sachen an, setzen den Helm auf und springen ins Auto. Vom Klingeln bis zur Ausfahrt dauert es manchmal keine Minute.","Der Wassertank ist voll. Am Brand schauen sie zuerst, wohin der Wind weht, und ob noch jemand drinnen ist. Der Druck im Schlauch ist so stark, dass eine Person ihn nicht halten kann, sondern zwei, mit den Füßen fest am Boden.","Nach dem Löschen waren ihre Gesichter schwarz, nur um die Augen weiß. Lina sah es im Fernsehen und fragte Mama: „Haben sie keine Angst?“ Mama sagte: „Doch, aber sie gehen trotzdem hinein.“","Die Schule lud Feuerwehrleute ein. Einer brachte eine Jacke mit. Lina probierte sie an und konnte fast nicht gehen. Sie zog sie aus und sagte außer Atem: „Die laufen damit jeden Tag.“"]},{"id":"life05","title":"Wohin der Müll geht","tag":"Alltag","pages":["Lina warf den Müll in die grüne Tonne unten am Haus. Sie fragte: „Und dann?“ Mama hatte gesagt, weg ist weg, aber Lina glaubte das nicht ganz.","Jeden Morgen kommt das Müllauto, kippt die Tonne aus und fährt zur Anlage vor der Stadt. Schalen und Blätter werden eingegraben und werden zu Erde. Flaschen aus Plastik werden aussortiert und zu großen Blöcken gepresst. Batterien kommen getrennt weg, weil sie Wasser und Erde vergiften.","Zu Hause stellte Lina drei Kisten auf und schrieb „Papier“, „Plastik“, „Rest“. Einen Becher spülte sie aus und legte ihn zu „Plastik“. Sie dachte: Auch Wegwerfen muss man überlegen.","Nach einem Monat war die Kiste „Rest“ am vollsten, die Kiste „Papier“ am leersten. Mama sagte, das zeige, wie viele Kartons wir kaufen. Lina drückte die Paketkartons flach, dann brauchten sie halb so viel Platz."]},{"id":"life06","title":"Die Streifen im Supermarkt","tag":"Alltag","pages":["An der Kasse piepte es, und der Preis der Kekse erschien auf dem Bildschirm. Lina schaute auf die Rückseite: eine Reihe Streifen, dick und dünn, dazwischen Zahlen.","Mama erklärte, die Streifen seien eine Zahl. Die Breite von schwarzen Streifen und weißem Raum ergibt eine Nummer. Der Computer im Laden schaut nach: Was ist das, was kostet es, wie viele Packungen sind noch da.","Lina sammelte alle Packungen zu Hause und verglich die Streifen. Jede war anders. „Wie ein Name für jedes“, sagte sie. Sie malte sogar die Streifen von der Zahnpasta ab.","Dann merkte sie, dass die Zahlen unter den Streifen eine Ordnung haben: vorn der Hersteller, hinten das Produkt. Sie stellte Papa eine Frage dazu, und er brauchte lange für die Antwort."]},{"id":"life07","title":"Warum ein Flugzeug fliegt","tag":"Alltag","pages":["Ein Flugzeug ist groß und schwer. Wie kann es fliegen? Lina schaute ihm am Flughafen zu und fand es wie einen großen Vogel aus Eisen, der lange auf der Bahn laufen muss.","Papa erklärte: Die Flügel sind oben gebogen und unten flach. Luft strömt oben schneller als unten, und der Druck unten hebt den Flügel. Die Triebwerke schieben nach vorn, dann steigt es auf.","„Und wie bremst es?“ fragte Lina. Papa sagte, auf den Flügeln stellen sich Klappen auf und halten den Wind. Wenn die Räder aufsetzen, gibt es ein bisschen Rauch.","Im Flugzeug legte Lina die Hand an das Fenster und spürte ein leichtes Zittern. Beim Steigen war ihr Ohr zu, ein Schlucken half. Sie fand: Unsichtbare Kräfte helfen die ganze Zeit."]},{"id":"life08","title":"Mein Schatten folgt mir","tag":"Alltag","pages":["Am Morgen war Linas Schatten lang, er lief vor ihr her und war größer als sie. Am Mittag wurde er kurz und lag unter ihren Füßen wie ein kleiner schwarzer Kuchen.","Mama erklärte: Ein Schatten ist der Platz, wo das Licht fehlt. Steht die Sonne tief, kommt das Licht schräg, dann ist der Schatten lang. Steht sie hoch, kommt es von oben, dann ist er kurz.","Lina stand zwischen zwei Straßenlampen und sah zwei Schatten, einen nach links, einen nach rechts. Sie sprang, und beide sprangen mit. Sie lachte: „Ich habe zwei Ichs.“","Später formte sie mit der Hand einen Vogel, und der Schatten an der Wand bewegte die Flügel. Sie sagte: „Der Schatten bewegt sich nicht allein, die Hand bewegt ihn.“"]},{"id":"life09","title":"Warum es vier Jahreszeiten gibt","tag":"Alltag","pages":["Im Frühling blüht es, im Sommer ist es heiß, im Herbst fallen die Blätter, im Winter ist es kalt. Lina fragte, warum das Jahr viermal anders aussieht. Sie malte die Jahreszeiten in ihr Heft, jede in einer Farbe.","Die Lehrerin erklärte: Die Erde läuft um die Sonne und steht dabei schief. Die Schräge bleibt gleich, deshalb zeigt der Norden manchmal zur Sonne: lange Tage, viel Wärme. Manchmal zeigt er weg: kurze Tage, Kälte.","„Liegt es nicht daran, wie nah wir der Sonne sind?“ fragte Lina. Die Lehrerin schüttelte den Kopf: „Am nächsten sind wir im Winter.“ Lina schrieb das auf und fand es seltsam und spannend.","Im Kalender markierte sie die Woche mit den längsten Tagen und die mit den kürzesten. Dazwischen lagen genau sechs Monate. Sie dachte: Weil die Erde schief läuft, haben wir vier Jahreszeiten."]},{"id":"life10","title":"Wie ein Paket nach Hause kommt","tag":"Alltag","pages":["Lina bestellte ein Buch. Am nächsten Nachmittag rief der Bote an, er sei unten. Sie lief hinunter, ohne die Schuhe richtig anzuziehen. Das Buch war schwerer, als sie dachte.","Mama zeigte ihr die Anzeige: Das Buch startete in einem großen Lager und fuhr in das Verteilzentrum der Stadt. Dort laufen viele Bänder, jedes Paket wird gescannt und geht in einen anderen Gang. Dann kam es in ein kleines Auto zum Laden in der Nähe und in den Wagen des Boten.","Lina packte das Buch aus, es roch gut nach Papier. Sie schrieb ihren Namen auf die erste Seite. Sie dachte: Gestern war es noch weit weg, heute ist es in meiner Hand.","Danach lernte Lina, die Nummer auf dem Paket zu lesen. Eine Zahlenreihe zeigt, wo es gerade ist. Sie schaute einmal am Tag nach, wie in einer Landkarte, die läuft."]},{"id":"life11","title":"Wie Wäsche trocken wird","tag":"Alltag","pages":["Die nasse Wäsche hing auf dem Balkon und tropfte. Am Nachmittag war sie trocken und weich. Wohin war das Wasser gegangen?","Wasser wird zu unsichtbarem Dampf in der Luft, das nennt man Verdunsten. Sonne und Wind machen es schneller. Deshalb trocknet Wäsche an einem sonnigen, windigen Tag am schnellsten.","Mama hängte die Wäsche breit auf, nicht zusammengeknüllt. Breite Flächen geben mehr Wasser ab. In den Knäueln trocknet es am langsamsten.","An trüben Tagen trocknet die Wäsche langsam, nicht weil das Wasser faul ist, sondern weil die Luft schon viel Wasser hat. Lina fand die trockene Wäsche viel leichter als vorher."]},{"id":"life12","title":"Warum Brot hart wird","tag":"Alltag","pages":["Nach zwei Tagen war das Brot hart, beim Beißen bröselte es. Frisch war es weich wie Watte und hatte eine Delle, wenn man drückte.","Im Brot liegt Stärke. Mit der Zeit ordnet sie sich neu und drückt das Wasser heraus, deshalb wird es hart. Kurz in der Pfanne erwärmt wird es wieder weich, aber kalt wird es wieder hart.","Nach längerer Zeit kommt grüner Schimmel obenauf. Verschimmeltes Brot darf man nicht essen, auch nicht die Stelle abschneiden, denn innen ist es schon voll.","Lina steckte das Brot in eine Tüte und verschloss sie. Am nächsten Tag war es noch weich. Sie dachte: Luft und Wasser machen das Brot alt. Hält man beide fern, bleibt es länger gut."]},{"id":"life13","title":"Das Geheimnis von Schlüssel und Schloss","tag":"Alltag","pages":["Lina öffnete zum ersten Mal selbst die Tür, aber der Schlüssel drehte sich nicht. Ihr Gesicht wurde rot. Mama sagte, sie solle ihn gerade halten. „Klick“, die Tür ging auf.","Im Schloss sitzen sieben oder acht kleine Stifte in verschiedenen Höhen. Die Zähne des Schlüssels schieben sie auf eine Linie. Erst wenn alle gleich hoch stehen, dreht sich der Kern.","Passen die Zähne nicht, bleiben die Stifte ungleich, der Kern klemmt, die Tür bleibt zu. Deshalb öffnet ein Schlüssel nur ein Schloss, ein nachgemachter nützt nichts.","Lina hängte den Schlüssel um den Hals, beim Gehen klopfte er leise an ihre Jacke. Sie dachte: So ein kleines Ding bewacht eine ganze Tür."]},{"id":"life14","title":"Wohin das Geld aus der Dose geht","tag":"Alltag","pages":["Lina hatte fünfzig Euro gespart, alles Kleingeld, das in der Dose rasselte. Mama sagte, sie könne es auf die Bank bringen. Lina fragte: „Ist das Geld dann weg?“","Die Bank nimmt das Geld und schreibt in ihr Heft: Du hast fünfzig Euro eingezahlt. Wenn sie es braucht, holt sie es mit dem Heft oder der Karte zurück, keinen Cent weniger.","Die Bank leiht das Geld anderen. Wenn die es zurückgeben, zahlen sie ein bisschen mehr, das nennt man Zinsen. Also wird die Zahl im Heft mit der Zeit ein bisschen größer.","Lina zahlte die fünfzig Euro ein und schaute auf die Zahl. Sie dachte: Das Geld ist nicht verschwunden, es ist nur woanders und wächst ein bisschen."]},{"id":"life15","title":"Warum wir Schlange stehen","tag":"Alltag","pages":["Viele wollten Eis kaufen und standen in einer Reihe. Lina war die Letzte, vor ihr sechs Leute, und die Reihe rückte langsam vor.","Mama erklärte: In der Reihe gilt: Wer zuerst kommt, wird zuerst bedient. So wird niemand weggeschoben, und niemand geht nach vorn. Alle warten und halten dieselbe Regel.","Jemand wollte sich vordrängen, und die Leute hinter ihm sagten: Bitte anstellen. Das ist nicht kleinlich. Wenn alle nach vorn drängten, warteten alle länger, und es gäbe Streit.","Als Lina dran war, schmeckte das Eis besonders gut. Sie dachte: Ein bisschen warten heißt, an die anderen zu denken."]},{"id":"life16","title":"Warum Wasser aus dem Hahn kommt","tag":"Alltag","pages":["Lina drehte den Hahn auf, und das Wasser floss. Sie wollte wissen, woher es kommt und warum es aufhört, wenn man zudreht.","Das Wasserwerk reinigt das Wasser aus dem Fluss und drückt es mit großer Kraft in die Rohre bis ins Haus. Im Rohr herrscht immer Druck, als würde jemand von hinten schieben.","Der Hahn ist ein Ventil. Zugedreht wird das Wasser gestoppt, aufgedreht wird es herausgedrückt. Das Wasser wird also nicht angesaugt, sondern gepresst.","Wenn das Wasser abgestellt ist, kommt auch beim Aufdrehen keins, weil von hinten niemand mehr drückt. Lina drehte den Hahn fest zu, damit kein Wasser umsonst läuft."]},{"id":"life17","title":"Warum eine Schere schneidet","tag":"Alltag","pages":["Lina schnitt Papier mit der Schere, einmal und durch. Mit derselben Kraft zu reißen ging nicht, der Rand wurde schief und fransig.","Eine Schere besteht aus zwei Hebeln. Der Griff ist lang, die Klinge kurz, die Mitte ist der Drehpunkt. Drückt man den Griff, wird die Kraft an der Klinge größer.","Harte Dinge schneidet man nahe an der Mitte, dort ist die Kraft am größten. An der Spitze geht es schwer und rutscht leicht ab.","Lina versuchte, mit der Spitze dicken Karton zu schneiden. Es ging wirklich nicht. Sie dachte: Kraft sparen heißt nicht zerren, sondern die richtige Stelle finden."]},{"id":"life18","title":"Warum Schnürsenkel aufgehen","tag":"Alltag","pages":["Lina lief eine Runde, der Schnürsenkel ging auf und schleifte am Boden, sie trat fast darauf. Sie hatte ihn doch fest gebunden.","Beim Laufen geht der Fuß auf und ab, der Senkel wird immer wieder gezogen. Er ist als Schleife gebunden, und die zwei Enden können sich lösen.","Mama zeigte ihr, zweimal zu binden: erst ein Knoten, dann noch einer. Zwei Knoten halten einander, dann geht nichts auf. Der Senkel darf auch nicht zu lang sein, sonst tritt man darauf.","Lina band die Schuhe neu und lief zwei Runden, der Senkel hielt. Sie dachte: Ein Schritt mehr bei kleinen Dingen spart später Ärger."]},{"id":"life19","title":"Warum man bei einer Erkältung viel trinkt","tag":"Alltag","pages":["Lina war erkältet, die Nase war zu, der Kopf schwer, die Stimme dumpf. Mama stellte ihr ein großes Glas warmes Wasser hin.","Bei Fieber schwitzt der Körper, und mit dem Schweiß geht Wasser verloren. Trinkt man genug, trocknet der Körper nicht aus, und der Schleim in der Nase bleibt flüssig.","Wasser hilft auch, Abfallstoffe hinauszubringen. Doch nicht auf einmal eine ganze Flasche, sondern Schluck für Schluck über den Tag.","Lina hielt die Tasse und trank in kleinen Schlucken. Sie dachte: Wasser heilt nicht, aber es hilft dem Körper, selbst zu heilen."]},{"id":"life20","title":"Was tun, wenn man sich verliert","tag":"Alltag","pages":["Im Kaufhaus waren viele Menschen. Lina drehte sich um, und Mama war weg. Ihr Herz machte einen Sprung, die Augen wurden feucht.","Sie erinnerte sich: Mama hatte gesagt, wer sich verliert, bleibt stehen und läuft nicht herum. Sie blieb an einer Säule stehen und schaute in die Richtung, aus der sie gekommen war.","Nach einer Weile sah sie jemanden in Uniform. Sie ging hin und sagte: „Ich habe meine Mama verloren.“ Die Frau brachte sie zum Informationsschalter, es gab eine Durchsage, und Mama kam schnell gelaufen.","Lina merkte sich drei Dinge: nicht herumlaufen, Menschen in Uniform suchen, sich merken, wo man ist. Sie sagte: „Wenn man Angst hat, macht man zuerst das Richtige.“"]},{"id":"nat01","title":"Ameisen ziehen um","tag":"Natur","pages":["Lina sah im Hof eine lange Reihe Ameisen. Jede trug etwas, alle gingen nach oben: weiße Eier, halbe Blätter. Oma sagte: „Es wird regnen.“","Ameisen leben in der Erde, ihre Gänge fürchten Wasser. Vor dem Regen wird die Luft feucht, das spüren sie. Deshalb tragen sie Eier und Futter höher. Manche zeigen den Weg, andere sichern hinten, die Reihe bleibt ruhig.","Am Abend regnete es wirklich, stark, im Hof bildete sich eine Pfütze. Lina schaute aus dem Fenster, der Ameisenweg war weggespült. Sie dachte: Sie sind wohl schon fertig umgezogen.","Am nächsten Morgen lief sie hinaus. Neben dem alten Eingang lag ein kleiner Haufen neuer Erde, ein neuer Weg war da. Sie dachte: In einer Nacht haben sie ihr Haus neu gebaut."]},{"id":"nat02","title":"Die kleine Laterne des Glühwürmchens","tag":"Natur","pages":["An Sommerabenden leuchteten im Gras kleine Punkte, ein Blinken nach dem anderen. Lina wollte sie fangen, aber das Licht flog weg, nicht hoch, als trüge jemand kleine Lampen über das Gras.","Das sind Glühwürmchen. Hinten am Bauch haben sie eine Stelle, die kaltes grünes Licht gibt, fast ohne Wärme. Verschiedene Arten blinken verschieden, wie ein Zeichen für die eigenen Gefährten.","Lina hockte lange im Gras und fing keins mehr. Sie fand, das Licht sei schöner, wenn es fliegt. Auf dem Heimweg schaute sie dreimal zurück.","Später erfuhr sie, dass die Larven der Glühwürmchen im feuchten Gras leben und winzige Insekten fressen. Sie dachte: Die kleinen Leuchter sehen als Junge ganz anders aus."]},{"id":"nat03","title":"Ein Spinnennetz ist kein Zuhause","tag":"Natur","pages":["Am Morgen hing im Gras ein Spinnennetz voller Wassertropfen, wie eine Kette kleiner Perlen. In jedem Tropfen war ein winziger Regenbogen.","Ein Netz ist nicht das Zuhause der Spinne, sondern ihr Werkzeug zum Fangen. Die Spinne wartet am Rand; stößt ein Insekt hinein, bewegt sich das Netz, und sie kommt. Ist es kaputt, frisst sie die alten Fäden und webt in einer Nacht ein neues.","Lina sah eine Spinne in der Mitte sitzen, ganz still. Sie wartete lange, die Spinne bewegte sich nicht. Sie dachte: Geduld ist auch eine Kunst.","Ein Windstoß zerriss das Netz. Am nächsten Morgen war ein neues da, wieder mit sechs Ecken. Lina zählte sorgfältig, kein Faden fehlte."]},{"id":"nat04","title":"Schnurrhaare sind ein Lineal","tag":"Natur","pages":["Linas Katze wollte unter den Tisch. Sie hielt an, streckte die Schnurrhaare nach vorn und ging hinein. Danach war nur noch die Schwanzspitze zu sehen, die langsam wedelte.","Mama erklärte: Die Schnurrhaare sind sehr empfindlich und spüren, wie breit ein Loch ist. Sie sind fast so breit wie der Körper. Passen sie durch, passt auch die Katze.","Im Dunkeln helfen sie ihr beim Gehen, sie stößt nicht an Wände. Lina maß mit den Fingern nach, die Haare waren länger als ihr Finger. Die Katze schob ihre Hand weg und sprang davon.","Später merkte Lina, dass die Katze nachts nie gegen eine Wand läuft, sondern rechtzeitig um die Ecke biegt. Sie dachte: Sie trägt immer ein unsichtbares Lineal bei sich."]},{"id":"nat05","title":"Der Rüssel des Elefanten","tag":"Natur","pages":["Im Zoo nahm der Elefant mit dem Rüssel einen Ast auf und schob ihn ins Maul. Der Ast war dicker als Linas Arm. Sie fragte sich, ob so ein langer Rüssel schwer zu benutzen ist.","Der Tierpfleger erklärte: Der Rüssel ist Hand und Nase zugleich. Er kann Wasser saugen und über den Rücken spritzen, weit riechen und eine Erdnuss aufnehmen, ohne sie zu zerbrechen.","Der Elefant kam näher und streckte den Rüssel zu Lina. Sie hob die Hand, durch das Glas. Er roch daran und ließ den Rüssel wieder sinken.","Der Pfleger sagte auch, dass Elefanten zur Begrüßung ihre Rüssel umeinander wickeln. Lina probierte es mit beiden Händen, sie bekam es nicht hin."]},{"id":"nat06","title":"Die Schnecke trägt ihr Haus","tag":"Natur","pages":["Nach dem Regen kroch eine Schnecke langsam die Wand hoch, mit einem spiralförmigen Haus auf dem Rücken. Das Haus hatte Ringe, als hätte sie jemand gemalt.","Das Haus hat sie selbst gebaut, es wächst auf ihrem Rücken und lässt sich nicht abnehmen. Ist es zu heiß oder gefährlich, zieht sie sich hinein und verschließt den Eingang mit einer Haut.","Wo sie geht, bleibt eine glänzende Linie. Lina schaute zehn Minuten zu, die Schnecke kam nur eine Handbreit vorwärts. Sie berührte das Haus, sofort zog sie sich zurück.","Sie nahm die Hand weg und wartete. Nach einer Weile kamen die Fühler langsam wieder heraus. Lina merkte, dass die trockene Linie ein Zeichen ist, das den Weg zeigt."]},{"id":"nat07","title":"Bambus wächst schnell","tag":"Natur","pages":["Im Frühling wuchs der Bambus im Hof über Nacht ein Stück. Lina schaute morgens und abends, er war wieder höher. Am Ansatz trug er noch feine Haare.","Bambus ist eine der schnellsten Pflanzen, er wächst am Tag mehrere Zentimeter. Sein Stiel hat Knoten, jeder kann nach oben wachsen. Innen ist er hohl, deshalb ist er leicht und trotzdem fest.","Lina maß einen Stiel und malte einen Strich an die Wand. Am nächsten Morgen war der Bambus über dem Strich. Sie malte einen zweiten: „Ich will sehen, wie hoch du kommst.“","Eine Woche später war er höher als sie. Sie schaute hinauf, die Blätter rauschten im Wind. Sie schrieb an die Wand: Was schnell wächst, muss trotzdem fest wachsen."]},{"id":"nat08","title":"Der Fallschirm des Löwenzahns","tag":"Natur","pages":["Auf der Wiese stand ein Löwenzahn, weiß und rund. Lina pustete, und viele kleine Schirme flogen auf, höher als ihr Kopf.","Unter jedem Schirm hängt ein Samen. Der Wind trägt ihn woandershin, er landet, und im nächsten Jahr wächst ein neuer Löwenzahn. Die Haare sind sehr fein, der Wind kann sie tragen.","Lina lief einem Schirm nach, bis vor den Hof, und sah ihn über die Mauer fliegen. Sie fragte sich, wo er wohl landet.","Im Herbst fand sie auf dem Platz hinter der Mauer viele neue Löwenzähne. Sie dachte: Das ist wohl der Platz, wo der Schirm vom letzten Jahr gelandet ist."]},{"id":"nat09","title":"Die Flut am Meer","tag":"Natur","pages":["Am Morgen war das Wasser weit weg, ein nasser Sandstrand und ein paar Steine waren zu sehen. Am Mittag kam das Wasser zurück, bedeckte den Sand und die Steine.","Das Meer steigt und fällt zweimal am Tag, gezogen vom Mond und der Sonne. Der Mond ist näher und zieht stärker. Bei Flut ziehen die Leute am Meer ihre Boote höher, sonst treiben sie weg.","Im trockenen Sand fand Lina eine kleine Krabbe mit durchsichtigem Panzer und dünnen Beinen. Sie setzte sie ins Wasser zurück und sah sie seitwärts davonlaufen, sehr schnell.","Auf dem Heimweg fragte sie, ob das Wasser immer weiter steigt. Mama sagte, es steigt bis zum Höchsten und fällt dann, zweimal am Tag. Sie dachte: Auch das Meer atmet."]},{"id":"nat10","title":"Das grüne Licht am Himmel","tag":"Natur","pages":["In einem Winter fuhr Papa mit Lina zu den Polarlichtern. Mitten in der Nacht war der Himmel sehr dunkel, viele Sterne, der Atem weiß.","Plötzlich erschien im Norden ein hellgrünes Band, es breitete sich aus wie ein Vorhang im Wind. Papa erklärte, kleine Teilchen der Sonne stoßen auf Gase in der Höhe und leuchten. Grün ist Sauerstoff, Violett ist Stickstoff.","Lina lag im Schnee und schaute, ihr war kalt, aber sie wollte nicht ins Auto. Das Licht veränderte sich, mal wie ein Fluss, mal wie ein Fächer.","Vor der Rückkehr zog sie den Handschuh aus und hielt die Hand in die Luft. Sie fing nichts, lachte aber: „Das war das stillste Spektakel, das ich je gesehen habe.“"]},{"id":"nat11","title":"Warum Blätter gelb werden","tag":"Natur","pages":["Im Herbst wurden die Ginkgoblätter von grün zu goldgelb und fielen herab, der Boden war bedeckt. Lina hob eines auf, es sah aus wie ein kleiner Fächer.","In den Blättern steckt etwas Grünes, das Chlorophyll. Es hilft dem Baum, Nahrung zu machen. Wird es kalt und das Licht knapp, verschwindet das Grün langsam.","Danach kommt das Gelb zum Vorschein, das schon in den Blättern war. Manche Blätter werden rot, dann zeigt sich eine andere Farbe.","Der Baum lässt die Blätter fallen, damit er im Winter weniger Wasser verliert und ruhig schläft. Lina legte ein Blatt ins Buch, um die Farbe zu behalten."]},{"id":"nat12","title":"Wie Zugvögel den Weg finden","tag":"Natur","pages":["Jeden Herbst ziehen Schwärme nach Süden, im Frühling kommen sie zurück. Sie fliegen weit, über Städte und Meere. Woher wissen sie den Weg?","Am Tag schauen sie auf die Sonne, in der Nacht auf die Sterne. Manche spüren sogar das Magnetfeld der Erde, als trügen sie einen unsichtbaren Kompass.","Sie erinnern sich auch an das Land: große Flüsse, Küsten, Berge. Über bekannten Stellen wissen sie, wo sie abbiegen müssen.","Lina sah vom Fenster einen Schwarm in einer Reihe fliegen, immer vorwärts. Sie dachte: Sie kennen keine Schilder, aber sie kennen ihr Zuhause."]},{"id":"nat13","title":"Warum die Zikaden im Sommer singen","tag":"Natur","pages":["Am Mittag im Sommer sangen die Zikaden in den Bäumen, so laut, dass man nicht schlafen konnte. Lina schaute lange hinauf und sah nichts.","Es singen die Männchen. Am Bauch haben sie eine dünne Haut, die sie spannen und lösen, das macht den Ton. Sie singen, damit die Weibchen sie hören und finden.","Die Zikade lebt mehrere Jahre unter der Erde und saugt an Wurzeln. Oben lebt sie nur wenige Wochen, singt, legt Eier, und dann ist es vorbei.","Lina fand das Singen danach nicht mehr so störend. Sie dachte: Sie singen so eilig, weil ihre Zeit so kurz ist."]},{"id":"nat14","title":"Wie der Frosch Insekten fängt","tag":"Natur","pages":["Am Teich saß ein Frosch ganz still, die Augen standen hervor wie kleine Perlen. Ein Insekt flog vorbei, „klapp“, und es war weg.","Die Zunge des Frosches sitzt vorn im Maul, die Spitze ist klebrig. Kommt ein Insekt nahe, schießt die Zunge heraus, klebt und kommt zurück, schneller als das Auge folgen kann.","Seine Augen sind besonders. Bewegt sich nichts, sieht er oft nichts. Bewegt sich etwas, merkt er es sofort. Deshalb fängt er nur lebende Insekten.","Lina stand ganz still, und der Frosch beachtete sie nicht. Sie dachte: Bewegung ist die Schwäche der Insekten."]},{"id":"nat15","title":"Wie Fische im Wasser schlafen","tag":"Natur","pages":["Die Fische im Aquarium schließen nachts nicht die Augen. Lina schaute lange, sie schwammen weiter, als bräuchten sie keine Pause.","Fische haben keine Lider, sie können die Augen nicht schließen. Wenn sie schlafen, stehen sie nur im Wasser, die Flosse bewegt sich leicht, sie reagieren langsamer.","Manche schlafen zwischen Steinen, manche im Sand, andere blasen eine Blase und wickeln sich hinein wie in eine Decke.","Mitten in der Nacht schaute Lina nach, der Fisch stand neben den Wasserpflanzen, ganz still. Sie dachte: Ohne geschlossene Augen schläft er trotzdem."]},{"id":"nat16","title":"Warum der Mond zu- und abnimmt","tag":"Natur","pages":["Lina merkte, dass der Mond manchmal rund ist und manchmal gebogen wie ein angebissener Kuchen. Wird er auch größer und kleiner?","Der Mond leuchtet nicht selbst, er zeigt das Licht der Sonne. Wie viel wir sehen, hängt davon ab, wo er gerade steht.","Der Mond läuft um die Erde, und seine Lage ändert sich. Die beleuchtete Hälfte zeigt sich uns mal als schmale Sichel, mal halb, mal ganz, dann wieder weniger.","In einem Monat wird er einmal rund und einmal schmal. Lina malte Kreise in den Kalender, um sich die Formen zu merken."]},{"id":"nat17","title":"Wie aus Wolken Regen wird","tag":"Natur","pages":["Die Wolken am Himmel sind weiß und weich, sie sehen leicht aus, als würden sie wegfliegen. Wenn es regnet, fällt das Wasser wie aus einem Eimer.","Wasser auf dem Boden verdunstet, steigt auf, kühlt ab und wird zu winzigen Tropfen, die zusammen eine Wolke bilden. In einer Wolke steckt viel Wasser.","Die Tropfen stoßen in der Wolke zusammen und werden größer. Wenn die Luft sie nicht mehr trägt, fallen sie als Regen herunter.","Im Winter, wenn es oben sehr kalt ist, werden die Tropfen zu Eiskristallen, und es schneit. Lina sah aus dem Fenster: Eine Wolke ist eine Tüte voll Wasser."]},{"id":"nat18","title":"Woher der Regenbogen kommt","tag":"Natur","pages":["Der Regen hörte auf, die Sonne kam, und am Himmel stand ein Regenbogen. Lina zählte wirklich mehrere Farben, eine nach der anderen.","Sonnenlicht sieht weiß aus, enthält aber viele Farben. Dringt es in kleine Wassertropfen, wird es gebogen und zerlegt sich in ein Band aus Farben.","Einen Regenbogen sieht man mit dem Rücken zur Sonne. Je tiefer die Sonne steht, desto höher der Bogen. Nach langer Trockenheit gibt es keinen, weil keine Tropfen in der Luft sind.","Lina sprühte mit der Gießkanne Wasser in die Sonne und sah wirklich ein kleines Stück Regenbogen. Sie lachte: „Einen Regenbogen kann man selbst machen.“"]},{"id":"nat19","title":"Warum Regenwürmer bei Regen herauskommen","tag":"Natur","pages":["Nach dem Regen krochen mehrere Regenwürmer über den Gehweg. Lina hockte sich hin, sie waren glatt und in Ringe geteilt.","Regenwürmer leben in der Erde und atmen durch die Haut. Ist die Erde zu trocken, geht es ihnen schlecht. Füllt der Regen alle Gänge, können sie nicht mehr atmen.","Deshalb kommen sie bei Regen an die Oberfläche. Sobald die Sonne die Erde trocknet, müssen sie zurück, sonst vertrocknen sie.","Lina brachte ein paar mit Blättern an den Rand der Erde. Sie dachte: Sie kommen nicht zum Spielen heraus, sie haben keine Wahl."]},{"id":"nat20","title":"Die sechs Ecken der Schneeflocke","tag":"Natur","pages":["Beim Schneien hielt Lina ein schwarzes Tuch hinaus und schaute nah. Jede Flocke hatte Ecken, meist sechs kleine Zweige, mit feinen Linien dazwischen.","Schnee entsteht aus Wasserdampf in kalter Luft. Wenn das Wasser gefriert, ordnet es sich in sechs Richtungen, deshalb sechs Ecken.","Manche Zweige sind lang, manche kurz, je nach Kälte und Feuchtigkeit. Deshalb sieht jede Flocke anders aus, keine gleicht der anderen.","Auf der Hand schmolz sie sofort. Lina fand es schade und wunderbar: So ein kleines Ding ist so sorgfältig gebaut."]}];
+/* ============ ReadBuddy · Deutsch · main logic ============ */
+(function(){
+'use strict';
+
+var LS_KEYS = {
+  readings: 'rb_de.readings.v1',
+  badges:   'rb_de.badges.v1',
+  settings: 'rb_de.settings.v1',
+  progress: 'rb_de.progress.v1'
+};
+
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function pad2(n){ return n<10 ? '0'+n : String(n); }
+function fmtClock(ms){
+  var s = Math.floor(ms/1000), m = Math.floor(s/60), h = Math.floor(m/60);
+  if(h>0) return h+':'+pad2(m%60)+':'+pad2(s%60);
+  return m+':'+pad2(s%60);
+}
+function pct(x){ return Math.round(x*100)+'%'; }
+function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+
+/* ---------- Storage ---------- */
+function lsGet(k, d){
+  try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; }
+}
+function lsSet(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
+  catch(e){ toast('Der Speicher ist voll, dieser Eintrag konnte nicht gespeichert werden'); return false; }
+}
+var settings = Object.assign({sound:true, mode:'mic'}, lsGet(LS_KEYS.settings, {}));
+function saveSettings(){ lsSet(LS_KEYS.settings, settings); }
+
+/* ---------- Sound ---------- */
+var AC = null;
+function audioCtx(){
+  if(!settings.sound) return null;
+  var act = navigator.userActivation;
+  if(act && !act.hasBeenActive) return null;
+  if(!AC){
+    try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  if(AC.state === 'suspended'){ AC.resume().catch(function(){}); }
+  return AC;
+}
+function tone(freq, dur, type, gain, delay){
+  var ctx = audioCtx(); if(!ctx) return;
+  var t0 = ctx.currentTime + (delay||0);
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(gain==null?0.1:gain, t0+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t0); o.stop(t0+dur+0.03);
+}
+var sfx = {
+  tap:    function(){ tone(660,0.05,'sine',0.05); },
+  mark:   function(){ tone(280,0.14,'triangle',0.11); tone(220,0.1,'sine',0.06,0.1); },
+  start:  function(){ tone(520,0.1,'sine',0.09); tone(740,0.12,'sine',0.09,0.11); },
+  page:   function(){ tone(880,0.08,'sine',0.07); tone(1100,0.1,'sine',0.055,0.08); },
+  finish: function(){ [523,659,784,1046].forEach(function(f,i){ tone(f,0.2,'sine',0.1,i*0.13); }); },
+  badge:  function(){ [659,784,988,1319].forEach(function(f,i){ tone(f,0.22,'triangle',0.1,i*0.12); }); }
+};
+
+/* ---------- Toast ---------- */
+var toastTimer = null;
+function toast(msg){
+  var el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2400);
+}
+
+/* ---------- Badges ---------- */
+var BADGES = [
+  {id:'first',   name:'Erstes Buch',    icon:'i-book',   desc:'Die erste Geschichte fertig gelesen'},
+  {id:'perfect', name:'Ohne Fehler',    icon:'i-star',   desc:'Eine Geschichte ohne ein falsches Wort'},
+  {id:'acc95',   name:'Scharfschütze',  icon:'i-target', desc:'95 % Genauigkeit in einer Geschichte'},
+  {id:'acc90',   name:'Ganz sicher',    icon:'i-check',  desc:'90 % Genauigkeit in einer Geschichte'},
+  {id:'day3',    name:'Drei Tage',      icon:'i-cal',    desc:'An drei Tagen hintereinander gelesen'},
+  {id:'day7',    name:'Eine Woche',     icon:'i-medal',  desc:'An sieben Tagen hintereinander gelesen'},
+  {id:'streak5', name:'Fünfmal gut',    icon:'i-star',   desc:'Fünf Geschichten nacheinander über 85 %'},
+  {id:'read10',  name:'Zehn Stück',     icon:'i-stack',  desc:'Zehn Geschichten fertig gelesen'},
+  {id:'read30',  name:'Dreißig Stück',  icon:'i-stack',  desc:'Dreißig Geschichten fertig gelesen'},
+  {id:'mc10',    name:'Blockforscher',  icon:'i-gem',    desc:'Zehn Minecraft-Geschichten fertig'},
+  {id:'tech5',   name:'Kleiner Techniker', icon:'i-gear', desc:'Fünf Technik-Geschichten fertig'},
+  {id:'readall', name:'Volles Regal',   icon:'i-crown',  desc:'Alle Geschichten fertig gelesen'}
+];
+
+function dayNum(ts){ var d = new Date(ts); d.setHours(0,0,0,0); return +d; }
+function longestStreak(readings){
+  var days = [];
+  readings.forEach(function(r){ var n = dayNum(r.ts); if(days.indexOf(n) < 0) days.push(n); });
+  days.sort(function(a,b){ return a-b; });
+  var best = days.length ? 1 : 0, cur = 1;
+  for(var i=1;i<days.length;i++){
+    if(days[i]-days[i-1] === 86400000){ cur++; } else { cur = 1; }
+    if(cur > best) best = cur;
+  }
+  return best;
+}
+var BADGE_RULES = {
+  first:   function(rs){ return rs.length >= 1; },
+  perfect: function(rs){ return rs.some(function(r){ return r.wrong === 0 && r.right > 0; }); },
+  acc95:   function(rs){ return rs.some(function(r){ return r.acc >= 0.95; }); },
+  acc90:   function(rs){ return rs.some(function(r){ return r.acc >= 0.90; }); },
+  day3:    function(rs){ return longestStreak(rs) >= 3; },
+  day7:    function(rs){ return longestStreak(rs) >= 7; },
+  streak5: function(rs){
+    if(rs.length < 5) return false;
+    var last5 = rs.slice().sort(function(a,b){ return b.ts-a.ts; }).slice(0,5);
+    return last5.every(function(r){ return r.acc >= 0.85; });
+  },
+  read10:  function(rs){ return uniqueStories(rs) >= 10; },
+  read30:  function(rs){ return uniqueStories(rs) >= 30; },
+  mc10:    function(rs){ return ruleUnique(rs,'Minecraft') >= 10; },
+  tech5:   function(rs){ return ruleUnique(rs,'Technik') >= 5; },
+  readall: function(rs){ return uniqueStories(rs) >= STORIES.length; }
+};
+function uniqueStories(rs){
+  var set = {};
+  rs.forEach(function(r){ set[r.storyId] = 1; });
+  return Object.keys(set).length;
+}
+function ruleUnique(rs, tag){
+  var set = {};
+  rs.forEach(function(r){ if(r.tag === tag) set[r.storyId] = 1; });
+  return Object.keys(set).length;
+}
+function syncBadges(readings, quiet){
+  var earned = lsGet(LS_KEYS.badges, {});
+  var fresh = [];
+  BADGES.forEach(function(b){
+    if(earned[b.id]) return;
+    if(BADGE_RULES[b.id] && BADGE_RULES[b.id](readings)){
+      earned[b.id] = Date.now();
+      fresh.push(b);
+    }
+  });
+  if(fresh.length){
+    lsSet(LS_KEYS.badges, earned);
+    if(!quiet) fresh.forEach(function(b,i){ setTimeout(function(){ showBadgePop(b); }, i*600); });
+  }
+  return fresh;
+}
+function showBadgePop(b){
+  sfx.badge();
+  var el = document.createElement('div');
+  el.className = 'badge-pop';
+  el.innerHTML = '<div class="disc"><svg viewBox="0 0 24 24" width="22" height="22" style="color:var(--gold)"><use href="#'+b.icon+'" xlink:href="#'+b.icon+'"/></svg></div>'+
+                 '<div><b>Abzeichen erhalten: '+esc(b.name)+'</b><span>'+esc(b.desc)+'</span></div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(function(){ el.classList.add('show'); });
+  setTimeout(function(){
+    el.classList.remove('show');
+    setTimeout(function(){ el.remove(); }, 400);
+  }, 3200);
+}
+
+/* ---------- Stats ---------- */
+function statsOf(readings){
+  var byStory = {};
+  readings.slice().sort(function(a,b){ return a.ts - b.ts; }).forEach(function(r){
+    if(!r.storyId) return;
+    if(!byStory[r.storyId]) byStory[r.storyId] = [];
+    byStory[r.storyId].push(r);
+  });
+  var firstSum = 0, firstN = 0, revSum = 0, revN = 0;
+  Object.keys(byStory).forEach(function(id){
+    var rs = byStory[id];
+    if(rs[0] && rs[0].acc != null){ firstSum += rs[0].acc; firstN++; }
+    if(rs.length >= 2){
+      var later = rs.slice(1).filter(function(r){ return r.acc != null; });
+      if(later.length){
+        var s = 0;
+        later.forEach(function(r){ s += r.acc; });
+        revSum += s / later.length;
+        revN++;
+      }
+    }
+  });
+  return {
+    first:  { acc: firstN ? firstSum / firstN : null, stories: firstN },
+    review: { acc: revN  ? revSum   / revN   : null, stories: revN }
+  };
+}
+function bestAccByStory(readings){
+  var map = {};
+  readings.forEach(function(r){
+    if(!map[r.storyId] || r.acc > map[r.storyId]) map[r.storyId] = r.acc;
+  });
+  return map;
+}
+
+/* ---------- Home screen ---------- */
+var WEEKDAY = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+var MONTH = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+var clockTimer = null;
+function tickClock(){
+  var d = new Date();
+  $('clkTime').textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  $('clkDate').textContent = WEEKDAY[d.getDay()] + ', ' + d.getDate() + '. ' + MONTH[d.getMonth()] + ' ' + d.getFullYear();
+}
+var currentTag = 'Alle';
+var tocPage = 0;
+var TOC_PER = 10;
+function renderHome(){
+  var readings = lsGet(LS_KEYS.readings, []).filter(function(r){ return r && r.ts; });
+  var st = statsOf(readings);
+
+  if($('clkTime')) tickClock();
+
+  var dEl = $('accDay'), dSub = $('accDaySub'), dBar = $('barDay');
+  if(st.first.acc == null){
+    dEl.textContent = 'Noch nicht'; dEl.classList.add('empty'); dSub.textContent = 'Lies die erste Geschichte, dann geht es los'; dBar.style.width = '0';
+  }else{
+    dEl.textContent = pct(st.first.acc); dEl.classList.remove('empty');
+    dSub.textContent = plural(st.first.stories,'Geschichte','Geschichten') + ' · Ø des ersten Versuchs';
+    dBar.style.width = pct(st.first.acc);
+  }
+  var wEl = $('accWeek'), wSub = $('accWeekSub'), wBar = $('barWeek');
+  if(st.review.acc == null){
+    wEl.textContent = 'Noch nicht'; wEl.classList.add('empty'); wSub.textContent = 'Erst beim zweiten Durchgang gibt es eine Wiederholung'; wBar.style.width = '0';
+  }else{
+    wEl.textContent = pct(st.review.acc); wEl.classList.remove('empty');
+    wSub.textContent = plural(st.review.stories,'Geschichte','Geschichten') + ' · Ø ab dem 2. Durchgang';
+    wBar.style.width = pct(st.review.acc);
+  }
+  $('readTotal').textContent = readings.length ? plural(readings.length,'Durchgang','Durchgänge') : 'Noch kein Vorlesen';
+
+  renderBadges();
+  renderToc(readings);
+}
+function renderBadges(){
+  var earned = lsGet(LS_KEYS.badges, {});
+  var box = $('badges');
+  var html = '';
+  BADGES.forEach(function(b){
+    var on = !!earned[b.id];
+    html += '<button class="badge '+(on?'on':'')+'" data-badge="'+b.id+'" aria-label="'+esc(b.name)+'">'+
+              '<span class="disc"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#'+b.icon+'" xlink:href="#'+b.icon+'"/></svg></span>'+
+              '<span class="nm">'+esc(b.name)+'</span></button>';
+  });
+  box.innerHTML = html;
+  var n = BADGES.filter(function(b){ return earned[b.id]; }).length;
+  $('badgeCount').textContent = n + ' / ' + BADGES.length;
+}
+function renderChips(){
+  var tags = ['Alle','Minecraft','Technik','Alltag','Natur'];
+  var html = '';
+  tags.forEach(function(t){
+    html += '<button class="chip '+(t===currentTag?'on':'')+'" data-tag="'+t+'">'+t+'</button>';
+  });
+  $('chips').innerHTML = html;
+}
+function renderToc(readings){
+  var best = bestAccByStory(readings || lsGet(LS_KEYS.readings, []));
+  var prog = lsGet(LS_KEYS.progress, {});
+  var list = STORIES.filter(function(s){ return currentTag === 'Alle' || s.tag === currentTag; });
+  var total = Math.max(1, Math.ceil(list.length / TOC_PER));
+  if(tocPage > total - 1) tocPage = total - 1;
+  if(tocPage < 0) tocPage = 0;
+  var from = tocPage * TOC_PER;
+  var slice = list.slice(from, from + TOC_PER);
+
+  var html = '';
+  slice.forEach(function(s, i){
+    var b = best[s.id];
+    var right = '';
+    if(prog[s.id]) right = '<b class="cont">Weiter</b><span>Seite '+(prog[s.id].page+1)+'</span>';
+    else if(b != null) right = '<b class="done">'+pct(b)+'</b><span>zuletzt</span>';
+    else right = '<b>Neu</b><span>&nbsp;</span>';
+    html += '<button class="toc-row" data-story="'+s.id+'">'+
+              '<span class="toc-num">'+pad2(from + i + 1)+'</span>'+
+              '<span class="toc-body"><span class="toc-name">'+esc(s.title)+'</span>'+
+              '<span class="toc-meta">'+esc(s.tag)+' · '+s.pages.length+' Seiten</span></span>'+
+              '<span class="toc-right">'+right+'</span></button>';
+  });
+  $('toc').innerHTML = html;
+
+  var pager = $('tocPager');
+  if(total <= 1){
+    pager.style.display = 'none';
+  }else{
+    pager.style.display = 'flex';
+    $('tocPrev').disabled = (tocPage === 0);
+    $('tocNext').disabled = (tocPage === total - 1);
+    $('tocInfo').innerHTML =
+      '<span>Seite ' + (tocPage + 1) + ' / ' + total + '</span>' +
+      '<span class="pager-range">(Nr. ' + (from + 1) + '–' + (from + slice.length) + ' von ' + list.length + ')</span>';
+  }
+  $('libHint').textContent = (currentTag === 'Alle')
+    ? plural(list.length,'Geschichte','Geschichten')
+    : (currentTag + ' · ' + plural(list.length,'Geschichte','Geschichten'));
+  $('libCount').textContent = STORIES.length;
+}
+/* ---------- Sound toggle / export ---------- */
+function refreshSoundBtn(){
+  var b = $('btnSound');
+  b.textContent = settings.sound ? 'Ton: an' : 'Ton: aus';
+  b.classList.toggle('on', settings.sound);
+}
+function exportCSV(){
+  var readings = lsGet(LS_KEYS.readings, []);
+  if(!readings.length){ toast('Noch keine Ergebnisse zum Exportieren. Lies zuerst eine Geschichte.'); return; }
+  var head = ['Datum','Zeit','Geschichte','Kategorie','Dauer (s)','Richtige Wörter','Falsche Wörter','Genauigkeit','Falsche Wörter (Liste)'];
+  var rows = [head];
+  readings.slice().sort(function(a,b){ return a.ts-b.ts; }).forEach(function(r){
+    var d = new Date(r.ts);
+    rows.push([
+      d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()),
+      pad2(d.getHours())+':'+pad2(d.getMinutes()),
+      r.title, r.tag||'', Math.round((r.sec||0)),
+      r.right, r.wrong, Math.round((r.acc||0)*100)+'%',
+      (r.wrongList||[]).map(function(w){ return w.c; }).join(' ')
+    ]);
+  });
+  var csv = rows.map(function(row){
+    return row.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+  var d = new Date();
+  var name = 'Leseergebnisse-'+d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'.csv';
+  try{
+    var blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1200);
+    toast('Exportiert: '+name);
+  }catch(e){
+    toast('Dieses Gerät erlaubt keinen direkten Download. Bitte über iTunes oder AirDrop sichern.');
+  }
+}
+
+/* Clear every recorded score, badge and unfinished reading. Settings (sound, mode) are kept. */
+function resetScores(){
+  var readings = lsGet(LS_KEYS.readings, []);
+  var badges = lsGet(LS_KEYS.badges, {});
+  var prog = lsGet(LS_KEYS.progress, {});
+  if(!readings.length && !Object.keys(badges).length && !Object.keys(prog).length){
+    toast('Es gibt noch keine Ergebnisse zum Löschen');
+    return;
+  }
+  var el = document.createElement('div');
+  el.className = 'scrim';
+  el.innerHTML = '<div class="sheet">'+
+      '<h3>Alle Ergebnisse löschen?</h3>'+
+      '<p class="lede">Gelöscht werden '+plural(readings.length,'Durchgang','Durchgänge')+', '+
+        plural(Object.keys(badges).length,'erhaltenes Abzeichen','erhaltene Abzeichen')+' und der Fortschritt nicht fertig gelesener Geschichten. '+
+        'Das lässt sich nicht rückgängig machen. Wenn du etwas behalten willst, tippe vorher auf „Ergebnisse exportieren“.</p>'+
+      '<div class="sheet-actions">'+
+        '<button class="secondary" id="rsCancel">Nicht löschen</button>'+
+        '<button class="danger-solid" id="rsOk">Alles löschen</button>'+
+      '</div>'+
+      '</div>';
+  $('overlay').innerHTML = '';
+  $('overlay').appendChild(el);
+  $('rsCancel').addEventListener('click', function(){ $('overlay').innerHTML = ''; });
+  $('rsOk').addEventListener('click', function(){
+    $('overlay').innerHTML = '';
+    lsSet(LS_KEYS.readings, []);
+    lsSet(LS_KEYS.badges, {});
+    lsSet(LS_KEYS.progress, {});
+    tocPage = 0;
+    renderHome();
+    toast('Ergebnisse gelöscht');
+  });
+}
+
+/* ---------- Reader ---------- */
+var R = null;
+var WORD_RE = /[A-Za-zÄÖÜäöüß0-9’']+/g;
+
+/* Split one page into word tokens and the gaps between them (spaces, punctuation). */
+function tokenizePage(text){
+  var tokens = [], last = 0, m;
+  WORD_RE.lastIndex = 0;
+  while((m = WORD_RE.exec(text))){
+    if(m.index > last) tokens.push({ c: text.slice(last, m.index), word: 0 });
+    tokens.push({ c: m[0], word: 1 });
+    last = m.index + m[0].length;
+  }
+  if(last < text.length) tokens.push({ c: text.slice(last), word: 0 });
+  return tokens;
+}
+function buildWords(story){
+  var out = [];
+  story.pages.forEach(function(pg, pi){
+    tokenizePage(pg).forEach(function(tk){
+      out.push({ c: tk.c, word: tk.word, page: pi, gi: out.length });
+    });
+  });
+  return out;
+}
+function storyById(id){
+  for(var i=0;i<STORIES.length;i++){ if(STORIES[i].id === id) return STORIES[i]; }
+  return null;
+}
+
+function openReader(id, resumeFlag){
+  var story = storyById(id);
+  if(!story){ toast('Diese Geschichte wurde nicht gefunden'); return; }
+  var prog = lsGet(LS_KEYS.progress, {})[id];
+  var resume = resumeFlag && prog;
+
+  R = {
+    story: story,
+    tokens: buildWords(story),
+    status: [],
+    page: 0,
+    mode: settings.mode === 'tap' ? 'tap' : 'mic',
+    listening: false,
+    finished: false,
+    heard: '',
+    prevHeard: '',
+    sess: '',
+    t0: performance.now(),
+    accMs: 0,
+    rec: null,
+    restartTimer: null,
+    startGuard: null,
+    dirty: false,
+    manual: {},
+    cursor: 0,
+    hypDone: 0,
+    finalHeard: '',
+    finalSess: ''
+  };
+  R.status = R.tokens.map(function(){ return 0; });
+
+  /* Word list for alignment (punctuation and spaces excluded) + first word index of each page */
+  R.src = []; R.pageStart = [];
+  var gi = 0, cnt = 0;
+  story.pages.forEach(function(pg, p){
+    R.pageStart[p] = cnt;
+    tokenizePage(pg).forEach(function(tk){
+      if(tk.word){ R.src.push({ c: tk.c.toLowerCase(), gi: gi }); cnt++; }
+      gi++;
+    });
+  });
+
+  if(resume && prog.status && prog.status.length === R.tokens.length){
+    R.status = prog.status.slice();
+    R.page = Math.min(prog.page||0, story.pages.length-1);
+    R.accMs = prog.elapsed || 0;
+    R.t0 = performance.now();
+    R.dirty = true;
+  }
+  R.cursor = R.pageStart[R.page] || 0;
+
+  $('view-home').classList.add('hidden');
+  $('view-read').classList.remove('hidden');
+  $('rdTitle').textContent = story.title;
+  $('rdSub').textContent = story.tag + ' · ' + story.pages.length + ' Seiten';
+  $('overlay').innerHTML = '';
+
+  renderPage();
+  syncModeUI();
+  updateTimerLabel();
+  updateAcc();
+  updatePager();
+  if(clockTimer){ clearInterval(clockTimer); clockTimer = null; }
+  R.accTimer = setInterval(function(){ updateTimerLabel(); }, 300);
+  if(resume && prog){ toast('Weiter auf Seite ' + (R.page+1)); }
+}
+
+function renderPage(){
+  if(!R) return;
+  var html = '';
+  var pageTokens = R.tokens.filter(function(tk){ return tk.page === R.page; });
+  for(var i=0;i<pageTokens.length;i++){
+    html += tokenHTML(pageTokens[i]);
+  }
+  $('pageText').innerHTML = html;
+  $('rdScroll').scrollTop = 0;
+}
+function tokenHTML(tk){
+  var st = R.status[tk.gi];
+  if(!tk.word) return '<span class="ch punct" id="c'+tk.gi+'">'+esc(tk.c)+'</span>';
+  var cls = 'ch word tap' + (st===2 ? ' bad' : st===1 ? ' ok' : '');
+  return '<span class="'+cls+'" id="c'+tk.gi+'">'+esc(tk.c)+'</span>';
+}
+function paintToken(gi){
+  var el = document.getElementById('c'+gi);
+  if(!el) return;
+  var wrap = document.createElement('span');
+  wrap.innerHTML = tokenHTML(R.tokens[gi]);
+  var next = wrap.firstChild;
+  el.parentNode.replaceChild(next, el);
+}
+function setStatus(gi, st){
+  if(!R) return;
+  if(R.status[gi] === st) return;
+  R.status[gi] = st;
+  R.dirty = true;
+  paintToken(gi);
+  updateAcc();
+  updateProgress();
+}
+function updateProgress(){
+  var read = 0, total = 0;
+  for(var i=0;i<R.tokens.length;i++){
+    if(!R.tokens[i].word) continue;
+    total++;
+    if(R.status[i]) read++;
+  }
+  if(!total) total = 1;
+  $('progLine').style.width = Math.min(100, Math.round(read/total*100)) + '%';
+}
+function counts(){
+  var r = 0, w = 0;
+  if(!R) return {r:0,w:0};
+  for(var i=0;i<R.tokens.length;i++){
+    if(!R.tokens[i].word) continue;
+    if(R.status[i] === 1) r++; else if(R.status[i] === 2) w++;
+  }
+  return {r:r, w:w};
+}
+function updateAcc(){
+  var c = counts();
+  var total = c.r + c.w;
+  $('rdAcc').textContent = total ? pct(c.r/total) : '—';
+}
+function elapsed(){
+  if(!R) return 0;
+  return R.accMs + (performance.now() - R.t0);
+}
+function updateTimerLabel(){ if(R) $('rdTimer').textContent = fmtClock(elapsed()); }
+function updatePager(){
+  var n = R.story.pages.length;
+  $('pageNum').textContent = (R.page+1) + ' / ' + n;
+  $('btnPrev').disabled = R.page === 0;
+  $('btnNext').textContent = (R.page === n-1) ? 'Fertig' : 'Weiter';
+  updateProgress();
+}
+
+/* ---- Page turn ---- */
+function goPage(delta){
+  var n = R.story.pages.length;
+  var next = R.page + delta;
+  if(next < 0 || next >= n) return;
+  R.page = next;
+  var ps = R.pageStart[R.page] || 0;
+  if(ps < R.cursor){
+    R.cursor = ps; R.hypDone = 0;
+    R.heard = ''; R.finalHeard = ''; R.prevHeard = ''; R.sess = ''; R.finalSess = '';
+  }
+  renderPage();
+  updatePager();
+  sfx.page();
+  saveProgress(true);
+}
+function saveProgress(silent){
+  if(!R || R.finished) return;
+  var c = counts();
+  if(c.r + c.w === 0 && R.page === 0) return;
+  var prog = lsGet(LS_KEYS.progress, {});
+  prog[R.story.id] = { page: R.page, status: R.status, elapsed: elapsed(), ts: Date.now() };
+  lsSet(LS_KEYS.progress, prog);
+  if(!silent) toast('Fortschritt gespeichert');
+}
+
+/* ---- Tap-to-mark ---- */
+var press = { gi: null, timer: null, long: false, x:0, y:0 };
+function attachTap(){
+  var box = $('pageText');
+
+  box.addEventListener('pointerdown', function(e){
+    var t = e.target.closest ? e.target.closest('.ch.tap') : null;
+    if(!t || !t.id) return;
+    press.gi = parseInt(t.id.slice(1), 10);
+    press.long = false;
+    press.x = e.clientX; press.y = e.clientY;
+    clearTimeout(press.timer);
+    press.timer = setTimeout(function(){
+      if(press.gi === null) return;
+      press.long = true;
+      R.manual[press.gi] = 1;
+      setStatus(press.gi, 2);
+      sfx.mark();
+    }, 560);
+  }, {passive:true});
+
+  box.addEventListener('pointermove', function(e){
+    if(press.gi === null || press.long) return;
+    if(Math.abs(e.clientX-press.x) > 12 || Math.abs(e.clientY-press.y) > 12){
+      clearTimeout(press.timer);
+      press.gi = null;
+    }
+  }, {passive:true});
+
+  box.addEventListener('pointerup', function(){ clearTimeout(press.timer); }, {passive:true});
+  box.addEventListener('pointercancel', function(){ clearTimeout(press.timer); press.gi = null; press.long = false; });
+
+  box.addEventListener('click', function(e){
+    var t = e.target.closest ? e.target.closest('.ch.tap') : null;
+    if(!t || !t.id) return;
+    if(press.long){ press.long = false; press.gi = null; return; }
+    var gi = parseInt(t.id.slice(1), 10);
+    var cur = R.status[gi];
+    R.manual[gi] = 1;
+    setStatus(gi, cur === 1 ? 0 : 1);
+    if(cur !== 1) sfx.tap();
+    press.gi = null;
+  });
+
+  box.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+}
+
+/* ---- Speech recognition ---- */
+function speechAvailable(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function setHint(text){ $('rdHint').textContent = text; }
+function syncModeUI(){
+  if(!R) return;
+  var mic = $('btnMic'), modeBtn = $('btnMode');
+  if(R.mode === 'tap'){
+    mic.classList.add('hidden');
+    modeBtn.textContent = 'Mitlesen';
+    modeBtn.style.flex = '1';
+    modeBtn.style.fontSize = '15px';
+    modeBtn.style.color = 'var(--ink)';
+    setHint('Tippe ein Wort an: richtig wird blau. Halte es gedrückt: falsch wird rot. Noch einmal tippen macht es rückgängig.');
+  }else{
+    mic.classList.remove('hidden');
+    modeBtn.style.flex = '0 0 auto';
+    modeBtn.style.fontSize = '13px';
+    modeBtn.style.color = 'var(--ink-soft)';
+    modeBtn.textContent = 'Tipp-Modus';
+    if(speechAvailable()){
+      setHint('Lies laut vor: richtig gelesene Wörter werden blau, falsche oder fehlende Wörter rot. Ein Wort lässt sich auch lange drücken.');
+    }else{
+      setHint('Der Browser dieses Geräts unterstützt keine Spracherkennung. Wechsle am besten in den Tipp-Modus.');
+    }
+    if(!R.listening) mic.textContent = 'Vorlesen starten';
+    else mic.textContent = 'Hört zu…';
+  }
+  mic.classList.toggle('on', !!R.listening);
+}
+
+async function ensureMicPermission(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return true;
+  try{
+    var stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(function(t){ t.stop(); });
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+async function startMic(){
+  if(!R || R.mode !== 'mic') return;
+  if(!speechAvailable()){
+    toast('Dieser Browser kann keine Sprache erkennen. Bitte nutze den Tipp-Modus.');
+    R.mode = 'tap'; settings.mode = 'tap'; saveSettings(); syncModeUI(); renderPage();
+    return;
+  }
+  var ok = await ensureMicPermission();
+  if(!ok){
+    toast('Kein Zugriff auf das Mikrofon. Bitte erlaube es in den Browser- oder Systemeinstellungen.');
+    return;
+  }
+  sfx.start();
+  R.listening = true;
+  if(!R.heard){ R.prevHeard = ''; R.sess = ''; R.heard = ''; }
+  newSession();
+  syncModeUI();
+}
+function newSession(){
+  if(!R || !R.listening) return;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = new SR();
+  rec.lang = 'de-DE';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  rec.onstart = function(){
+    clearTimeout(R.startGuard);
+    $('btnMic').textContent = 'Hört zu…';
+    $('btnMic').classList.add('on');
+  };
+  rec.onresult = function(ev){
+    var all = '', fin = '';
+    for(var i=0;i<ev.results.length;i++){
+      var item = ev.results[i];
+      var txt = item[0].transcript;
+      all += txt;
+      if(item.isFinal) fin += txt;
+    }
+    R.sess = all;
+    R.finalSess = fin;
+    R.heard = R.prevHeard + all;
+    R.finalHeard = R.prevHeard + fin;
+    scheduleAlign();
+  };
+  rec.onerror = function(ev){
+    var err = ev && ev.error;
+    if(err === 'not-allowed' || err === 'service-not-allowed'){
+      toast('Mikrofon abgelehnt: Bitte erlaube den Zugriff oder wechsle in den Tipp-Modus.');
+      stopMic(true);
+    }else if(err === 'network'){
+      toast('Die Spracherkennung braucht eine Internetverbindung. Prüfe das Netz.');
+    }else if(err === 'audio-capture'){
+      toast('Kein Mikrofon gefunden. Vielleicht benutzt es eine andere App.');
+    }
+  };
+  rec.onend = function(){
+    if(!R) return;
+    R.prevHeard = R.prevHeard + R.sess;
+    R.sess = '';
+    if(R.listening && !R.finished){
+      R.startGuard = setTimeout(function(){
+        if(R && R.listening){ setHint('Der Spracherkennung ist pausiert. Tippe auf „Weiterhören“, um weiterzulesen.'); $('btnMic').textContent = 'Weiterhören'; }
+      }, 2500);
+      setTimeout(function(){ if(R && R.listening && !R.finished) newSession(); }, 260);
+    }
+  };
+  R.rec = rec;
+  try{ rec.start(); }
+  catch(e){ toast('Die Spracherkennung ließ sich nicht starten. Tippe erneut auf „Vorlesen starten“.'); }
+}
+function stopMic(silent){
+  if(!R) return;
+  R.listening = false;
+  if(R.rec){ try{ R.rec.onend = null; R.rec.abort(); }catch(e){} R.rec = null; }
+  clearTimeout(R.startGuard);
+  syncModeUI();
+  if(!silent) toast('Pausiert');
+}
+/* ---- Speech/text alignment (word by word) ---- */
+var alignTimer = null;
+function scheduleAlign(){
+  if(alignTimer) return;
+  alignTimer = setTimeout(function(){ alignTimer = null; doAlign(); }, 160);
+}
+function doAlign(){
+  if(!R || !R.heard || !R.src) return;
+
+  /* The transcript is compared as a list of words, so one spoken word can only mark one word on the page */
+  var hre = /[A-Za-zÄÖÜäöüß0-9’']+/g;
+  var hypAll = [], m;
+  hre.lastIndex = 0;
+  while((m = hre.exec(R.heard))) hypAll.push(m[0].toLowerCase());
+  if(R.hypDone > hypAll.length) R.hypDone = 0;
+  if(hypAll.length - R.hypDone < 1) return;
+
+  /* Guard: a re-reported previous segment is not new reading */
+  var newLen = hypAll.length - R.hypDone;
+  if(newLen <= R.hypDone){
+    var np = hypAll.slice(R.hypDone).join('');
+    var pp = hypAll.slice(R.hypDone - newLen, R.hypDone).join('');
+    if(np === pp && newLen >= 2) return;
+  }
+
+  var n = R.src.length;
+  var start = Math.max(0, Math.min(R.cursor || 0, n));
+  if(start >= n) return;
+
+  /* Align only ahead of the current position, so identical words later on are never marked as read */
+  var WIN = 120;                                    // words considered in one pass
+  var end = Math.min(n, start + WIN);
+  var hyp = hypAll.slice(R.hypDone);
+  var ns = end - start, mm = hyp.length;
+  if(ns * mm > 400000) return;
+
+  var w = mm + 1;
+  var INF = 999999;
+  var B = 12;                                       // band: allows the reader to drift by up to 12 words
+  var dp = new Int32Array((ns + 1) * w);
+  for(var z=0;z<dp.length;z++) dp[z] = INF;
+  dp[0] = 0;
+  for(var a=1;a<=ns && a<=B;a++) dp[a*w] = a * 3;   // skipping words at the start costs more
+  for(var b=1;b<=mm && b<=B;b++) dp[b] = b;
+  for(var ia=1;ia<=ns;ia++){
+    var sc = R.src[start + ia - 1].c;
+    var lo = ia - B; if(lo < 1) lo = 1;
+    var hi = ia + B; if(hi > mm) hi = mm;
+    for(var ib=lo;ib<=hi;ib++){
+      var cost = (sc === hyp[ib-1]) ? 0 : 1;
+      var d1 = dp[(ia-1)*w + (ib-1)] + cost;
+      var d2 = dp[(ia-1)*w + ib] + 1;
+      var d3 = dp[ia*w + (ib-1)] + 1;
+      dp[ia*w+ib] = Math.min(d1, Math.min(d2, d3));
+    }
+  }
+
+  var bestX = -1, bestV = INF;
+  var xlo = mm - B; if(xlo < 0) xlo = 0;
+  var xhi = mm + B; if(xhi > ns) xhi = ns;
+  for(var bx=xlo;bx<=xhi;bx++){
+    var v = dp[bx*w + mm];
+    if(v < bestV){ bestV = v; bestX = bx; }
+  }
+  if(bestX < 0 || bestV >= INF){
+    bestX = Math.min(ns, mm); if(bestX < 0) bestX = 0;
+  }
+  var ops = [];
+  var x = bestX, y = mm;
+  while(x > 0 || y > 0){
+    if(y === 0){
+      if(dp[x*w] >= INF) break;
+      ops.push({ t:'d', si:start + x - 1 }); x--; continue;
+    }
+    var cur = dp[x*w+y];
+    var same = (x > 0 && R.src[start+x-1].c === hyp[y-1]);
+    if(x > 0 && cur === dp[(x-1)*w + (y-1)] + (same ? 0 : 1)){
+      ops.push({ t: same ? 'm' : 's', si: start + x - 1 });
+      x--; y--;
+    }else if(cur === dp[x*w + (y-1)] + 1){
+      ops.push({ t:'i' });
+      y--;
+    }else if(x > 0 && cur === dp[(x-1)*w + y] + 1){
+      ops.push({ t:'d', si: start + x - 1 });
+      x--;
+    }else{
+      break;
+    }
+  }
+  ops.reverse();
+
+  /* Only final results move the progress forward */
+  var finalCount = 0;
+  if(R.finalHeard){
+    var fre = /[A-Za-zÄÖÜäöüß0-9’']+/g, fm;
+    fre.lastIndex = 0;
+    while((fm = fre.exec(R.finalHeard))) finalCount++;
+  }
+
+  var st = R.status.slice();
+  var run = [];
+  var hypPos = R.hypDone;
+  var lastFinalSrc = start - 1;
+  function flushRun(nextIsMatch){
+    if(run.length && nextIsMatch && run.length <= 2){
+      run.forEach(function(si){ st[R.src[si].gi] = 2; });
+    }
+    run = [];
+  }
+  for(var k=0;k<ops.length;k++){
+    var op = ops[k], pos = hypPos;
+    if(op.t === 'm'){
+      flushRun(true); st[R.src[op.si].gi] = 1; hypPos++;
+      if(pos <= finalCount) lastFinalSrc = Math.max(lastFinalSrc, op.si);
+    }else if(op.t === 's'){
+      flushRun(true); st[R.src[op.si].gi] = 2; hypPos++;
+      if(pos <= finalCount) lastFinalSrc = Math.max(lastFinalSrc, op.si);
+    }else if(op.t === 'd'){
+      run.push(op.si);
+    }else{
+      flushRun(false); hypPos++;
+    }
+  }
+  flushRun(false);
+
+  /* Words corrected by hand survive every speech update */
+  for(var mg in R.manual){
+    if(R.manual.hasOwnProperty(mg)) st[Number(mg)] = R.status[Number(mg)];
+  }
+
+  var changed = [];
+  for(var q=0;q<st.length;q++){
+    if(st[q] !== R.status[q]){ R.status[q] = st[q]; changed.push(q); }
+  }
+  if(changed.length){
+    R.dirty = true;
+    changed.forEach(function(gi){
+      if(R.tokens[gi].page === R.page){ paintToken(gi); }
+    });
+    updateAcc();
+    updateProgress();
+  }
+
+  if(lastFinalSrc >= start){
+    R.cursor = Math.max(R.cursor, lastFinalSrc + 1);
+    R.hypDone = Math.max(R.hypDone, finalCount);
+  }
+}
+
+/* ---- Finish ---- */
+function finishReading(){
+  if(!R || R.finished) return;
+  var c = counts();
+  if(c.r + c.w === 0){ toast('Noch kein Wort gelesen. Lies laut vor oder wechsle in den Tipp-Modus.'); return; }
+  R.finished = true;
+  stopMic(true);
+  clearInterval(R.accTimer);
+
+  var sec = Math.round(elapsed()/1000);
+  var acc = c.r/(c.r+c.w);
+  var wrongMap = {}, wrongList = [];
+  R.tokens.forEach(function(tk){
+    if(tk.word && R.status[tk.gi] === 2 && !wrongMap[tk.c.toLowerCase()]){
+      wrongMap[tk.c.toLowerCase()] = 1;
+      wrongList.push({ c: tk.c });
+    }
+  });
+
+  var record = {
+    id: String(Date.now()),
+    storyId: R.story.id,
+    title: R.story.title,
+    tag: R.story.tag,
+    ts: Date.now(),
+    sec: sec,
+    right: c.r,
+    wrong: c.w,
+    total: c.r + c.w,
+    acc: acc,
+    wrongList: wrongList.slice(0, 24)
+  };
+  var readings = lsGet(LS_KEYS.readings, []);
+  readings.push(record);
+  if(!lsSet(LS_KEYS.readings, readings)){
+    toast('Speichern fehlgeschlagen – vielleicht ist der Gerätespeicher voll.');
+  }
+
+  var prog = lsGet(LS_KEYS.progress, {});
+  delete prog[R.story.id];
+  lsSet(LS_KEYS.progress, prog);
+
+  sfx.finish();
+  syncBadges(readings, false);
+  showSummary(record);
+  renderHome();
+}
+function showSummary(record){
+  var wrongHTML = record.wrongList.length
+    ? record.wrongList.map(function(w){
+        return '<span class="wrong-item"><span>'+esc(w.c)+'</span></span>';
+      }).join('')
+    : '<span class="none">Kein einziges falsches Wort</span>';
+
+  var el = document.createElement('div');
+  el.className = 'scrim';
+  el.innerHTML = '<div class="sheet">'+
+      '<h3>Fertig gelesen</h3>'+
+      '<p class="lede">'+esc(record.title)+'</p>'+
+      '<div class="big-acc">'+pct(record.acc)+'<small>Genauigkeit</small></div>'+
+      '<div class="sum-row">'+
+        '<div class="sum-cell"><i>Zeit</i><b>'+fmtClock(record.sec*1000)+'</b></div>'+
+        '<div class="sum-cell"><i>richtig</i><b>'+plural(record.right,'Wort','Wörter')+'</b></div>'+
+        '<div class="sum-cell"><i>falsch</i><b>'+plural(record.wrong,'Wort','Wörter')+'</b></div>'+
+      '</div>'+
+      '<div class="wrong-title">Diese Wörter waren falsch – lies sie morgen noch einmal</div>'+
+      '<div class="wrong-list">'+wrongHTML+'</div>'+
+      '<div class="sheet-actions">'+
+        '<button class="secondary" id="sumHome">Zum Regal</button>'+
+        '<button class="primary" id="sumAgain">Erneut lesen</button>'+
+      '</div></div>';
+  $('overlay').innerHTML = '';
+  $('overlay').appendChild(el);
+
+  $('sumHome').addEventListener('click', function(){ goHome(); });
+  $('sumAgain').addEventListener('click', function(){
+    $('overlay').innerHTML = '';
+    resetReading();
+  });
+}
+function resetReading(){
+  if(!R) return;
+  R.status = R.tokens.map(function(){ return 0; });
+  R.manual = {};
+  R.cursor = 0; R.hypDone = 0;
+  R.heard = ''; R.finalHeard = ''; R.prevHeard = ''; R.sess = ''; R.finalSess = '';
+  R.page = 0;
+  R.finished = false;
+  R.accMs = 0; R.t0 = performance.now();
+  renderPage(); updatePager(); updateAcc(); updateTimerLabel();
+  clearInterval(R.accTimer);
+  R.accTimer = setInterval(function(){ updateTimerLabel(); }, 300);
+}
+
+/* ---- Exit ---- */
+function requestExit(){
+  if(!R) return goHome();
+  var c = counts();
+  if(R.finished || (c.r + c.w) === 0){ return goHome(); }
+  var el = document.createElement('div');
+  el.className = 'scrim';
+  el.innerHTML = '<div class="sheet">'+
+      '<h3>Diese Geschichte ist noch nicht fertig</h3>'+
+      '<p class="lede">Du bist auf Seite '+(R.page+1)+'. Fortschritt speichern?</p>'+
+      '<div class="sheet-actions">'+
+        '<button class="secondary" id="exDiscard">Nicht speichern</button>'+
+        '<button class="primary" id="exSave">Speichern und beenden</button>'+
+      '</div>'+
+      '<div style="margin-top:10px"><button class="secondary" id="exStay" style="width:100%;padding:12px;border-radius:10px;font-size:14px">Weiterlesen</button></div>'+
+      '</div>';
+  $('overlay').innerHTML = '';
+  $('overlay').appendChild(el);
+  $('exStay').addEventListener('click', function(){ $('overlay').innerHTML = ''; });
+  $('exSave').addEventListener('click', function(){
+    saveProgress(true);
+    $('overlay').innerHTML = '';
+    toast('Gespeichert, du kannst später weiterlesen');
+    goHome();
+  });
+  $('exDiscard').addEventListener('click', function(){
+    var prog = lsGet(LS_KEYS.progress, {});
+    delete prog[R.story.id];
+    lsSet(LS_KEYS.progress, prog);
+    $('overlay').innerHTML = '';
+    goHome();
+  });
+}
+function goHome(){
+  if(R){
+    stopMic(true);
+    clearInterval(R.accTimer);
+    R = null;
+  }
+  clearTimeout(alignTimer); alignTimer = null;
+  $('overlay').innerHTML = '';
+  $('view-read').classList.add('hidden');
+  $('view-home').classList.remove('hidden');
+  if(location.hash && location.hash !== '#/'){ history.replaceState(null,'','#/'); }
+  renderHome();
+  if(clockTimer) clearInterval(clockTimer);
+  clockTimer = setInterval(tickClock, 30000);
+  window.scrollTo(0,0);
+}
+
+/* ---------- Boot ---------- */
+function boot(){
+  renderChips();
+  refreshSoundBtn();
+  renderHome();
+  attachTap();
+  clockTimer = setInterval(tickClock, 30000);
+  tickClock();
+
+  $('btnLang').addEventListener('click', function(){ location.href = 'ReadBuddy_cn.html'; });
+
+  $('chips').addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(!chip) return;
+    currentTag = chip.dataset.tag;
+    tocPage = 0;
+    renderChips();
+    renderToc(lsGet(LS_KEYS.readings, []));
+  });
+  $('tocPrev').addEventListener('click', function(){
+    if(tocPage > 0){ tocPage--; renderToc(lsGet(LS_KEYS.readings, [])); sfx.page(); }
+  });
+  $('tocNext').addEventListener('click', function(){
+    tocPage++; renderToc(lsGet(LS_KEYS.readings, [])); sfx.page();
+  });
+  $('toc').addEventListener('click', function(e){
+    var row = e.target.closest('.toc-row');
+    if(!row) return;
+    var id = row.dataset.story;
+    var prog = lsGet(LS_KEYS.progress, {})[id];
+    openReader(id, !!prog);
+  });
+  $('badges').addEventListener('click', function(e){
+    var b = e.target.closest('.badge');
+    if(!b) return;
+    var id = b.dataset.badge;
+    var def = BADGES.filter(function(x){ return x.id === id; })[0];
+    var earned = lsGet(LS_KEYS.badges, {});
+    if(!def) return;
+    toast(earned[id] ? ('Schon erhalten: '+def.name+'. '+def.desc) : ('Noch nicht: '+def.name+'. '+def.desc));
+  });
+  $('btnExport').addEventListener('click', exportCSV);
+  $('btnReset').addEventListener('click', resetScores);
+  $('btnSound').addEventListener('click', function(){
+    settings.sound = !settings.sound;
+    saveSettings();
+    refreshSoundBtn();
+    if(settings.sound){ audioCtx(); sfx.tap(); }
+    toast(settings.sound ? 'Ton ist an' : 'Ton ist aus');
+  });
+
+  $('btnBack').addEventListener('click', requestExit);
+  $('btnPrev').addEventListener('click', function(){ goPage(-1); });
+  $('btnNext').addEventListener('click', function(){
+    if(!R) return;
+    if(R.page === R.story.pages.length-1){ finishReading(); }
+    else goPage(1);
+  });
+  $('btnMic').addEventListener('click', function(){
+    if(!R) return;
+    if(R.listening){ stopMic(); }
+    else { startMic(); }
+  });
+  $('btnMode').addEventListener('click', function(){
+    if(!R) return;
+    if(R.mode === 'mic'){
+      R.mode = 'tap';
+      if(R.listening) stopMic(true);
+      setHint('Tippe ein Wort an: richtig wird blau. Halte es gedrückt: falsch wird rot. Noch einmal tippen macht es rückgängig.');
+    }else{
+      R.mode = 'mic';
+      R.prevHeard = R.heard || '';
+    }
+    settings.mode = R.mode; saveSettings();
+    renderPage(); syncModeUI();
+    toast(R.mode === 'mic' ? 'Mitlesen: tippe auf „Vorlesen starten“' : 'Tipp-Modus: Wörter mit dem Finger antippen');
+  });
+
+  window.addEventListener('beforeunload', function(){
+    if(R && !R.finished){
+      var c = counts();
+      var prog = lsGet(LS_KEYS.progress, {});
+      if(c.r + c.w === 0 && R.page === 0) delete prog[R.story.id];
+      else prog[R.story.id] = { page:R.page, status:R.status, elapsed:elapsed(), ts:Date.now() };
+      lsSet(LS_KEYS.progress, prog);
+    }
+  });
+}
+
+if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', boot); }
+else { boot(); }
+})();
+
+/* Offline cache for the hosted build; skipped on file://, where workers cannot register. */
+if('serviceWorker' in navigator && (/^https?:$/.test(location.protocol))){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
